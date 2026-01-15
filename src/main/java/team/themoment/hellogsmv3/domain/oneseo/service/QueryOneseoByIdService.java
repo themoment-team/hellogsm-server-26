@@ -42,7 +42,9 @@ public class QueryOneseoByIdService {
         MiddleSchoolAchievementResDto middleSchoolAchievementResDto = buildMiddleSchoolAchievementResDto(
                 middleSchoolAchievement);
 
-        return buildFoundOneseoResDto(oneseo, oneseoPrivacyDetailResDto, middleSchoolAchievementResDto,
+        return buildFoundOneseoResDto(oneseo,
+                oneseoPrivacyDetailResDto,
+                middleSchoolAchievementResDto,
                 calculatedScoreResDto);
     }
 
@@ -112,8 +114,10 @@ public class QueryOneseoByIdService {
                 .gedAvgScore(middleSchoolAchievement.getGedAvgScore()).build();
     }
 
-    private FoundOneseoResDto buildFoundOneseoResDto(Oneseo oneseo, OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto,
-            MiddleSchoolAchievementResDto middleSchoolAchievementResDto, CalculatedScoreResDto calculatedScoreResDto) {
+    private FoundOneseoResDto buildFoundOneseoResDto(Oneseo oneseo,
+            OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto,
+            MiddleSchoolAchievementResDto middleSchoolAchievementResDto,
+            CalculatedScoreResDto calculatedScoreResDto) {
         DesiredMajors desiredMajors = oneseo.getDesiredMajors();
 
         return FoundOneseoResDto.builder().oneseoId(oneseo.getId()).submitCode(oneseo.getOneseoSubmitCode())

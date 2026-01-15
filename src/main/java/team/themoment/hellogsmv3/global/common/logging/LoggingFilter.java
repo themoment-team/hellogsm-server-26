@@ -107,27 +107,41 @@ public class LoggingFilter extends OncePerRequestFilter {
     private void requestLogging(HttpServletRequest request, UUID logId, byte[] cachedBody) {
         log.info(
                 "Log-ID: {}, IP: {}, URI: {}, Http-Method: {}, Params: {}, Content-Type: {}, User-Cookies: {}, User-Agent: {}, Request-Body: {}",
-                logId, request.getRemoteAddr(), request.getRequestURI(), request.getMethod(), request.getQueryString(),
+                logId,
+                request.getRemoteAddr(),
+                request.getRequestURI(),
+                request.getMethod(),
+                request.getQueryString(),
                 request.getContentType(),
                 request.getCookies() != null ? String.join(", ", getCookiesAsString(request.getCookies())) : "[none]",
-                request.getHeader("User-Agent"), getRequestBody(cachedBody));
+                request.getHeader("User-Agent"),
+                getRequestBody(cachedBody));
     }
 
     private void requestLoggingMultipart(HttpServletRequest request, UUID logId) {
         String contentLength = request.getHeader("Content-Length");
         log.info(
                 "Log-ID: {}, IP: {}, URI: {}, Http-Method: {}, Params: {}, Content-Type: {}, Content-Length: {}, User-Cookies: {}, User-Agent: {}, Request-Body: {}",
-                logId, request.getRemoteAddr(), request.getRequestURI(), request.getMethod(), request.getQueryString(),
-                request.getContentType(), contentLength != null ? contentLength : "[unknown]",
+                logId,
+                request.getRemoteAddr(),
+                request.getRequestURI(),
+                request.getMethod(),
+                request.getQueryString(),
+                request.getContentType(),
+                contentLength != null ? contentLength : "[unknown]",
                 request.getCookies() != null ? String.join(", ", getCookiesAsString(request.getCookies())) : "[none]",
-                request.getHeader("User-Agent"), "[multipart omitted]");
+                request.getHeader("User-Agent"),
+                "[multipart omitted]");
     }
 
     private void responseLogging(ContentCachingResponseWrapper response, long startTime, UUID logId) {
         long endTime = System.currentTimeMillis();
         long responseTime = endTime - startTime;
-        log.info("Log-ID: {}, Status-Code: {}, Content-Type: {}, Response Time: {}ms, Response-Body: {}", logId,
-                response.getStatus(), response.getContentType(), responseTime,
+        log.info("Log-ID: {}, Status-Code: {}, Content-Type: {}, Response Time: {}ms, Response-Body: {}",
+                logId,
+                response.getStatus(),
+                response.getContentType(),
+                responseTime,
                 new String(response.getContentAsByteArray(), StandardCharsets.UTF_8));
     }
 

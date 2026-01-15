@@ -68,7 +68,9 @@ public class UploadExcelService {
                 continue;
 
             String examinationNumber = readTextCell(row, CellIndex.EXAMINATION_NUMBER, i, evaluator);
-            BigDecimal competencyEvaluationScore = readScoreCell(row, CellIndex.COMPETENCY_EVALUATION_SCORE, i,
+            BigDecimal competencyEvaluationScore = readScoreCell(row,
+                    CellIndex.COMPETENCY_EVALUATION_SCORE,
+                    i,
                     evaluator);
             BigDecimal interviewScore = readScoreCell(row, CellIndex.INTERVIEW_SCORE, i, evaluator);
 

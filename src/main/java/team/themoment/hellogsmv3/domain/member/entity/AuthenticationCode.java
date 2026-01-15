@@ -34,8 +34,12 @@ public class AuthenticationCode {
         return this;
     }
 
-    public AuthenticationCode(Long memberId, String code, String phoneNumber, LocalDateTime createdAt,
-            AuthCodeType authCodeType, boolean isTest) {
+    public AuthenticationCode(Long memberId,
+            String code,
+            String phoneNumber,
+            LocalDateTime createdAt,
+            AuthCodeType authCodeType,
+            boolean isTest) {
         this.memberId = memberId;
         this.code = code;
         this.authenticated = false;

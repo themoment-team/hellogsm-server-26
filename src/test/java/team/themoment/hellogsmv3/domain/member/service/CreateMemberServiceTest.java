@@ -60,7 +60,10 @@ class CreateMemberServiceTest {
     class Describe_execute {
 
         private final Long memberId = 1L;
-        private final CreateMemberReqDto reqDto = new CreateMemberReqDto("validCode", "최장우", "01012345678", Sex.MALE,
+        private final CreateMemberReqDto reqDto = new CreateMemberReqDto("validCode",
+                "최장우",
+                "01012345678",
+                Sex.MALE,
                 LocalDate.of(2006, 3, 6));
 
         @Nested
@@ -79,8 +82,8 @@ class CreateMemberServiceTest {
                         .willReturn(LocalDateTime.of(9999, Month.OCTOBER, 10, 10, 10));
                 given(memberRepository.findByPhoneNumber(reqDto.phoneNumber())).willReturn(Optional.empty());
                 given(entranceTestResultRepository.existsByFirstTestPassYnIsNotNull()).willReturn(false);
-                willDoNothing().given(commonCodeService).validateAndDelete(memberId, reqDto.code(),
-                        reqDto.phoneNumber(), SIGNUP);
+                willDoNothing().given(commonCodeService)
+                        .validateAndDelete(memberId, reqDto.code(), reqDto.phoneNumber(), SIGNUP);
             }
 
             @Test

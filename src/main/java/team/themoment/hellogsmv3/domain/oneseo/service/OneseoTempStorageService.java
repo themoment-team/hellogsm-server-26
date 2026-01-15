@@ -82,7 +82,8 @@ public class OneseoTempStorageService {
 
     private FoundOneseoResDto buildFoundOneseoResDto(OneseoTempReqDto reqDto,
             OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto,
-            MiddleSchoolAchievementResDto middleSchoolAchievementResDto, Integer step) {
+            MiddleSchoolAchievementResDto middleSchoolAchievementResDto,
+            Integer step) {
 
         return FoundOneseoResDto.builder().oneseoId(null).submitCode(null).wantedScreening(reqDto.screening())
                 .desiredMajors(DesiredMajorsResDto.builder().firstDesiredMajor(reqDto.firstDesiredMajor())

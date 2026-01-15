@@ -26,7 +26,10 @@ public interface CustomOneseoRepository {
     Integer findMaxSubmitCodeByScreening(ScreeningCategory screeningCategory);
 
     Page<SearchOneseoResDto> findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(String keyword,
-            ScreeningCategory screening, YesNo isSubmitted, TestResultTag testResultTag, Pageable pageable);
+            ScreeningCategory screening,
+            YesNo isSubmitted,
+            TestResultTag testResultTag,
+            Pageable pageable);
 
     List<AdmissionTicketsResDto> findAdmissionTickets();
 

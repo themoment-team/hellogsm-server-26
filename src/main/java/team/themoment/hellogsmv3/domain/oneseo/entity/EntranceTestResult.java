@@ -58,7 +58,8 @@ public class EntranceTestResult {
         this.documentEvaluationScore = documentEvaluationScore;
     }
 
-    public EntranceTestResult(Oneseo oneseo, EntranceTestFactorsDetail entranceTestFactorsDetail,
+    public EntranceTestResult(Oneseo oneseo,
+            EntranceTestFactorsDetail entranceTestFactorsDetail,
             BigDecimal documentEvaluationScore) {
         this.oneseo = oneseo;
         this.entranceTestFactorsDetail = entranceTestFactorsDetail;

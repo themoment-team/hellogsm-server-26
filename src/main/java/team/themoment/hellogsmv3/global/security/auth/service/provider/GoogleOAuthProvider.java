@@ -66,9 +66,15 @@ public class GoogleOAuthProvider implements OAuthProvider {
 
     private GoogleTokenResDto exchangeCodeForToken(String code, ClientRegistration clientRegistration) {
         try {
-            Map<String, String> params = Map.of("grant_type", clientRegistration.getAuthorizationGrantType().getValue(),
-                    "client_id", clientRegistration.getClientId(), "client_secret",
-                    clientRegistration.getClientSecret(), "code", code, "redirect_uri",
+            Map<String, String> params = Map.of("grant_type",
+                    clientRegistration.getAuthorizationGrantType().getValue(),
+                    "client_id",
+                    clientRegistration.getClientId(),
+                    "client_secret",
+                    clientRegistration.getClientSecret(),
+                    "code",
+                    code,
+                    "redirect_uri",
                     clientRegistration.getRedirectUri());
             return googleOAuth2Client.exchangeCodeForToken(params);
         } catch (Exception e) {
