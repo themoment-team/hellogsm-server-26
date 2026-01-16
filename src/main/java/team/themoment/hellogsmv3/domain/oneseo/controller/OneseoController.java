@@ -89,7 +89,8 @@ public class OneseoController {
 
     @Operation(summary = "원서 검색", description = "조건을 파라미터로 받아 원서를 검색합니다.")
     @GetMapping("/oneseo/search")
-    public SearchOneseosResDto search(@RequestParam("page") Integer page, @RequestParam("size") Integer size,
+    public SearchOneseosResDto search(@RequestParam("page") Integer page,
+            @RequestParam("size") Integer size,
             @Schema(description = "합격, 불합격 여부", defaultValue = "ALL", allowableValues = {"ALL", "FIRST_PASS",
                     "FINAL_PASS", "FALL"}) @RequestParam(name = "testResultTag") String testResultParam,
             @Schema(description = "지원 전형", defaultValue = "GENERAL", allowableValues = {"GENERAL", "SPECIAL",
@@ -134,7 +135,8 @@ public class OneseoController {
 
     @Operation(summary = "원서 임시 저장", description = "원서 정보를 임시 저장합니다.")
     @PostMapping("/temp-storage")
-    public CommonApiResponse temp(@RequestBody @Valid OneseoTempReqDto reqDto, @RequestParam Integer step,
+    public CommonApiResponse temp(@RequestBody @Valid OneseoTempReqDto reqDto,
+            @RequestParam Integer step,
             @AuthRequest Long memberId) {
         oneseoTempStorageService.execute(reqDto, step, memberId);
         return CommonApiResponse.success("임시저장되었습니다.");
@@ -153,8 +155,9 @@ public class OneseoController {
         Workbook workbook = downloadExcelService.execute();
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
-            response.setHeader("Content-Disposition", "attachment;filename="
-                    + URLEncoder.encode("지원자 입학정보.xlsx", StandardCharsets.UTF_8).replace("+", "%20"));
+            response.setHeader("Content-Disposition",
+                    "attachment;filename="
+                            + URLEncoder.encode("지원자 입학정보.xlsx", StandardCharsets.UTF_8).replace("+", "%20"));
             workbook.write(response.getOutputStream());
             workbook.close();
         } catch (IOException ex) {

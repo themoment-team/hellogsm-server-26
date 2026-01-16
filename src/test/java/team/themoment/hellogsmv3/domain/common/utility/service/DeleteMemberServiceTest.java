@@ -63,8 +63,12 @@ class DeleteMemberServiceTest {
             void setUp() {
                 existingMember = mock(Member.class);
                 existingOneseo = mock(Oneseo.class);
-                existingAuthCode = new AuthenticationCode(memberId, "123456", phoneNumber, LocalDateTime.now(),
-                        AuthCodeType.SIGNUP, true);
+                existingAuthCode = new AuthenticationCode(memberId,
+                        "123456",
+                        phoneNumber,
+                        LocalDateTime.now(),
+                        AuthCodeType.SIGNUP,
+                        true);
 
                 given(existingMember.getId()).willReturn(memberId);
                 given(memberRepository.findByPhoneNumber(phoneNumber)).willReturn(Optional.of(existingMember));

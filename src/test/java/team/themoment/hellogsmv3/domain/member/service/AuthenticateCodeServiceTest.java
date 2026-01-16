@@ -54,8 +54,12 @@ public class AuthenticateCodeServiceTest {
 
             @BeforeEach
             void setUp() {
-                authenticationCode = new AuthenticationCode(memberId, validCode, "01000000000", LocalDateTime.now(),
-                        SIGNUP, false);
+                authenticationCode = new AuthenticationCode(memberId,
+                        validCode,
+                        "01000000000",
+                        LocalDateTime.now(),
+                        SIGNUP,
+                        false);
                 given(codeRepository.findByMemberIdAndAuthCodeType(memberId, SIGNUP))
                         .willReturn(Optional.of(authenticationCode));
             }
@@ -99,8 +103,12 @@ public class AuthenticateCodeServiceTest {
 
             @BeforeEach
             void setUp() {
-                authenticationCode = new AuthenticationCode(memberId, validCode, "01000000000", LocalDateTime.now(),
-                        SIGNUP, false);
+                authenticationCode = new AuthenticationCode(memberId,
+                        validCode,
+                        "01000000000",
+                        LocalDateTime.now(),
+                        SIGNUP,
+                        false);
                 given(codeRepository.findByMemberIdAndAuthCodeType(memberId, SIGNUP))
                         .willReturn(Optional.of(authenticationCode));
             }

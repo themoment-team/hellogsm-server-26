@@ -240,8 +240,10 @@ class UploadExcelServiceTest {
         try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             consumer.accept(wb);
             wb.write(bos);
-            return new MockMultipartFile("file", "test.xlsx",
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bos.toByteArray());
+            return new MockMultipartFile("file",
+                    "test.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    bos.toByteArray());
         }
     }
 

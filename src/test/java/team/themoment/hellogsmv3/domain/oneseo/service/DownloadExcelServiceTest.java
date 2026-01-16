@@ -41,9 +41,36 @@ public class DownloadExcelServiceTest {
     @InjectMocks
     private DownloadExcelService downloadExcelService;
 
-    private final List<String> EXPECTED_HEADER = List.of("순번", "접수번호", "수험번호", "성명", "1지망", "2지망", "3지망", "생년월일", "성별",
-            "집주소", "출신학교", "학교지역", "학번", "학력", "초기전형", "적용되는 전형", "일반교과점수", "예체능점수", "출석점수", "봉사점수", "1차전형총점", "역량평가점수",
-            "심층면접점수", "최종점수", "최종학과", "지원자연락처", "보호자연락처", "담임연락처", "1차전형결과", "2차전형결과");
+    private final List<String> EXPECTED_HEADER = List.of("순번",
+            "접수번호",
+            "수험번호",
+            "성명",
+            "1지망",
+            "2지망",
+            "3지망",
+            "생년월일",
+            "성별",
+            "집주소",
+            "출신학교",
+            "학교지역",
+            "학번",
+            "학력",
+            "초기전형",
+            "적용되는 전형",
+            "일반교과점수",
+            "예체능점수",
+            "출석점수",
+            "봉사점수",
+            "1차전형총점",
+            "역량평가점수",
+            "심층면접점수",
+            "최종점수",
+            "최종학과",
+            "지원자연락처",
+            "보호자연락처",
+            "담임연락처",
+            "1차전형결과",
+            "2차전형결과");
 
     @BeforeEach
     void setUp() {
@@ -237,7 +264,8 @@ public class DownloadExcelServiceTest {
             @Test
             @DisplayName("최종 점수를 올바르게 계산한다")
             void it_calculates_final_score_correctly() throws IOException {
-                Oneseo oneseo = createOneseoWithScores(BigDecimal.valueOf(90), BigDecimal.valueOf(80),
+                Oneseo oneseo = createOneseoWithScores(BigDecimal.valueOf(90),
+                        BigDecimal.valueOf(80),
                         BigDecimal.valueOf(75));
 
                 given(oneseoRepository.findAllByScreeningWithAllDetails(Screening.GENERAL)).willReturn(List.of(oneseo));
@@ -289,7 +317,8 @@ public class DownloadExcelServiceTest {
             }
         }
 
-        private Oneseo createOneseoWithScores(BigDecimal documentScore, BigDecimal competencyScore,
+        private Oneseo createOneseoWithScores(BigDecimal documentScore,
+                BigDecimal competencyScore,
                 BigDecimal interviewScore) {
             Member member = Member.builder().id(1L).name("테스트").sex(Sex.MALE).birth(LocalDate.of(2024, 7, 31))
                     .phoneNumber("01012345678").build();

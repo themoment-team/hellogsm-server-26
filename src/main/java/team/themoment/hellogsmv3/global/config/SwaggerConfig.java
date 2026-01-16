@@ -28,9 +28,14 @@ public class SwaggerConfig {
 
     @Bean
     public GroupedOpenApi api(OperationCustomizer operationCustomizer) {
-        return GroupedOpenApi
-                .builder().group("Hello, GSM 2025 API").pathsToMatch("/utility/**", "/member/**", "/oneseo/**",
-                        "/auth/**", "/date", "/operation/**", "/test-result/**")
+        return GroupedOpenApi.builder().group("Hello, GSM 2025 API")
+                .pathsToMatch("/utility/**",
+                        "/member/**",
+                        "/oneseo/**",
+                        "/auth/**",
+                        "/date",
+                        "/operation/**",
+                        "/test-result/**")
                 .addOperationCustomizer(operationCustomizer).build();
     }
 

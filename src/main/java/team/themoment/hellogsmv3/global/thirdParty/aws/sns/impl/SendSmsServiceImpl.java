@@ -22,10 +22,12 @@ public class SendSmsServiceImpl implements SendSmsService {
     @Override
     public void execute(String phoneNumber, String contentMessage, String footerMessage) {
         executeWithExceptionHandle.execute(() -> {
-            smsTemplate.send(createPhoneNumber(phoneNumber), contentMessage,
+            smsTemplate.send(createPhoneNumber(phoneNumber),
+                    contentMessage,
                     SmsMessageAttributes.builder().smsType(TRANSACTIONAL).senderID(SENDER_ID).build());
 
-            smsTemplate.send(createPhoneNumber(phoneNumber), footerMessage,
+            smsTemplate.send(createPhoneNumber(phoneNumber),
+                    footerMessage,
                     SmsMessageAttributes.builder().smsType(TRANSACTIONAL).senderID(SENDER_ID).build());
             return null;
         });

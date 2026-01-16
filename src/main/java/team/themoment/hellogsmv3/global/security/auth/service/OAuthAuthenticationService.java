@@ -56,7 +56,8 @@ public class OAuthAuthenticationService {
     private void completeAuthentication(UserAuthInfo userAuthInfo, HttpServletRequest request) {
         Member member = getOrCreateMember(userAuthInfo.email(), userAuthInfo.authReferrerType());
         OAuth2User oauth2User = createOAuth2User(member, userAuthInfo.provider(), userAuthInfo.email());
-        Authentication authentication = new OAuth2AuthenticationToken(oauth2User, oauth2User.getAuthorities(),
+        Authentication authentication = new OAuth2AuthenticationToken(oauth2User,
+                oauth2User.getAuthorities(),
                 userAuthInfo.provider());
         setSecurityContext(request, authentication);
     }
@@ -74,13 +75,22 @@ public class OAuthAuthenticationService {
 
     private Map<String, Object> createUserAttributes(Member member, String provider, String email) {
         Role memberRole = Optional.ofNullable(member.getRole()).orElse(Role.UNAUTHENTICATED);
-        return Map.of("id", member.getId(), "role", memberRole, "provider", provider, "email", email, "last_login_time",
+        return Map.of("id",
+                member.getId(),
+                "role",
+                memberRole,
+                "provider",
+                provider,
+                "email",
+                email,
+                "last_login_time",
                 LocalDateTime.now());
     }
 
     private Collection<GrantedAuthority> createAuthorities(Role role) {
         Role userRole = Optional.ofNullable(role).orElse(Role.UNAUTHENTICATED);
-        return List.of(new SimpleGrantedAuthority("OAUTH2_USER"), new SimpleGrantedAuthority("SCOPE_email"),
+        return List.of(new SimpleGrantedAuthority("OAUTH2_USER"),
+                new SimpleGrantedAuthority("SCOPE_email"),
                 new SimpleGrantedAuthority(userRole.name()));
     }
 
