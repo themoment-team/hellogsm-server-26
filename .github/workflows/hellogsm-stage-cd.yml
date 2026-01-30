@@ -41,8 +41,8 @@ jobs:
 
       - name: Make ZIP File
         run: |
-          mkdir -p deploy
-          cp build/libs/*.jar deploy/
+          mkdir -p deploy/build/libs
+          cp build/libs/*.jar deploy/build/libs/
           cp appspec.yml deploy/
           cp DockerfileStage deploy/
           cp -r scripts deploy/
