@@ -40,7 +40,13 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Make ZIP File
-        run: zip -r ./$GITHUB_SHA.zip .
+        run: |
+          mkdir -p deploy
+          cp build/libs/*.jar deploy/
+          cp appspec.yml deploy/
+          cp DockerfileStage deploy/
+          cp -r scripts deploy/
+          cd deploy && zip -r ../$GITHUB_SHA.zip .
         shell: bash
 
       - name: Upload to S3
