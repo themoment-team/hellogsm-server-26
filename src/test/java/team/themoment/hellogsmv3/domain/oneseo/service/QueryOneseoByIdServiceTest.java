@@ -174,10 +174,8 @@ class QueryOneseoByIdServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(oneseoService.findWithMemberByMemberIdOrThrow(memberId))
-                    .thenThrow(
-                        new ExpectedException(
-                            "존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
+                when(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).thenThrow(
+                        new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
             }
 
             @Test

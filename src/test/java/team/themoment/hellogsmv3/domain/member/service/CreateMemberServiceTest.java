@@ -103,16 +103,13 @@ class CreateMemberServiceTest {
         @DisplayName("회원 ID가 유효하지 않으면")
         class Context_with_invalid_member_id {
 
-        @BeforeEach
-      void setUp() {
-        when(memberService.findByIdOrThrow(memberId))
-            .thenThrow(
-                new ExpectedException(
-                    "존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
-        willDoNothing()
-            .given(commonCodeService)
-            .validateAndDelete(memberId, reqDto.code(), reqDto.phoneNumber(), SIGNUP);
-      }
+            @BeforeEach
+            void setUp() {
+                when(memberService.findByIdOrThrow(memberId)).thenThrow(
+                        new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
+                willDoNothing().given(commonCodeService).validateAndDelete(memberId, reqDto.code(),
+                        reqDto.phoneNumber(), SIGNUP);
+            }
 
             @Test
             @DisplayName("ExpectedException을 던진다")

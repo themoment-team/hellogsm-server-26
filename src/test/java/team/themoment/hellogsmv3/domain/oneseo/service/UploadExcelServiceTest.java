@@ -210,29 +210,26 @@ class UploadExcelServiceTest {
         @Nested
         @DisplayName("DB에 존재하지 않는 수험번호만 포함되면")
         class Context_with_not_found_examination_number {
-        @Test
-      @DisplayName("ExpectedException을 던진다")
-      void it_throws_not_found_exception() throws Exception {
-        when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any()))
-            .thenReturn(Collections.emptyMap());
-        MultipartFile file =
-            buildWorkbook(
-                wb -> {
-                  Sheet sheet = wb.createSheet();
-                  Row header = sheet.createRow(0);
-                  header.createCell(0).setCellValue("수험번호");
-                  header.createCell(3).setCellValue("역검점수");
-                  header.createCell(4).setCellValue("면접점수");
-                  Row r1 = sheet.createRow(1);
-                  r1.createCell(0).setCellValue("9999");
-                  r1.createCell(3).setCellValue(10);
-                  r1.createCell(4).setCellValue(20);
+            @Test
+            @DisplayName("ExpectedException을 던진다")
+            void it_throws_not_found_exception() throws Exception {
+                when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any()))
+                        .thenReturn(Collections.emptyMap());
+                MultipartFile file = buildWorkbook(wb -> {
+                    Sheet sheet = wb.createSheet();
+                    Row header = sheet.createRow(0);
+                    header.createCell(0).setCellValue("수험번호");
+                    header.createCell(3).setCellValue("역검점수");
+                    header.createCell(4).setCellValue("면접점수");
+                    Row r1 = sheet.createRow(1);
+                    r1.createCell(0).setCellValue("9999");
+                    r1.createCell(3).setCellValue(10);
+                    r1.createCell(4).setCellValue(20);
                 });
-        ExpectedException ex =
-            assertThrows(ExpectedException.class, () -> uploadExcelService.execute(file));
-        assertTrue(ex.getMessage().contains("존재하지 않습니다"));
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-      }
+                ExpectedException ex = assertThrows(ExpectedException.class, () -> uploadExcelService.execute(file));
+                assertTrue(ex.getMessage().contains("존재하지 않습니다"));
+                assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+            }
         }
     }
 
