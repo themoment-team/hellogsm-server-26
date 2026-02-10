@@ -10,7 +10,7 @@ spotless {
 	java {
 		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
 		eclipse().configFile("src/main/resources/eclipse-java-formatter.xml")
-		indentWithSpaces(4)
+		leadingTabsToSpaces(4)
 		importOrder('java', 'javax', 'org', 'com', '')
 		removeUnusedImports()
 		endWithNewline()

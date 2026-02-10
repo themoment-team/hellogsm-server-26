@@ -110,8 +110,8 @@ class CreateMemberServiceTest {
             void setUp() {
                 when(memberService.findByIdOrThrow(memberId)).thenThrow(
                         new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
-                willDoNothing().given(commonCodeService).validateAndDelete(memberId, reqDto.code(),
-                        reqDto.phoneNumber(), SIGNUP);
+                willDoNothing().given(commonCodeService)
+                        .validateAndDelete(memberId, reqDto.code(), reqDto.phoneNumber(), SIGNUP);
             }
 
             @Test
