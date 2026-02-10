@@ -132,5 +132,9 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+configurations.configureEach {
+    exclude group: 'org.bouncycastle'
+}
+
 compileJava.dependsOn spotlessApply
 compileTestJava.dependsOn spotlessApply
