@@ -51,8 +51,12 @@ class CommonCodeServiceTest {
 
         @BeforeEach
         void setUp() {
-            authenticationCode = new AuthenticationCode(memberId, validCode, validPhoneNumber, LocalDateTime.now(),
-                    SIGNUP, false);
+            authenticationCode = new AuthenticationCode(memberId,
+                    validCode,
+                    validPhoneNumber,
+                    LocalDateTime.now(),
+                    SIGNUP,
+                    false);
         }
 
         @Nested

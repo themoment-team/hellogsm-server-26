@@ -68,14 +68,17 @@ class SearchOneseoServiceTest {
                 Page<SearchOneseoResDto> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
                 given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
-                        screeningTag, isSubmitted, testResultTag, pageable)).willReturn(emptyPage);
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        pageable)).willReturn(emptyPage);
             }
 
             @Test
             @DisplayName("빈 결과를 반환한다")
             void it_returns_empty_result() {
-                SearchOneseosResDto result = searchOneseoService.execute(page, size, testResultTag, screeningTag,
-                        isSubmitted, keyword);
+                SearchOneseosResDto result = searchOneseoService
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
 
                 assertEquals(0, result.info().totalElements());
                 assertEquals(0, result.info().totalPages());
@@ -101,19 +104,24 @@ class SearchOneseoServiceTest {
                 oneseoPrivacyDetail = buildOneseoPrivacyDetail();
                 entranceTestResult = buildEntranceTestResult();
 
-                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member, oneseo, oneseoPrivacyDetail,
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
                         entranceTestResult);
                 Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
 
                 given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
-                        screeningTag, isSubmitted, testResultTag, pageable)).willReturn(oneseoPage);
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        pageable)).willReturn(oneseoPage);
             }
 
             @Test
             @DisplayName("적절한 데이터를 반환한다")
             void it_returns_filtered_results() {
-                SearchOneseosResDto result = searchOneseoService.execute(page, size, testResultTag, screeningTag,
-                        isSubmitted, keyword);
+                SearchOneseosResDto result = searchOneseoService
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
 
                 SearchOneseoPageInfoDto searchOneseoPageInfoDto = result.info();
                 assertEquals(1, searchOneseoPageInfoDto.totalElements());
@@ -153,8 +161,10 @@ class SearchOneseoServiceTest {
                 .build();
     }
 
-    private SearchOneseoResDto buildSearchOneseoDto(Member member, Oneseo oneseo,
-            OneseoPrivacyDetail oneseoPrivacyDetail, EntranceTestResult entranceTestResult) {
+    private SearchOneseoResDto buildSearchOneseoDto(Member member,
+            Oneseo oneseo,
+            OneseoPrivacyDetail oneseoPrivacyDetail,
+            EntranceTestResult entranceTestResult) {
         return SearchOneseoResDto.builder().memberId(member.getId()).submitCode(oneseo.getOneseoSubmitCode())
                 .realOneseoArrivedYn(oneseo.getRealOneseoArrivedYn()).name(member.getName())
                 .screening(oneseo.getWantedScreening()).schoolName(oneseoPrivacyDetail.getSchoolName())

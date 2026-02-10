@@ -127,8 +127,9 @@ public class ModifyEntranceIntentionServiceTest {
 
                 @BeforeEach
                 void setUp() {
-                    given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willThrow(new ExpectedException(
-                            "해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
+                    given(oneseoService.findWithMemberByMemberIdOrThrow(memberId))
+                            .willThrow(new ExpectedException("해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId,
+                                    HttpStatus.NOT_FOUND));
                 }
 
                 @Test

@@ -72,8 +72,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(authEnv.allowedOrigins());
 
-        configuration.setAllowedMethods(Arrays.asList(HttpMethod.GET.name(), HttpMethod.POST.name(),
-                HttpMethod.PUT.name(), HttpMethod.PATCH.name(), HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name()));
+        configuration.setAllowedMethods(Arrays.asList(HttpMethod.GET.name(),
+                HttpMethod.POST.name(),
+                HttpMethod.PUT.name(),
+                HttpMethod.PATCH.name(),
+                HttpMethod.DELETE.name(),
+                HttpMethod.OPTIONS.name()));
 
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(List.of("*"));
@@ -108,18 +112,24 @@ public class SecurityConfig {
 
                 // member
                 .requestMatchers(HttpMethod.GET, "/member/v3/member/me")
-                .hasAnyAuthority(Role.UNAUTHENTICATED.name(), Role.APPLICANT.name(), Role.ADMIN.name(),
+                .hasAnyAuthority(Role.UNAUTHENTICATED.name(),
+                        Role.APPLICANT.name(),
+                        Role.ADMIN.name(),
                         Role.ROOT.name())
                 .requestMatchers(HttpMethod.GET, "/member/v3/member/{memberId}").hasAnyAuthority(Role.ADMIN.name())
                 .requestMatchers(HttpMethod.POST, "/member/v3/member/me/send-code", "/member/v3/member/me/auth-code")
-                .hasAnyAuthority(Role.UNAUTHENTICATED.name(), Role.APPLICANT.name(), Role.ADMIN.name(),
+                .hasAnyAuthority(Role.UNAUTHENTICATED.name(),
+                        Role.APPLICANT.name(),
+                        Role.ADMIN.name(),
                         Role.ROOT.name())
                 .requestMatchers(HttpMethod.POST, "/member/v3/member/me/send-code-test")
                 .hasAnyAuthority(Role.ROOT.name()).requestMatchers(HttpMethod.POST, "/member/v3/member/me")
-                .hasAnyAuthority(Role.UNAUTHENTICATED.name(), Role.APPLICANT.name(), Role.ADMIN.name(),
-                        Role.ROOT.name())
+                .hasAnyAuthority(Role.UNAUTHENTICATED
+                        .name(), Role.APPLICANT.name(), Role.ADMIN.name(), Role.ROOT.name())
                 .requestMatchers(HttpMethod.GET, "/member/v3/auth-info/me")
-                .hasAnyAuthority(Role.UNAUTHENTICATED.name(), Role.APPLICANT.name(), Role.ADMIN.name(),
+                .hasAnyAuthority(Role.UNAUTHENTICATED.name(),
+                        Role.APPLICANT.name(),
+                        Role.ADMIN.name(),
                         Role.ROOT.name())
                 .requestMatchers(HttpMethod.GET, "/member/v3/auth-info/{memberId}").hasAnyAuthority(Role.ADMIN.name())
                 .requestMatchers(HttpMethod.GET, "/member/v3/first-test-result/me")

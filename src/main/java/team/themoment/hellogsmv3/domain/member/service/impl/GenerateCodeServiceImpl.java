@@ -30,8 +30,10 @@ public class GenerateCodeServiceImpl extends GenerateCodeService {
                 .orElse(null);
 
         if (isLimitedRequest(authenticationCode))
-            throw new ExpectedException(String.format("너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요. 특정 시간 내 제한 횟수인 %d회를 초과하였습니다.",
-                    LIMIT_COUNT_CODE_REQUEST), HttpStatus.BAD_REQUEST);
+            throw new ExpectedException(
+                    String.format("너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요. 특정 시간 내 제한 횟수인 %d회를 초과하였습니다.",
+                            LIMIT_COUNT_CODE_REQUEST),
+                    HttpStatus.BAD_REQUEST);
 
         String phoneNumber = reqDto.phoneNumber();
 

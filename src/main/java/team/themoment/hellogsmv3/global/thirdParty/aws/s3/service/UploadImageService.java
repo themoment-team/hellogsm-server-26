@@ -39,7 +39,8 @@ public class UploadImageService {
         String fileName = generateFileName(fileExtension);
 
         try {
-            S3Resource s3Resource = s3Template.upload(s3Environment.bucketName(), fileName,
+            S3Resource s3Resource = s3Template.upload(s3Environment.bucketName(),
+                    fileName,
                     multipartFile.getInputStream(),
                     ObjectMetadata.builder().contentType(multipartFile.getContentType()).build());
 

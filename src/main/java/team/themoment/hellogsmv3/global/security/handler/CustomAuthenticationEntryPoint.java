@@ -21,7 +21,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     private final ObjectMapper objectMapper;
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
+    public void commence(HttpServletRequest request,
+            HttpServletResponse response,
             AuthenticationException authException) throws IOException {
         sendErrorResponse(response);
     }

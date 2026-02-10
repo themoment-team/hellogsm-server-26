@@ -114,10 +114,24 @@ class ModifyOneseoServiceTest {
         DesiredMajors desiredMajors = DesiredMajors.builder().firstDesiredMajor(firstDesiredMajor)
                 .secondDesiredMajor(secondDesiredMajor).thirdDesiredMajor(thirdDesiredMajor).build();
 
-        OneseoReqDto oneseoReqDto = new OneseoReqDto(guardianName, guardianPhoneNumber, relationshipWithGuardian,
-                profileImg, address, detailAddress, graduationType, schoolTeacherName, schoolTeacherPhoneNumber,
-                firstDesiredMajor, secondDesiredMajor, thirdDesiredMajor, middleSchoolAchievementReqDto, schoolName,
-                schoolAddress, screening, graduationDate, studentNumber);
+        OneseoReqDto oneseoReqDto = new OneseoReqDto(guardianName,
+                guardianPhoneNumber,
+                relationshipWithGuardian,
+                profileImg,
+                address,
+                detailAddress,
+                graduationType,
+                schoolTeacherName,
+                schoolTeacherPhoneNumber,
+                firstDesiredMajor,
+                secondDesiredMajor,
+                thirdDesiredMajor,
+                middleSchoolAchievementReqDto,
+                schoolName,
+                schoolAddress,
+                screening,
+                graduationDate,
+                studentNumber);
 
         @Nested
         @DisplayName("유효한 회원 ID와 요청 데이터가 주어지면")

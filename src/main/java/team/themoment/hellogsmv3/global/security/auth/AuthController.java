@@ -33,7 +33,8 @@ public class AuthController {
     @Operation(summary = "OAuth 인증", description = "프론트엔드에서 받은 Authorization Code로 인증을 처리합니다.")
     @PostMapping("/auth/{provider}")
     public CommonApiResponse authenticateWithOAuth(@PathVariable String provider,
-            @RequestBody @Valid OAuthCodeReqDto reqDto, HttpServletRequest request) {
+            @RequestBody @Valid OAuthCodeReqDto reqDto,
+            HttpServletRequest request) {
         oAuthAuthenticationService.execute(provider, reqDto.code(), request);
         return CommonApiResponse.success("인증이 완료되었습니다.");
     }

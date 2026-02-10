@@ -204,7 +204,8 @@ class QueryOneseoByIdServiceTest {
         return EntranceTestResult.builder().entranceTestFactorsDetail(buildEntranceTestFactorsDetail()).build();
     }
 
-    private Oneseo buildOneseo(Member member, MiddleSchoolAchievement middleSchoolAchievement,
+    private Oneseo buildOneseo(Member member,
+            MiddleSchoolAchievement middleSchoolAchievement,
             OneseoPrivacyDetail oneseoPrivacyDetail) {
         return Oneseo.builder().member(member).id(1L).oneseoSubmitCode("submitCode").wantedScreening(Screening.GENERAL)
                 .desiredMajors(new DesiredMajors(Major.SW, Major.IOT, Major.AI))

@@ -26,8 +26,12 @@ public class FeignErrorDecoder implements ErrorDecoder {
             Map<String, Collection<String>> headers = response.headers();
             String url = response.request().url();
             String httpMethod = response.request().httpMethod().name();
-            log.error("Feign 클라이언트 오류 - 메서드: {}, HTTP 메서드: {}, URL: {}, 상태: {}, 이유: {}", methodKey, httpMethod, url,
-                    status, response.reason());
+            log.error("Feign 클라이언트 오류 - 메서드: {}, HTTP 메서드: {}, URL: {}, 상태: {}, 이유: {}",
+                    methodKey,
+                    httpMethod,
+                    url,
+                    status,
+                    response.reason());
             log.error("응답 헤더: {}", headers);
             log.error("응답 본문: {}", errorBody);
             logRequestDetails(response, methodKey);

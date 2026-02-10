@@ -9,8 +9,8 @@ plugins {
 spotless {
 	java {
 		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-		eclipse()
-		leadingTabsToSpaces(4)
+		eclipse().configFile("src/main/resources/eclipse-java-formatter.xml")
+		indentWithSpaces(4)
 		importOrder('java', 'javax', 'org', 'com', '')
 		removeUnusedImports()
 		endWithNewline()

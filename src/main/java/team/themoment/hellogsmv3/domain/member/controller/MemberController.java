@@ -77,7 +77,8 @@ public class MemberController {
     @Operation(summary = "내 맴버 등록", description = "인증코드와 맴버 정보를 요청받아 맴버를 등록합니다.")
     @PostMapping("/member/me")
     public CommonApiResponse create(HttpServletRequest httpServletRequest,
-            @RequestBody @Valid CreateMemberReqDto reqDto, @AuthRequest Long memberId) {
+            @RequestBody @Valid CreateMemberReqDto reqDto,
+            @AuthRequest Long memberId) {
         Role role = createMemberService.execute(reqDto, memberId);
         manager.setRole(httpServletRequest, role);
         return CommonApiResponse.created("본인인증이 완료되었습니다.");

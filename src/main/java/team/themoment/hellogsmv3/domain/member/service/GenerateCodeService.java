@@ -15,8 +15,12 @@ public abstract class GenerateCodeService {
 
     protected abstract String execute(Long memberId, GenerateCodeReqDto reqDto);
 
-    protected AuthenticationCode createAuthenticationCode(AuthenticationCode authCode, Long memberId, String code,
-            String phoneNumber, AuthCodeType authCodeType, boolean isTest) {
+    protected AuthenticationCode createAuthenticationCode(AuthenticationCode authCode,
+            Long memberId,
+            String code,
+            String phoneNumber,
+            AuthCodeType authCodeType,
+            boolean isTest) {
 
         return authCode == null
                 ? new AuthenticationCode(memberId, code, phoneNumber, LocalDateTime.now(), authCodeType, isTest)

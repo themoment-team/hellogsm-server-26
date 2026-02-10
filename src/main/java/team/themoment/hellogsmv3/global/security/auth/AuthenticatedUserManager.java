@@ -33,7 +33,8 @@ public class AuthenticatedUserManager {
 
         OAuth2User newOAuth2User = new DefaultOAuth2User(newAuthorities, newAttributes, "id");
 
-        OAuth2AuthenticationToken newAuth = new OAuth2AuthenticationToken(newOAuth2User, newAuthorities,
+        OAuth2AuthenticationToken newAuth = new OAuth2AuthenticationToken(newOAuth2User,
+                newAuthorities,
                 oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
         SecurityContextHolder.getContext().setAuthentication(newAuth);
 
