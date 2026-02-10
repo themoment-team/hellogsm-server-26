@@ -98,7 +98,8 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 	/** logging **/
-	implementation 'ca.pjer:logback-awslogs-appender:1.6.0'
+	implementation platform('software.amazon.awssdk:bom:2.41.5')
+	implementation 'software.amazon.awssdk:cloudwatchlogs'
 
 	/** open feign **/
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
