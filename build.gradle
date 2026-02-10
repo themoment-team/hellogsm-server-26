@@ -133,7 +133,7 @@ tasks.named('test') {
 }
 
 configurations.configureEach {
-    exclude group: 'org.bouncycastle'
+	exclude group: 'org.bouncycastle'
 }
 
 compileJava.dependsOn spotlessApply
