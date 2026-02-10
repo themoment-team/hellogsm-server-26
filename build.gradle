@@ -78,14 +78,13 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
 	/** aws **/
-	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:4.0.0-M1'
-	implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:4.0.0-M1'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:4.0.0'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:4.0.0'
 
 	/** excel **/
 	implementation 'org.apache.poi:poi-ooxml:5.5.1'
 
 	/** json **/
-	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'net.minidev:json-smart:2.6.0'
 
 	/** swagger **/
