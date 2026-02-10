@@ -88,7 +88,7 @@ dependencies {
 	implementation 'net.minidev:json-smart:2.6.0'
 
 	/** swagger **/
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
 
 	/** actuator **/
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -97,7 +97,7 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 	/** logging **/
-	implementation platform('software.amazon.awssdk:bom:2.41.5')
+	implementation platform('software.amazon.awssdk:bom:2.41.24')
 	implementation 'software.amazon.awssdk:cloudwatchlogs'
 
 	/** open feign **/
