@@ -1,11 +1,6 @@
 server:
   shutdown: graceful
-
   servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
     session:
       timeout: 10800
       cookie:
@@ -13,17 +8,14 @@ server:
         http-only: true
         path: /
         max-age: 10800
-
 logging:
   config: classpath:logback-spring.xml
-
 spring:
   datasource:
     url: ${DB_URL}
     driver-class-name: ${DB_CLASS_NAME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-
   jpa:
     database-platform: ${DB_PLATFORM}
     hibernate:
@@ -33,18 +25,10 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
-
   data:
     redis:
       host: 127.0.0.1
       port: 6379
-
-  session:
-    redis:
-      flush-mode: on-save
-      save-mode: on-set-attribute
-    timeout: 10800s
-
   security:
     oauth2:
       client:
@@ -70,11 +54,9 @@ spring:
             user-name-attribute: kakao_account
             user-info-uri: https://kapi.kakao.com/v2/user/me
             authorization-uri: https://kauth.kakao.com/oauth/authorize
-
   web:
     resources:
       add-mappings: false
-
   cloud:
     aws:
       credentials:
@@ -91,14 +73,16 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   http:
     converters:
       preferred-json-mapper: jackson
-
 auth:
   allowed-origins:
       - '*'
-
 schedule:
   oneseoSubmissionStart: ${ONESEO_SUBMISSION_START}
   oneseoSubmissionEnd: ${ONESEO_SUBMISSION_END}
@@ -122,7 +106,6 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
   writer-with-default-pretty-printer: true
-
 management:
   endpoints:
     web:
@@ -132,11 +115,9 @@ management:
   endpoint:
     prometheus:
       access: read_only
-
 discord-alarm:
   url: ${DISCORD_RELAY_SERVER_URL}
   api-key: ${DISCORD_RELAY_SERVER_API_KEY}
-
 lambda-score-calculator:
   url: ${SCORE_CALCULATOR_SERVICE_URL}
   api-key: ${SCORE_CALCULATOR_API_KEY}
