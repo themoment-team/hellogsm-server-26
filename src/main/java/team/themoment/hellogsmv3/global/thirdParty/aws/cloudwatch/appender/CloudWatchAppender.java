@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -20,13 +19,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsResponse;
 import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
-import software.amazon.awssdk.services.cloudwatchlogs.model.InvalidSequenceTokenException;
-import software.amazon.awssdk.services.cloudwatchlogs.model.LogStream;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutRetentionPolicyRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.ResourceAlreadyExistsException;
 import software.amazon.awssdk.services.cloudwatchlogs.model.ResourceNotFoundException;
@@ -54,7 +48,6 @@ public class CloudWatchAppender extends UnsynchronizedAppenderBase<ILoggingEvent
 
     private CloudWatchLogsClient cloudWatchClient;
     private final BlockingQueue<ILoggingEvent> logQueue = new LinkedBlockingQueue<>();
-    private final AtomicReference<String> sequenceToken = new AtomicReference<>(null);
     private Thread writerThread;
     private String actualLogStreamName;
     private volatile boolean running = false;
@@ -177,27 +170,9 @@ public class CloudWatchAppender extends UnsynchronizedAppenderBase<ILoggingEvent
             addInfo("Created log stream: " + actualLogStreamName);
         } catch (ResourceAlreadyExistsException e) {
             addInfo("Log stream already exists: " + actualLogStreamName);
-            refreshSequenceToken();
         } catch (Exception e) {
             addError("Failed to create log stream: " + actualLogStreamName, e);
             throw e;
-        }
-    }
-
-    private void refreshSequenceToken() {
-        try {
-            DescribeLogStreamsRequest request = DescribeLogStreamsRequest.builder().logGroupName(logGroupName)
-                    .logStreamNamePrefix(actualLogStreamName).build();
-
-            DescribeLogStreamsResponse response = cloudWatchClient.describeLogStreams(request);
-            LogStream logStream = response.logStreams().stream()
-                    .filter(ls -> ls.logStreamName().equals(actualLogStreamName)).findFirst().orElse(null);
-
-            if (logStream != null) {
-                sequenceToken.set(logStream.uploadSequenceToken());
-            }
-        } catch (Exception e) {
-            addError("Failed to refresh sequence token", e);
         }
     }
 
@@ -262,22 +237,11 @@ public class CloudWatchAppender extends UnsynchronizedAppenderBase<ILoggingEvent
 
             for (int retryCount = 0; retryCount < maxRetries; retryCount++) {
                 try {
-                    PutLogEventsRequest.Builder requestBuilder = PutLogEventsRequest.builder()
-                            .logGroupName(logGroupName).logStreamName(actualLogStreamName).logEvents(logEvents);
+                    PutLogEventsRequest request = PutLogEventsRequest.builder().logGroupName(logGroupName)
+                            .logStreamName(actualLogStreamName).logEvents(logEvents).build();
 
-                    String currentToken = sequenceToken.get();
-                    if (currentToken != null) {
-                        requestBuilder.sequenceToken(currentToken);
-                    }
-
-                    PutLogEventsResponse response = cloudWatchClient.putLogEvents(requestBuilder.build());
-                    sequenceToken.set(response.nextSequenceToken());
+                    cloudWatchClient.putLogEvents(request);
                     return;
-                } catch (InvalidSequenceTokenException e) {
-                    sequenceToken.set(e.expectedSequenceToken());
-                    if (retryCount >= maxRetries - 1) {
-                        throw e;
-                    }
                 } catch (ResourceNotFoundException e) {
                     addError("Log group or stream not found, attempting to recreate", e);
                     initializeLogGroup();
