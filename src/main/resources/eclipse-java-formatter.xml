@@ -10,4 +10,7 @@
     <setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="4"/>
     <setting id="org.eclipse.jdt.core.formatter.indentation.size" value="4"/>
   </profile>
+  <setting id="org.eclipse.jdt.ui.importorder" value="java;javax;org;com;"/>
+  <setting id="org.eclipse.jdt.ui.ondemandthreshold" value="99"/>
+  <setting id="org.eclipse.jdt.ui.staticondemandthreshold" value="99"/>
 </profiles>
