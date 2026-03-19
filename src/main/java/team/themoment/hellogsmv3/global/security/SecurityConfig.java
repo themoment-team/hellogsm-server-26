@@ -123,7 +123,8 @@ public class SecurityConfig {
     private void commonRequests(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry req) {
         req.requestMatchers(HttpMethod.OPTIONS, "/**/*").permitAll().requestMatchers(HttpMethod.GET, "/date")
-                .permitAll().requestMatchers(HttpMethod.DELETE, "/utility/v3/**").permitAll();
+                .permitAll().requestMatchers(HttpMethod.DELETE, "/utility/v3/**").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/utility/v3/**").permitAll();
     }
 
     private void authRequests(
