@@ -37,6 +37,12 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final LoggingFilter loggingFilter;
 
+    private static final String[] ALL_AUTHENTICATED = {Role.UNAUTHENTICATED.name(), Role.APPLICANT.name(),
+            Role.ADMIN.name(), Role.ROOT.name()};
+    private static final String[] ADMIN_ONLY = {Role.ADMIN.name(), Role.ROOT.name()};
+    private static final String[] APPLICANT_OR_ROOT = {Role.APPLICANT.name(), Role.ROOT.name()};
+    private static final String[] UNAUTHENTICATED_OR_APPLICANT = {Role.UNAUTHENTICATED.name(), Role.APPLICANT.name()};
+
     @Bean
     public Filter timeBasedFilter() {
         LocalDateTime oneseoSubmissionStart = scheduleEnv.oneseoSubmissionStart();
@@ -101,12 +107,6 @@ public class SecurityConfig {
         http.exceptionHandling(handling -> handling.accessDeniedHandler(accessDeniedHandler)
                 .authenticationEntryPoint(authenticationEntryPoint));
     }
-
-    private static final String[] ALL_AUTHENTICATED = {Role.UNAUTHENTICATED.name(), Role.APPLICANT.name(),
-            Role.ADMIN.name(), Role.ROOT.name()};
-    private static final String[] ADMIN_ONLY = {Role.ADMIN.name(), Role.ROOT.name()};
-    private static final String[] APPLICANT_OR_ROOT = {Role.APPLICANT.name(), Role.ROOT.name()};
-    private static final String[] UNAUTHENTICATED_OR_APPLICANT = {Role.UNAUTHENTICATED.name(), Role.APPLICANT.name()};
 
     private void authorizeHttpRequests(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(req -> {
