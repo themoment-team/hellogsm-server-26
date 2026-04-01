@@ -33,11 +33,6 @@ public interface CustomOneseoRepository {
 
     List<AdmissionTicketsResDto> findAdmissionTickets();
 
-    Optional<Oneseo> findByGuardianOrTeacherPhoneNumberAndSubmitCode(String phoneNumber, String submitCode);
-
-    Optional<Oneseo> findByGuardianOrTeacherPhoneNumberAndExaminationNumber(String phoneNumber,
-            String examinationNumber);
-
     List<Oneseo> findAllByScreeningWithAllDetails(Screening screening);
 
     List<Oneseo> findAllFailedWithAllDetails();
