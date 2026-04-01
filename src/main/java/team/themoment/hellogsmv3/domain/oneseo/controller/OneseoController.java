@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +14,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.*;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.*;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.ScreeningCategory;
@@ -28,9 +29,9 @@ import team.themoment.hellogsmv3.domain.oneseo.service.QueryOneseoByIdService;
 import team.themoment.hellogsmv3.domain.oneseo.service.SearchOneseoService;
 import team.themoment.hellogsmv3.global.common.handler.annotation.AuthRequest;
 import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @Tag(name = "Oneseo API", description = "원서 관련 API입니다.")
+@Validated
 @RestController
 @RequestMapping("/oneseo/v3")
 @RequiredArgsConstructor
@@ -89,30 +90,13 @@ public class OneseoController {
 
     @Operation(summary = "원서 검색", description = "조건을 파라미터로 받아 원서를 검색합니다.")
     @GetMapping("/oneseo/search")
-    public SearchOneseosResDto search(@RequestParam("page") Integer page,
-            @RequestParam("size") Integer size,
-            @Schema(description = "합격, 불합격 여부", defaultValue = "ALL", allowableValues = {"ALL", "FIRST_PASS",
-                    "FINAL_PASS", "FALL"}) @RequestParam(name = "testResultTag") String testResultParam,
-            @Schema(description = "지원 전형", defaultValue = "GENERAL", allowableValues = {"GENERAL", "SPECIAL",
-                    "EXTRA"}) @RequestParam(name = "screeningTag", required = false) String screeningParam,
-            @Schema(description = "서류 제출 여부", defaultValue = "YES", allowableValues = {"YES",
-                    "NO"}) @RequestParam(name = "isSubmitted", required = false) String isSubmittedParam,
+    public SearchOneseosResDto search(@RequestParam @Min(0) Integer page,
+            @RequestParam @Min(0) Integer size,
+            @RequestParam TestResultTag testResultTag,
+            @RequestParam(required = false) ScreeningCategory screeningTag,
+            @Schema(description = "서류 제출 여부") @RequestParam(required = false) YesNo isSubmitted,
             @RequestParam(name = "keyword", required = false) String keyword) {
-        if (page < 0 || size < 0) {
-            throw new ExpectedException("page, size는 0 이상만 가능합니다", HttpStatus.BAD_REQUEST);
-        }
-
-        try {
-            TestResultTag tag = TestResultTag.valueOf(testResultParam);
-            ScreeningCategory screeningCategory = (screeningParam != null)
-                    ? ScreeningCategory.valueOf(screeningParam)
-                    : null;
-            YesNo isSubmitted = (isSubmittedParam != null) ? YesNo.valueOf(isSubmittedParam) : null;
-
-            return searchOneseoService.execute(page, size, tag, screeningCategory, isSubmitted, keyword);
-        } catch (IllegalArgumentException e) {
-            throw new ExpectedException("유효하지 않은 매개변수 값입니다.", HttpStatus.BAD_REQUEST);
-        }
+        return searchOneseoService.execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
     }
 
     @Operation(summary = "내 원서 조회", description = "내 원서 정보를 조회합니다. 임시 저장된 원서가 있다면 임시 저장된 원서를 조회합니다.")

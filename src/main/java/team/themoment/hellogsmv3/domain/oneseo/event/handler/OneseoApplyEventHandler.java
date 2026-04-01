@@ -79,7 +79,6 @@ public class OneseoApplyEventHandler {
     }
 
     private Env getEnv() {
-        Env env = activeProfile.equals("prod") ? prod : dev;
-        return env;
+        return activeProfile.equals("prod") ? prod : dev;
     }
 }
