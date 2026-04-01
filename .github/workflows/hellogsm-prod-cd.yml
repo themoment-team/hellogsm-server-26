@@ -34,7 +34,13 @@ jobs:
         run: ./gradlew clean build
 
       - name: Make ZIP File
-        run: zip -r ./$GITHUB_SHA.zip .
+        run: |
+          mkdir -p deploy/build/libs
+          cp build/libs/*.jar deploy/build/libs/
+          cp appspec.yml deploy/
+          cp DockerfileProd deploy/
+          cp -r scripts deploy/
+          cd deploy && zip -r ../$GITHUB_SHA.zip .
         shell: bash
 
       - name: Configure AWS Credentials
