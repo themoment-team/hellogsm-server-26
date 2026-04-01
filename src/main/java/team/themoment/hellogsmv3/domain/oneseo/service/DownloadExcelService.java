@@ -22,9 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.OneseoPrivacyDetail;
+import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
@@ -266,7 +268,7 @@ public class DownloadExcelService {
         return studentNumber;
     }
 
-    private String convertSex(team.themoment.hellogsmv3.domain.member.entity.type.Sex sex) {
+    private String convertSex(Sex sex) {
         if (sex == null)
             return "";
         return switch (sex) {
@@ -284,7 +286,7 @@ public class DownloadExcelService {
     }
 
     private String convertGraduationType(
-            team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType graduationType) {
+            GraduationType graduationType) {
         if (graduationType == null)
             return "";
         return switch (graduationType) {
