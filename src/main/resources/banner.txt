@@ -1,0 +1,11 @@
+${AnsiColor.BRIGHT_CYAN}  _   _      _ _        ${AnsiColor.BRIGHT_MAGENTA}  ____ ____  __  __
+${AnsiColor.BRIGHT_CYAN} | | | | ___| | | ___   ${AnsiColor.BRIGHT_MAGENTA} / ___/ ___||  \/  |
+${AnsiColor.BRIGHT_CYAN} | |_| |/ _ \ | |/ _ \  ${AnsiColor.BRIGHT_MAGENTA}| |  _\___ \| |\/| |
+${AnsiColor.BRIGHT_CYAN} |  _  |  __/ | | (_) | ${AnsiColor.BRIGHT_MAGENTA}| |_| |___) | |  | |
+${AnsiColor.BRIGHT_CYAN} |_| |_|\___|_|_|\___/  ${AnsiColor.BRIGHT_MAGENTA} \____|____/|_|  |_|
+${AnsiColor.BRIGHT_YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${AnsiColor.BRIGHT_GREEN}  HelloGSM - 광주소프트웨어마이스터고등학교 입학전형 시스템
+${AnsiColor.BRIGHT_BLUE}  Spring Boot: ${spring-boot.version}
+${AnsiColor.BRIGHT_CYAN}  Java: ${java.version}
+${AnsiColor.BRIGHT_YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${AnsiColor.BRIGHT_MAGENTA}  Team themoment
