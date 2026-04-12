@@ -31,7 +31,6 @@ public class RedisCacheConfig {
                         .fromSerializer(GenericJacksonJsonRedisSerializer.builder().build()))
                 .entryTtl(Duration.ofDays(4L));
 
-        // oneseo 캐시에만 타입 정보를 포함하며, 허용 타입을 프로젝트 패키지로 제한
         RedisCacheConfiguration oneseoConfig = defaultConfig
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
                         GenericJacksonJsonRedisSerializer.builder().enableDefaultTyping(BasicPolymorphicTypeValidator
