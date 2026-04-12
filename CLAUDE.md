@@ -18,14 +18,7 @@ Spring Boot 4 / Java 25 REST API server for GSM school admissions.
 
 ## Rules Files
 
-Full rule specifications live in `.claude/rules/`:
-
-- `coding-style.md` — Annotations, Lombok, naming, import order
-- `logging.md` — SLF4J levels, parameterized logging, forbidden patterns
-- `exception-handling.md` — `ExpectedException` usage, HTTP status mapping
-- `testing.md` — JUnit 5, Mockito BDD style, Describe/Context/It structure
-- `commit-convention.md` — type/scope format, branch strategy
-- `api-convention.md` — URL structure, response wrapper, Swagger annotations
+Full rule specifications live in `.claude/rules/` — read the files there for detailed rules on coding style, logging, exception handling, testing, commit conventions, and API conventions.
 
 ## Development Commands
 
