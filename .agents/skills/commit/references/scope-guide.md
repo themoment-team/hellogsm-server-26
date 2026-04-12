@@ -16,13 +16,17 @@
 
 ## Scope Selection Table
 
+Two scopes are fixed regardless of code structure:
+
 | Scope | What it covers |
 |-------|---------------|
 | `global` | Shared infra, security config, global exception handler, logging |
-| `member` | Member entity, CRUD services, controller, DTOs |
-| `oneseo` | Application form entity, services, controller, DTOs, custom queries |
-| `operation` | Test result announcements, schedule/date operations |
-| `common` | Cross-cutting domain utilities |
+| `ci/cd` | CI/CD pipelines, Docker, GitHub Actions — always paired with `global` scope |
+
+All other scopes correspond to **domain subdirectories** under `src/main/java/.../domain/`.
+Discover them dynamically by listing that directory — do not rely on a hardcoded list.
+
+> `domain/common/` contains sub-domains (e.g., `operation`, `date`). Use the specific sub-domain name as scope when the change is limited to it, or `common` when it is truly cross-cutting.
 
 ## Composite Changes
 
