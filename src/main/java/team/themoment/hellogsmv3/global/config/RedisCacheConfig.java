@@ -1,6 +1,9 @@
 package team.themoment.hellogsmv3.global.config;
 
+import static team.themoment.hellogsmv3.domain.oneseo.service.OneseoService.ONESEO_CACHE_VALUE;
+
 import java.time.Duration;
+import java.util.Map;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -21,18 +24,20 @@ public class RedisCacheConfig {
 
     @Bean
     public CacheManager contentCacheManager(RedisConnectionFactory cf) {
-        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair
-                                .fromSerializer(GenericJacksonJsonRedisSerializer.builder()
-                                        .enableDefaultTyping(BasicPolymorphicTypeValidator.builder()
-                                                .allowIfBaseType(Object.class).build())
-                                        .build()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(GenericJacksonJsonRedisSerializer.builder().build()))
                 .entryTtl(Duration.ofDays(4L));
 
-        return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(cf)
-                .cacheDefaults(redisCacheConfiguration).build();
+        // oneseo 캐시에만 타입 정보를 포함하며, 허용 타입을 프로젝트 패키지로 제한
+        RedisCacheConfiguration oneseoConfig = defaultConfig
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
+                        GenericJacksonJsonRedisSerializer.builder().enableDefaultTyping(BasicPolymorphicTypeValidator
+                                .builder().allowIfSubType("team.themoment.hellogsmv3").build()).build()));
+
+        return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(cf).cacheDefaults(defaultConfig)
+                .withInitialCacheConfigurations(Map.of(ONESEO_CACHE_VALUE, oneseoConfig)).build();
     }
 }
