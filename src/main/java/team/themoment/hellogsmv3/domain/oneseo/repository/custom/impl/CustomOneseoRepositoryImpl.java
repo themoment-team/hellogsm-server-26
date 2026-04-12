@@ -12,7 +12,6 @@ import static team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo.YES;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;

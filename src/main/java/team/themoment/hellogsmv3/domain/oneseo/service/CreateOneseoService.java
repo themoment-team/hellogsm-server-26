@@ -24,9 +24,9 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.DesiredMajors;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.event.OneseoApplyEvent;
 import team.themoment.hellogsmv3.domain.oneseo.repository.*;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

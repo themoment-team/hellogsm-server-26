@@ -22,10 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Resource;
 import io.awspring.cloud.s3.S3Template;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.thirdParty.aws.s3.data.S3Environment;
 import team.themoment.hellogsmv3.global.thirdParty.aws.s3.dto.response.UploadImageResDto;
 import team.themoment.hellogsmv3.global.thirdParty.aws.s3.service.UploadImageService;
+import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("UploadImageService 클래스의")
 public class UploadImageServiceTest {

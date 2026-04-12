@@ -31,7 +31,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -285,8 +285,7 @@ public class DownloadExcelService {
         return (address != null ? address : "") + (detailAddress != null ? " " + detailAddress : "");
     }
 
-    private String convertGraduationType(
-            GraduationType graduationType) {
+    private String convertGraduationType(GraduationType graduationType) {
         if (graduationType == null)
             return "";
         return switch (graduationType) {

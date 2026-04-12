@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.*;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.*;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.ScreeningCategory;
@@ -28,7 +28,7 @@ import team.themoment.hellogsmv3.domain.oneseo.service.ModifyRealOneseoArrivedYn
 import team.themoment.hellogsmv3.domain.oneseo.service.QueryOneseoByIdService;
 import team.themoment.hellogsmv3.domain.oneseo.service.SearchOneseoService;
 import team.themoment.hellogsmv3.global.common.handler.annotation.AuthRequest;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
+import team.themoment.sdk.response.CommonApiResponse;
 
 @Tag(name = "Oneseo API", description = "원서 관련 API입니다.")
 @Validated

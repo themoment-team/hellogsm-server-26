@@ -22,7 +22,7 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.request.CompetencyEvaluationS
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("ModifyCompetencyEvaluationScoreService 클래스의")
 public class ModifyCompetencyEvaluationScoreServiceTest {

@@ -23,8 +23,8 @@ import org.springframework.http.HttpStatus;
 import team.themoment.hellogsmv3.domain.common.operation.entity.OperationTestResult;
 import team.themoment.hellogsmv3.domain.common.operation.repository.OperationTestResultRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
+import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("AnnounceSecondTestResultService 클래스의")
 class AnnounceSecondTestResultServiceTest {

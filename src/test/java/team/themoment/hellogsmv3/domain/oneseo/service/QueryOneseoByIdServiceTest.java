@@ -30,7 +30,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.repository.MiddleSchoolAchievementRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoPrivacyDetailRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("QueryOneseoByIdService 클래스의")
 class QueryOneseoByIdServiceTest {

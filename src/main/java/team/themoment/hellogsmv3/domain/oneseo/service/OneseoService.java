@@ -23,8 +23,8 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.ScreeningCategory;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

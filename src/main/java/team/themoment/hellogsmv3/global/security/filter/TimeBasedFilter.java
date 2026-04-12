@@ -17,7 +17,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
+import team.themoment.sdk.response.CommonApiResponse;
 
 @Slf4j
 public class TimeBasedFilter extends OncePerRequestFilter {

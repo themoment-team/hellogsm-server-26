@@ -17,7 +17,7 @@ import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("MemberService 클래스의")
 public class MemberServiceTest {

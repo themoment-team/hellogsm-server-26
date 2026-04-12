@@ -22,7 +22,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("ModifyEntranceIntentionService 클래스의")
 public class ModifyEntranceIntentionServiceTest {
