@@ -49,30 +49,34 @@ Rules:
 ## Step 5 — Compose PR Body
 
 ```markdown
-## 변경 사항
+## 개요
 
-- {bullet point summary of each logical change}
-- {bullet point 2}
+{작업 내용을 1~3 문장으로 요약}
 
-## 변경 이유
+## 본문
 
-{Why this change was needed — fill from commit messages and diff context}
+{변경 사항을 더 자세하게 서술 — 왜 이 변경이 필요했는지, 어떤 문제를 해결하는지 포함}
 
-## 테스트
+### 추가
 
-- [ ] 단위 테스트 추가/수정 완료
-- [ ] `./gradlew test` 통과 확인
-- [ ] 로컬 서버 기동 및 수동 테스트 완료
+{기존에 없던 무언가(기능, 코드 등)가 추가된 경우에만 작성. 없으면 섹션 전체 생략}
 
-## 체크리스트
+- {추가된 항목 bullet}
 
-- [ ] `.claude/rules/` 컨벤션 준수
-- [ ] Swagger 어노테이션 추가 (신규 API의 경우)
-- [ ] 불필요한 `System.out.println` 없음
-- [ ] `ExpectedException` 사용 (직접 `RuntimeException` 사용 안 함)
+### 변경
+
+{기존에 있던 무언가가 변경된 경우에만 작성. 없으면 섹션 전체 생략}
+
+- {변경된 항목 bullet}
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
+
+Rules for body composition:
+- `### 추가` section: include only when new files, features, or endpoints are added
+- `### 변경` section: include only when existing behavior, config, or code is modified
+- If only additions exist, omit `### 변경` and vice versa
+- Write in Korean
 
 ## Step 6 — Select Labels
 

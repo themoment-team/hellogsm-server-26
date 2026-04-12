@@ -62,8 +62,6 @@ Stage only the files for the current logical commit unit. Never use `git add -A`
 ```bash
 git commit -m "$(cat <<'EOF'
 {type}({scope}): {Korean description}
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 EOF
 )"
 ```

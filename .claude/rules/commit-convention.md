@@ -42,7 +42,7 @@
 ## Branch Strategy (Git Flow)
 - `main` — production releases only
 - `develop` — integration branch
-- `feature/{type}/{description}` — feature branches cut from `develop`
+- `feature/{description}` — feature branches cut from `develop`
 - `hotfix/{description}` — cut from `main`, merged to both `main` and `develop`
 
 ## Pull Request

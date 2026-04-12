@@ -77,8 +77,6 @@ Compose the commit message following the format: `{type}({scope}): {description}
 ```bash
 git commit -m "$(cat <<'EOF'
 {type}({scope}): {Korean description}
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -95,7 +93,7 @@ git commit -m "..."
 ```
 ## Commit Complete
 
-Branch: feature/feat/member-search
+Branch: feature/member-search
 Commit: feat(member): 회원 검색 기능 추가
 
 Staged files:
