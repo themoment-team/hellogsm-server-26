@@ -24,7 +24,6 @@ Perform a 4-layer consistency audit and produce a structured report.
 Check for contradictions between documentation files:
 - `CLAUDE.md` (if exists)
 - `.claude/rules/*.md` (all rule files)
-- `CONTRIBUTING.md` (if exists)
 - `README.md`
 
 Read all of these files. Look for:

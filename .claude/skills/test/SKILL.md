@@ -50,24 +50,7 @@ Parse failures from XML or Gradle output. For each failure, extract:
 4. **Message**: expected vs actual
 5. **Root file + line number**
 
-## Step 4 — Coverage (Optional)
-
-If the user asked for coverage:
-```bash
-./gradlew test jacocoTestReport
-```
-
-Then check:
-```bash
-find build/reports/jacoco -name "index.html" | head -5
-```
-
-Report:
-- Line coverage %
-- Branch coverage %
-- Top 5 uncovered classes
-
-## Step 5 — Output Report
+## Step 4 — Output Report
 
 ### Pass case
 ```markdown
@@ -107,7 +90,7 @@ Report:
 #### 2. ...
 ```
 
-## Step 6 — Offer test-fixer
+## Step 5 — Offer test-fixer
 
 If there are failures:
 ```
