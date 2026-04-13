@@ -9,7 +9,7 @@ import team.themoment.hellogsmv3.domain.member.dto.request.AuthenticateCodeReqDt
 import team.themoment.hellogsmv3.domain.member.entity.AuthenticationCode;
 import team.themoment.hellogsmv3.domain.member.entity.type.AuthCodeType;
 import team.themoment.hellogsmv3.domain.member.repository.CodeRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

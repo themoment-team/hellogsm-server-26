@@ -42,6 +42,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -102,6 +103,9 @@ dependencies {
 
 	/** open feign **/
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+	/* sdk */
+	implementation("com.github.themoment-team:the-sdk:1.5")
 }
 
 ext {

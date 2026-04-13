@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.common.operation.dto.response.AnnounceTestResultResDto;
 import team.themoment.hellogsmv3.domain.common.operation.entity.OperationTestResult;
 import team.themoment.hellogsmv3.domain.common.operation.repository.OperationTestResultRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

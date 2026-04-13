@@ -14,6 +14,8 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+import team.themoment.sdk.response.CommonApiResponse;
+
 @RestControllerAdvice
 public class ApiResponseWrapper implements ResponseBodyAdvice<Object> {
 

@@ -21,8 +21,8 @@ import team.themoment.hellogsmv3.domain.member.service.*;
 import team.themoment.hellogsmv3.domain.member.service.impl.GenerateCodeServiceImpl;
 import team.themoment.hellogsmv3.domain.member.service.impl.GenerateTestCodeServiceImpl;
 import team.themoment.hellogsmv3.global.common.handler.annotation.AuthRequest;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
 import team.themoment.hellogsmv3.global.security.auth.AuthenticatedUserManager;
+import team.themoment.sdk.response.CommonApiResponse;
 
 @Tag(name = "Member API", description = "맴버 관련 API입니다.")
 @RestController

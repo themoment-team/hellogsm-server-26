@@ -15,10 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.auth.dto.request.OAuthCodeReqDto;
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticationService;
+import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.sdk.response.CommonApiResponse;
 import tools.jackson.databind.ObjectMapper;
 
 @Tag(name = "Auth API", description = "인증 관련 API입니다.")

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
+import team.themoment.sdk.response.CommonApiResponse;
 import tools.jackson.databind.ObjectMapper;
 
 @Component

@@ -28,7 +28,7 @@ import team.themoment.hellogsmv3.domain.oneseo.service.ModifyRealOneseoArrivedYn
 import team.themoment.hellogsmv3.domain.oneseo.service.QueryOneseoByIdService;
 import team.themoment.hellogsmv3.domain.oneseo.service.SearchOneseoService;
 import team.themoment.hellogsmv3.global.common.handler.annotation.AuthRequest;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
+import team.themoment.sdk.response.CommonApiResponse;
 
 @Tag(name = "Oneseo API", description = "원서 관련 API입니다.")
 @Validated
