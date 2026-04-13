@@ -34,7 +34,8 @@ public class RedisCacheConfig {
         RedisCacheConfiguration oneseoConfig = defaultConfig.serializeValuesWith(
                 RedisSerializationContext.SerializationPair.fromSerializer(GenericJacksonJsonRedisSerializer.builder()
                         .enableDefaultTyping(BasicPolymorphicTypeValidator.builder()
-                                .allowIfSubType("team.themoment.hellogsmv3").allowIfSubType("java.util").build())
+                                .allowIfSubType("team.themoment.hellogsmv3").allowIfSubType(java.util.Collection.class)
+                                .allowIfSubType(java.util.Map.class).build())
                         .build()));
 
         return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(cf).cacheDefaults(defaultConfig)
