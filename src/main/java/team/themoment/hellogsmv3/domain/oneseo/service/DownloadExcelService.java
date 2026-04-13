@@ -285,8 +285,7 @@ public class DownloadExcelService {
         return (address != null ? address : "") + (detailAddress != null ? " " + detailAddress : "");
     }
 
-    private String convertGraduationType(
-            GraduationType graduationType) {
+    private String convertGraduationType(GraduationType graduationType) {
         if (graduationType == null)
             return "";
         return switch (graduationType) {

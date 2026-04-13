@@ -31,10 +31,12 @@ public class RedisCacheConfig {
                         .fromSerializer(GenericJacksonJsonRedisSerializer.builder().build()))
                 .entryTtl(Duration.ofDays(4L));
 
-        RedisCacheConfiguration oneseoConfig = defaultConfig
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-                        GenericJacksonJsonRedisSerializer.builder().enableDefaultTyping(BasicPolymorphicTypeValidator
-                                .builder().allowIfSubType("team.themoment.hellogsmv3").build()).build()));
+        RedisCacheConfiguration oneseoConfig = defaultConfig.serializeValuesWith(
+                RedisSerializationContext.SerializationPair.fromSerializer(GenericJacksonJsonRedisSerializer.builder()
+                        .enableDefaultTyping(BasicPolymorphicTypeValidator.builder()
+                                .allowIfSubType("team.themoment.hellogsmv3").allowIfSubType(java.util.Collection.class)
+                                .allowIfSubType(java.util.Map.class).build())
+                        .build()));
 
         return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(cf).cacheDefaults(defaultConfig)
                 .withInitialCacheConfigurations(Map.of(ONESEO_CACHE_VALUE, oneseoConfig)).build();
