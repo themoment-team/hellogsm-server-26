@@ -25,12 +25,26 @@ CommonApiResponse.error(String message, HttpStatus status)
 
 `data` is always `null` for `success()` and `created()` — omitted in JSON via `@JsonInclude(NON_NULL)`.
 
+## Automatic Response Wrapping
+
+When `sdk.response.enabled: true`, the SDK intercepts every controller return value and wraps it in `CommonApiResponse` automatically. This means **read endpoints can return DTOs directly** — you never call `CommonApiResponse` yourself for reads.
+
+```java
+// SDK wraps this DTO into: {"status":"OK","code":200,"message":null,"data":{...}}
+@GetMapping("/{memberId}")
+public FoundOneseoResDto findOneseo(@PathVariable Long memberId) {
+    return findOneseoService.execute(memberId);
+}
+```
+
+Exclude specific paths from wrapping via `sdk.response.not-wrapping-urls` in `application.yml` (see [`sdk-config.md`](sdk-config.md)).
+
 ## Controller Usage
 
 Controllers follow a split pattern — **never use `ResponseEntity`**:
 
 ```java
-// Write operation — return CommonApiResponse
+// Write operation — return CommonApiResponse explicitly
 @PostMapping("/me")
 public CommonApiResponse createOneseo(@RequestBody @Valid OneseoReqDto reqDto) {
     createOneseoService.execute(reqDto);
@@ -46,7 +60,7 @@ public CommonApiResponse updateOneseo(
     return CommonApiResponse.success("수정되었습니다.");
 }
 
-// Read operation — return DTO directly (SDK wraps it automatically)
+// Read operation — return DTO directly; SDK wraps it automatically
 @GetMapping("/{memberId}")
 public FoundOneseoResDto findOneseo(@PathVariable Long memberId) {
     return findOneseoService.execute(memberId);

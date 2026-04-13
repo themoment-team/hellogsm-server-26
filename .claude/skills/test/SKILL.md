@@ -77,25 +77,25 @@ Report:
 
 | Metric | Value |
 |--------|-------|
-| Tests run | 47 |
-| Passed | 47 |
+| Tests run | {total} |
+| Passed | {total} |
 | Failed | 0 |
 | Skipped | 0 |
-| Duration | 8.3s |
+| Duration | {duration}s |
 ```
 
 ### Failure case
 ```markdown
 ## Test Results
 
-❌ {N} test(s) failed
+❌ {failed} test(s) failed
 
 | Metric | Value |
 |--------|-------|
-| Tests run | 47 |
-| Passed | 44 |
-| Failed | 3 |
-| Skipped | 0 |
+| Tests run | {total} |
+| Passed | {passed} |
+| Failed | {failed} |
+| Skipped | {skipped} |
 
 ### Failures
 
