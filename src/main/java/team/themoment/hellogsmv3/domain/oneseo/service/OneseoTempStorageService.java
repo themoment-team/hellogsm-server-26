@@ -19,7 +19,7 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.MiddleSchoolAchievementResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.OneseoPrivacyDetailResDto;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

@@ -13,7 +13,7 @@ import team.themoment.hellogsmv3.domain.common.utility.service.DeleteMemberServi
 import team.themoment.hellogsmv3.domain.common.utility.service.DeleteOneseoService;
 import team.themoment.hellogsmv3.domain.common.utility.service.ModifyMemberRoleService;
 import team.themoment.hellogsmv3.domain.member.entity.type.Role;
-import team.themoment.sdk.response.CommonApiResponse;
+import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
 
 @RestController
 @RequestMapping("/utility/v3")

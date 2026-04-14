@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus;
 import team.themoment.hellogsmv3.domain.common.operation.dto.response.AnnounceTestResultResDto;
 import team.themoment.hellogsmv3.domain.common.operation.entity.OperationTestResult;
 import team.themoment.hellogsmv3.domain.common.operation.repository.OperationTestResultRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @DisplayName("QueryAnnounceTestResultService 클래스의")
 public class QueryAnnounceTestResultServiceTest {

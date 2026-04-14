@@ -24,7 +24,7 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @DisplayName("OneseoTempStorageService 클래스의")
 public class OneseoTempStorageServiceTest {

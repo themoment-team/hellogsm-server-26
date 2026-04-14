@@ -13,7 +13,7 @@ import team.themoment.hellogsmv3.domain.member.entity.AuthenticationCode;
 import team.themoment.hellogsmv3.domain.member.repository.CodeRepository;
 import team.themoment.hellogsmv3.domain.member.service.GenerateCodeService;
 import team.themoment.hellogsmv3.domain.member.service.SendCodeNotificationService;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

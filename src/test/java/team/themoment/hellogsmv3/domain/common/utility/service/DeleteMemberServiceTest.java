@@ -24,7 +24,7 @@ import team.themoment.hellogsmv3.domain.member.repository.CodeRepository;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @DisplayName("DeleteMemberService 클래스의")
 class DeleteMemberServiceTest {

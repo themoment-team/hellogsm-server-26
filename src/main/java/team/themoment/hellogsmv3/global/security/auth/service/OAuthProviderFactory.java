@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.auth.service.provider.OAuthProvider;
-import team.themoment.sdk.exception.ExpectedException;
 
 @Component
 public class OAuthProviderFactory {

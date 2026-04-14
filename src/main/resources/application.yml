@@ -121,25 +121,3 @@ discord-alarm:
 lambda-score-calculator:
   url: ${SCORE_CALCULATOR_SERVICE_URL}
   api-key: ${SCORE_CALCULATOR_API_KEY}
-
-sdk:
-  logging:
-    enabled: true
-    not-logging-urls:
-      - "/v3/api-docs/**"
-      - "/swagger-ui/**"
-
-  response:
-    enabled: true
-    not-wrapping-urls:
-      - "/v3/api-docs/**"
-
-  exception:
-    enabled: true
-    use-english-message: true
-
-  swagger:
-    enabled: true
-    title: "ReadyGSM API"
-    paths-to-match:
-      - "/v1/**"

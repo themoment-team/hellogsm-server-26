@@ -21,12 +21,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.member.entity.type.Role;
+import team.themoment.hellogsmv3.global.common.logging.LoggingFilter;
 import team.themoment.hellogsmv3.global.security.data.AuthEnvironment;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import team.themoment.hellogsmv3.global.security.filter.TimeBasedFilter;
 import team.themoment.hellogsmv3.global.security.handler.CustomAccessDeniedHandler;
 import team.themoment.hellogsmv3.global.security.handler.CustomAuthenticationEntryPoint;
-import team.themoment.sdk.logging.LoggingFilter;
 
 @Configuration
 @RequiredArgsConstructor

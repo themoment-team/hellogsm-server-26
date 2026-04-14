@@ -19,7 +19,7 @@ import team.themoment.hellogsmv3.domain.member.dto.response.FoundMemberResDto;
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @DisplayName("QueryMemberByIdService 클래스의")
 class QueryMemberByIdServiceTest {

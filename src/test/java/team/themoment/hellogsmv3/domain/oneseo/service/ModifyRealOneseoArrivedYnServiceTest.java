@@ -22,7 +22,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @DisplayName("ModifyRealOneseoArrivedYnService 클래스의")
 public class ModifyRealOneseoArrivedYnServiceTest {

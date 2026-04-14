@@ -15,7 +15,7 @@ import team.themoment.hellogsmv3.domain.common.operation.dto.response.AnnounceTe
 import team.themoment.hellogsmv3.domain.common.operation.service.AnnounceFirstTestResultService;
 import team.themoment.hellogsmv3.domain.common.operation.service.AnnounceSecondTestResultService;
 import team.themoment.hellogsmv3.domain.common.operation.service.QueryAnnounceTestResultService;
-import team.themoment.sdk.response.CommonApiResponse;
+import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
 
 @Tag(name = "Operation API", description = "결과 발표 관련 operation API입니다.")
 @RestController

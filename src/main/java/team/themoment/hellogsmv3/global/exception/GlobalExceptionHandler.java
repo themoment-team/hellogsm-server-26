@@ -15,11 +15,19 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
-import team.themoment.sdk.response.CommonApiResponse;
+import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ExpectedException.class)
+    private CommonApiResponse expectedException(ExpectedException ex) {
+        log.warn("ExpectedException : {} ", ex.getMessage());
+        log.trace("ExpectedException Details : ", ex);
+        return CommonApiResponse.error(ex.getMessage(), ex.getStatusCode());
+    }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class,
             ConstraintViolationException.class, MethodArgumentTypeMismatchException.class})

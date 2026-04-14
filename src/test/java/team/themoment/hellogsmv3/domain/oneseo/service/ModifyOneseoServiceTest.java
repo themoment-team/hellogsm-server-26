@@ -36,9 +36,9 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.MiddleSchoolAchievemen
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoPrivacyDetailRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.ScreeningChangeHistoryRepository;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
-import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("ModifyOneseoService 클래스의")
 class ModifyOneseoServiceTest {

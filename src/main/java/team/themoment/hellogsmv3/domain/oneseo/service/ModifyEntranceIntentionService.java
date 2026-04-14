@@ -9,7 +9,7 @@ import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.EntranceIntentionReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

@@ -17,7 +17,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @DisplayName("DeleteOneseoService 클래스의")
 class DeleteOneseoServiceTest {

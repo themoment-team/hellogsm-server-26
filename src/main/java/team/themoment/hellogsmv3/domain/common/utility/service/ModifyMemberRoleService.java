@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.entity.type.Role;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @Service
 @RequiredArgsConstructor

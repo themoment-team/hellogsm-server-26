@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 @DisplayName("UploadExcelService 클래스의")
 class UploadExcelServiceTest {

@@ -10,7 +10,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import team.themoment.hellogsmv3.global.common.handler.annotation.AuthRequest;
-import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 
 public class AuthenticationArgumentResolver implements HandlerMethodArgumentResolver {
     @Override
