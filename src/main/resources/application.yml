@@ -127,6 +127,7 @@ sdk:
     enabled: true
     not-logging-urls:
       - "/api-docs/**"
+      - "/swagger-ui/**"
       - "/hello-management/prometheus/**"
 
   response:
