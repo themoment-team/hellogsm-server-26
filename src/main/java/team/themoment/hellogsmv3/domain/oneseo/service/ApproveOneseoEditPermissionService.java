@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
-import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
 @Service
@@ -15,7 +14,6 @@ import team.themoment.sdk.exception.ExpectedException;
 public class ApproveOneseoEditPermissionService {
 
     private final OneseoService oneseoService;
-    private final OneseoRepository oneseoRepository;
 
     @Transactional
     public void execute(Long memberId) {
@@ -26,6 +24,5 @@ public class ApproveOneseoEditPermissionService {
         }
 
         oneseo.approveEditPermit();
-        oneseoRepository.save(oneseo);
     }
 }
