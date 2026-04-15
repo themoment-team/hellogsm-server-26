@@ -35,7 +35,7 @@ public class RedisCacheConfig {
                 RedisSerializationContext.SerializationPair.fromSerializer(GenericJacksonJsonRedisSerializer.builder()
                         .enableDefaultTyping(BasicPolymorphicTypeValidator.builder()
                                 .allowIfSubType("team.themoment.hellogsmv3").allowIfSubType(java.util.Collection.class)
-                                .allowIfSubType(java.util.Map.class).build())
+                                .allowIfSubType(java.util.Map.class).allowIfSubType(java.math.BigDecimal.class).build())
                         .build()));
 
         return RedisCacheManager.RedisCacheManagerBuilder.fromConnectionFactory(cf).cacheDefaults(defaultConfig)
