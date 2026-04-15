@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
-import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
 @Service
@@ -16,7 +15,6 @@ import team.themoment.sdk.exception.ExpectedException;
 public class ModifyOneseoByApplicantService {
 
     private final OneseoService oneseoService;
-    private final OneseoRepository oneseoRepository;
     private final ModifyOneseoService modifyOneseoService;
 
     @Transactional
@@ -31,6 +29,5 @@ public class ModifyOneseoByApplicantService {
 
         Oneseo saved = oneseoService.findWithMemberByMemberIdOrThrow(memberId);
         saved.revokeEditPermit();
-        oneseoRepository.save(saved);
     }
 }
