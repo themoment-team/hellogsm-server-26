@@ -240,7 +240,7 @@ public class ModifyOneseoService {
                 .realOneseoArrivedYn(oneseo.getRealOneseoArrivedYn()).wantedScreening(reqDto.screening())
                 .passYn(oneseo.getPassYn()).decidedMajor(oneseo.getDecidedMajor())
                 .entranceIntentionYn(oneseo.getEntranceIntentionYn()).oneseoSubmitCode(oneseo.getOneseoSubmitCode())
-                .build();
+                .oneseoEditStatus(oneseo.getOneseoEditStatus()).build();
     }
 
     private void saveOneseoPrivacyDetail(OneseoReqDto reqDto, OneseoPrivacyDetail oneseoPrivacyDetail, Oneseo oneseo) {
