@@ -16,11 +16,11 @@ if [[ "$TOOL_NAME" == "Edit" ]] || [[ "$TOOL_NAME" == "Write" ]]; then
             echo "[Hook] Format failed" >&2
         fi
         FILE_NAME=$(basename "$FILE_PATH")
-        if [[ "$FILE_NAME" == *ServiceImpl.kt ]] && [[ "$FILE_PATH" != */test/* ]]; then
+        if [[ "$FILE_NAME" == *ServiceImpl.java ]] && [[ "$FILE_PATH" != */test/* ]]; then
             RELATIVE="${FILE_PATH#$CWD/}"
             MODULE=$(echo "$RELATIVE" | cut -d'/' -f1)
             if [[ -n "$MODULE" ]] && [[ -d "$CWD/$MODULE/src/test" ]]; then
-                TEST_CLASS="${FILE_NAME%Impl.kt}Test"
+                TEST_CLASS="${FILE_NAME%Impl.java}Test"
                 echo "[Hook] Running test $TEST_CLASS in $MODULE..." >&2
                 TEST_OUTPUT=$(./gradlew ":${MODULE}:test" --tests "$TEST_CLASS" 2>&1)
                 TEST_EXIT=$?

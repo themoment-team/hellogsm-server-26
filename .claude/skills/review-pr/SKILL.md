@@ -2,7 +2,7 @@
 name: review-pr
 description: Collect PR review comments, critically assess each one against project conventions, auto-apply valid ones, post refutation replies for invalid ones, and prompt for partial ones. Replaces resolve-pr-comments.
 disable-model-invocation: true
-allowed-tools: Bash(bash *get-pr-data.sh:*), Bash(gh api:*), Bash(gh pr view:*), Bash(gh repo:*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git rev-parse:*), Bash(rm:*), Edit, Read
+allowed-tools: Bash(bash *get-pr-data.sh:*), Bash(gh api:*), Bash(gh pr view:*), Bash(gh repo:*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git rev-parse:*), Bash(rm:*), Edit, Read, AskUserQuestion
 ---
 
 ## Step 1 — Collect PR Data
@@ -42,7 +42,7 @@ For each comment in `pr_comments.json`, apply the following **layered judgment c
 
 1. **Project conventions** (primary): apply rules discovered above
    - DTO annotation rules, commit scope, logging style, exception message format, etc.
-2. **Language/framework best practices** (secondary): Kotlin official guide, Spring Boot recommendations
+2. **Language/framework best practices** (secondary): Google Java Style Guide, Spring Boot recommendations
    - Apply only when no matching project rule exists
 
 ### Verdicts
@@ -103,7 +103,7 @@ Accept? (y / n / s = skip for now)
 Post an inline reply for each comment. Always quote `path` and `comment_id` to prevent shell injection.
 
 ```bash
-gh api "repos/<owner>/<repo>/pulls/<pr_number>/comments/<comment_id>/replies" \
+gh api "repos/$REPO/pulls/$PR_NUMBER/comments/<comment_id>/replies" \
   -f body="<reply_body>"
 ```
 
