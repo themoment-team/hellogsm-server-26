@@ -58,7 +58,7 @@ public class OneseoController {
     @PostMapping("/oneseo/me")
     public CommonApiResponse create(@RequestBody @Valid OneseoReqDto reqDto, @AuthRequest Long memberId) {
         createOneseoService.execute(reqDto, memberId);
-        return CommonApiResponse.created("생성되었습니다.");
+        return CommonApiResponse.created("원서가 생성되었습니다.");
     }
 
     @Operation(summary = "원서 수정", description = "맴버 id로 원서를 수정합니다.")
@@ -66,7 +66,7 @@ public class OneseoController {
     public CommonApiResponse modifyByAdmin(@RequestBody @Valid OneseoReqDto reqDto,
             @PathVariable("memberId") Long memberId) {
         modifyOneseoService.execute(reqDto, memberId);
-        return CommonApiResponse.success("수정되었습니다.");
+        return CommonApiResponse.success("원서가 수정되었습니다.");
     }
 
     @Operation(summary = "실물 원서 제출 여부 수정", description = "맴버 id로 원서의 실물 원서 제출 여부를 수정합니다.")
@@ -126,7 +126,7 @@ public class OneseoController {
             @RequestParam Integer step,
             @AuthRequest Long memberId) {
         oneseoTempStorageService.execute(reqDto, step, memberId);
-        return CommonApiResponse.success("임시저장되었습니다.");
+        return CommonApiResponse.success("원서가 임시저장되었습니다.");
     }
 
     @Operation(summary = "엑셀 업로드", description = "엑셀 파일을 업로드하여 2차전형 점수를 입력합니다.")
@@ -177,13 +177,13 @@ public class OneseoController {
     @PatchMapping("/oneseo/{memberId}/approval")
     public CommonApiResponse approveEditPermission(@PathVariable Long memberId) {
         approveOneseoEditPermissionService.execute(memberId);
-        return CommonApiResponse.success("수정되었습니다.");
+        return CommonApiResponse.success("원서 수정 권한 요청이 승인되었습니다.");
     }
 
     @Operation(summary = "내 원서 수정 (지원자)", description = "수정 권한이 승인된 지원자가 원서를 수정합니다.")
     @PutMapping("/oneseo/me")
     public CommonApiResponse modifyByApplicant(@RequestBody @Valid OneseoReqDto reqDto, @AuthRequest Long memberId) {
         modifyOneseoByApplicantService.execute(reqDto, memberId);
-        return CommonApiResponse.success("수정되었습니다.");
+        return CommonApiResponse.success("원서가 수정되었습니다.");
     }
 }
