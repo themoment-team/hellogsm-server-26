@@ -20,9 +20,13 @@ public class RequestOneseoEditPermissionService {
 
     private final OneseoService oneseoService;
 
+    protected LocalTime getCurrentTime() {
+        return LocalTime.now();
+    }
+
     @Transactional
     public void execute(Long memberId) {
-        LocalTime now = LocalTime.now();
+        LocalTime now = getCurrentTime();
         if (now.isBefore(REQUEST_START) || now.isAfter(REQUEST_END)) {
             throw new ExpectedException("원서 수정 권한 요청은 09:00 ~ 16:00 사이에만 가능합니다.", HttpStatus.FORBIDDEN);
         }
