@@ -156,7 +156,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/oneseo/v3/interview-score/{memberId}").hasAnyAuthority(ADMIN_ONLY)
                 .requestMatchers(HttpMethod.POST, "/oneseo/v3/image")
                 .hasAnyAuthority(Role.APPLICANT.name(), Role.ADMIN.name(), Role.ROOT.name())
-                .requestMatchers(HttpMethod.DELETE, "/oneseo/v3/oneseo/me").hasAnyAuthority(APPLICANT_OR_ROOT)
                 .requestMatchers(HttpMethod.GET, "/oneseo/v3/oneseo/search").hasAnyAuthority(ADMIN_ONLY)
                 .requestMatchers(HttpMethod.PUT, "/oneseo/v3/final-submit").hasAnyAuthority(Role.APPLICANT.name())
                 .requestMatchers(HttpMethod.POST, "/oneseo/v3/excel").hasAnyAuthority(ADMIN_ONLY)
@@ -164,8 +163,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/oneseo/v3/admission-tickets").hasAnyAuthority(ADMIN_ONLY)
                 .requestMatchers(HttpMethod.GET, "/oneseo/v3/editability").hasAnyAuthority(ALL_AUTHENTICATED)
                 .requestMatchers(HttpMethod.POST, "/oneseo/v3/oneseo/me/request").hasAnyAuthority(APPLICANT_OR_ROOT)
-                .requestMatchers(HttpMethod.PATCH, "/oneseo/v3/oneseo/{memberId}/approval").hasAnyAuthority(ADMIN_ONLY)
-                .requestMatchers(HttpMethod.PUT, "/oneseo/v3/oneseo/me").hasAnyAuthority(APPLICANT_OR_ROOT);
+                .requestMatchers(HttpMethod.PATCH, "/oneseo/v3/oneseo/{memberId}/approval").hasAnyAuthority(ADMIN_ONLY);
     }
 
     private void operationRequests(
