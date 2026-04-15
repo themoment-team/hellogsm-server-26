@@ -38,8 +38,7 @@ public class ModifyPersonalInfoService {
         Member member = oneseo.getMember();
         member.modifyMember(reqDto.name(), reqDto.birth(), member.getPhoneNumber(), reqDto.sex());
 
-        OneseoPrivacyDetail existing = oneseoPrivacyDetailRepository.findByOneseo(oneseo);
-        OneseoPrivacyDetail updated = OneseoPrivacyDetail.builder().id(existing.getId()).oneseo(oneseo)
+        OneseoPrivacyDetail updated = OneseoPrivacyDetail.builder().id(oneseo.getId()).oneseo(oneseo)
                 .graduationType(reqDto.graduationType()).graduationDate(reqDto.graduationDate())
                 .address(reqDto.address()).detailAddress(reqDto.detailAddress()).profileImg(reqDto.profileImg())
                 .guardianName(reqDto.guardianName()).guardianPhoneNumber(reqDto.guardianPhoneNumber())
