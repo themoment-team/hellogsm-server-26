@@ -26,8 +26,5 @@ public class ModifyOneseoByApplicantService {
         }
 
         modifyOneseoService.execute(reqDto, memberId);
-
-        Oneseo saved = oneseoService.findWithMemberByMemberIdOrThrow(memberId);
-        saved.revokeEditPermit();
     }
 }

@@ -61,6 +61,7 @@ public class ModifyOneseoService {
         saveMiddleSchoolAchievement(reqDto, middleSchoolAchievement, modifiedOneseo);
         saveHistoryIfWantedScreeningChange(reqDto.screening(), currentOneseo.getWantedScreening(), modifiedOneseo);
 
+        modifiedOneseo.revokeEditPermit();
         oneseoRepository.save(modifiedOneseo);
 
         CalculatedScoreResDto calculatedScoreResDto = calculateMiddleSchoolAchievement(reqDto.graduationType(),
