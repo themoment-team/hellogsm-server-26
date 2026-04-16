@@ -1,6 +1,6 @@
 ---
 name: write-pr
-description: Analyzes commits since branching from develop/main, generates PR title/body/labels following project conventions, and creates the PR via GitHub CLI for hellogsm-server-25.
+description: Analyzes commits since branching from develop/main, generates PR title/body following project conventions, and creates the PR via GitHub CLI for hellogsm-server-25.
 ---
 
 You are executing the **write-pr** skill for hellogsm-server-25.
@@ -46,7 +46,6 @@ Scopes: `global`, `member`, `oneseo`, `operation`, `common`
 
 - {변경된 항목 bullet}
 
-🤖 Generated with Claude Code
 ```
 
 Rules for body composition:
@@ -55,11 +54,7 @@ Rules for body composition:
 - If only additions exist, omit `### 변경` and vice versa
 - Write in Korean
 
-## Step 4 — Select Labels
-
-Read `.agents/skills/write-pr/references/labels.md` for label selection criteria.
-
-## Step 5 — Create PR
+## Step 4 — Create PR
 
 ```bash
 git push -u origin $(git branch --show-current)
@@ -70,18 +65,15 @@ gh pr create \
   --body "$(cat <<'EOF'
 {body}
 EOF
-)" \
-  --label "{label1}" \
-  --label "{label2}"
+)"
 ```
 
-## Step 6 — Output
+## Step 5 — Output
 
 ```
 ## PR Created
 
 Title: {title}
 Base: develop ← {current-branch}
-Labels: {labels}
 URL: {url}
 ```
