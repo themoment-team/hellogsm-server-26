@@ -14,11 +14,14 @@ import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.MiddleSchoolAchievementReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoTempReqDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.response.CalculatedScoreResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.DesiredMajorsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.MiddleSchoolAchievementResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.OneseoPrivacyDetailResDto;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
+import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
+import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
 import team.themoment.sdk.exception.ExpectedException;
 
 @Service
@@ -27,6 +30,7 @@ public class OneseoTempStorageService {
 
     private final MemberService memberService;
     private final OneseoRepository oneseoRepository;
+    private final LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
 
     @CachePut(value = ONESEO_CACHE_VALUE, key = "#memberId")
     @Transactional(readOnly = true)
@@ -37,8 +41,10 @@ public class OneseoTempStorageService {
 
         OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto = buildOneseoPrivacyDetailResDto(member, reqDto);
         MiddleSchoolAchievementResDto middleSchoolAchievementResDto = buildMiddleSchoolAchievementResDto(reqDto);
+        CalculatedScoreResDto calculatedScoreResDto = calculateScore(reqDto);
 
-        return buildFoundOneseoResDto(reqDto, oneseoPrivacyDetailResDto, middleSchoolAchievementResDto, step);
+        return buildFoundOneseoResDto(reqDto, oneseoPrivacyDetailResDto, middleSchoolAchievementResDto, step,
+                calculatedScoreResDto);
     }
 
     private void isNotExistOneseo(Member member) {
@@ -73,23 +79,31 @@ public class OneseoTempStorageService {
                 .newSubjects(middleSchoolAchievement.newSubjects())
                 .artsPhysicalAchievement(middleSchoolAchievement.artsPhysicalAchievement())
                 .artsPhysicalSubjects(middleSchoolAchievement.artsPhysicalSubjects()).absentDays(absentDays)
-                .absentDaysCount(null).attendanceDays(attendanceDays)
+                .absentDaysCount(OneseoService.calcAbsentDaysCount(absentDays, attendanceDays))
+                .attendanceDays(attendanceDays)
                 .volunteerTime(middleSchoolAchievement.volunteerTime())
                 .liberalSystem(middleSchoolAchievement.liberalSystem())
                 .freeSemester(middleSchoolAchievement.freeSemester()).gedAvgScore(middleSchoolAchievement.gedAvgScore())
                 .build();
     }
 
+    private CalculatedScoreResDto calculateScore(OneseoTempReqDto reqDto) {
+        LambdaScoreCalculatorReqDto lambdaRequest =
+                LambdaScoreCalculatorReqDto.from(reqDto.middleSchoolAchievement(), reqDto.graduationType());
+        return lambdaScoreCalculatorClient.calculateScore(lambdaRequest);
+    }
+
     private FoundOneseoResDto buildFoundOneseoResDto(OneseoTempReqDto reqDto,
             OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto,
             MiddleSchoolAchievementResDto middleSchoolAchievementResDto,
-            Integer step) {
+            Integer step,
+            CalculatedScoreResDto calculatedScoreResDto) {
 
         return FoundOneseoResDto.builder().oneseoId(null).submitCode(null).wantedScreening(reqDto.screening())
                 .desiredMajors(DesiredMajorsResDto.builder().firstDesiredMajor(reqDto.firstDesiredMajor())
                         .secondDesiredMajor(reqDto.secondDesiredMajor()).thirdDesiredMajor(reqDto.thirdDesiredMajor())
                         .build())
                 .privacyDetail(oneseoPrivacyDetailResDto).middleSchoolAchievement(middleSchoolAchievementResDto)
-                .step(step).build();
+                .calculatedScore(calculatedScoreResDto).step(step).build();
     }
 }
