@@ -1,8 +1,10 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,10 +22,13 @@ import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
 import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.MiddleSchoolAchievementReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoTempReqDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.response.CalculatedScoreResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
+import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
+import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("OneseoTempStorageService 클래스의")
@@ -33,6 +38,8 @@ public class OneseoTempStorageServiceTest {
     private MemberService memberService;
     @Mock
     private OneseoRepository oneseoRepository;
+    @Mock
+    private LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
     @InjectMocks
     private OneseoTempStorageService oneseoTempStorageService;
 
@@ -81,9 +88,16 @@ public class OneseoTempStorageServiceTest {
             @Nested
             @DisplayName("회원이 원서를 제출하지 않았다면")
             class Oneseo_not_exist {
+                private final CalculatedScoreResDto calculatedScoreResDto = CalculatedScoreResDto.builder()
+                        .generalSubjectsScore(new BigDecimal("80.000"))
+                        .artsPhysicalSubjectsScore(new BigDecimal("10.000")).attendanceScore(new BigDecimal("5.000"))
+                        .volunteerScore(new BigDecimal("5.000")).totalScore(new BigDecimal("100.000")).build();
+
                 @BeforeEach
                 void setUp() {
                     given(oneseoRepository.existsByMember(member)).willReturn(false);
+                    given(lambdaScoreCalculatorClient.calculateScore(any(LambdaScoreCalculatorReqDto.class)))
+                            .willReturn(calculatedScoreResDto);
                 }
 
                 @Test
@@ -143,6 +157,7 @@ public class OneseoTempStorageServiceTest {
                             resDto.middleSchoolAchievement().freeSemester());
                     assertEquals(reqDto.middleSchoolAchievement().gedAvgScore(),
                             resDto.middleSchoolAchievement().gedAvgScore());
+                    assertEquals(calculatedScoreResDto, resDto.calculatedScore());
                     assertEquals(step, resDto.step());
                 }
             }
