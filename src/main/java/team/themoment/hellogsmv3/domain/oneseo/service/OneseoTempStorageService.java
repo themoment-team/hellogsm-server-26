@@ -43,7 +43,10 @@ public class OneseoTempStorageService {
         MiddleSchoolAchievementResDto middleSchoolAchievementResDto = buildMiddleSchoolAchievementResDto(reqDto);
         CalculatedScoreResDto calculatedScoreResDto = calculateScore(reqDto);
 
-        return buildFoundOneseoResDto(reqDto, oneseoPrivacyDetailResDto, middleSchoolAchievementResDto, step,
+        return buildFoundOneseoResDto(reqDto,
+                oneseoPrivacyDetailResDto,
+                middleSchoolAchievementResDto,
+                step,
                 calculatedScoreResDto);
     }
 
@@ -80,16 +83,15 @@ public class OneseoTempStorageService {
                 .artsPhysicalAchievement(middleSchoolAchievement.artsPhysicalAchievement())
                 .artsPhysicalSubjects(middleSchoolAchievement.artsPhysicalSubjects()).absentDays(absentDays)
                 .absentDaysCount(OneseoService.calcAbsentDaysCount(absentDays, attendanceDays))
-                .attendanceDays(attendanceDays)
-                .volunteerTime(middleSchoolAchievement.volunteerTime())
+                .attendanceDays(attendanceDays).volunteerTime(middleSchoolAchievement.volunteerTime())
                 .liberalSystem(middleSchoolAchievement.liberalSystem())
                 .freeSemester(middleSchoolAchievement.freeSemester()).gedAvgScore(middleSchoolAchievement.gedAvgScore())
                 .build();
     }
 
     private CalculatedScoreResDto calculateScore(OneseoTempReqDto reqDto) {
-        LambdaScoreCalculatorReqDto lambdaRequest =
-                LambdaScoreCalculatorReqDto.from(reqDto.middleSchoolAchievement(), reqDto.graduationType());
+        LambdaScoreCalculatorReqDto lambdaRequest = LambdaScoreCalculatorReqDto.from(reqDto.middleSchoolAchievement(),
+                reqDto.graduationType());
         return lambdaScoreCalculatorClient.calculateScore(lambdaRequest);
     }
 
