@@ -39,6 +39,7 @@ public class OneseoController {
 
     private final CreateOneseoService createOneseoService;
     private final ModifyOneseoService modifyOneseoService;
+    private final ModifyOneseoByApplicantService modifyOneseoByApplicantService;
     private final ModifyRealOneseoArrivedYnService modifyRealOneseoArrivedYnService;
     private final ModifyCompetencyEvaluationScoreService modifyCompetencyEvaluationScoreService;
     private final ModifyInterviewScoreService modifyInterviewScoreService;
@@ -50,13 +51,15 @@ public class OneseoController {
     private final ModifyEntranceIntentionService modifyEntranceIntentionService;
     private final QueryOneseoEditabilityService queryOneseoEditabilityService;
     private final UploadExcelService uploadExcelService;
+    private final RequestOneseoEditPermissionService requestOneseoEditPermissionService;
+    private final ApproveOneseoEditPermissionService approveOneseoEditPermissionService;
     private final ModifyPersonalInfoService modifyPersonalInfoService;
 
     @Operation(summary = "내 원서 등록", description = "원서를 등록합니다.")
     @PostMapping("/oneseo/me")
     public CommonApiResponse create(@RequestBody @Valid OneseoReqDto reqDto, @AuthRequest Long memberId) {
         createOneseoService.execute(reqDto, memberId);
-        return CommonApiResponse.created("생성되었습니다.");
+        return CommonApiResponse.created("원서가 생성되었습니다.");
     }
 
     @Operation(summary = "원서 수정", description = "맴버 id로 원서를 수정합니다.")
@@ -64,7 +67,7 @@ public class OneseoController {
     public CommonApiResponse modifyByAdmin(@RequestBody @Valid OneseoReqDto reqDto,
             @PathVariable("memberId") Long memberId) {
         modifyOneseoService.execute(reqDto, memberId);
-        return CommonApiResponse.success("수정되었습니다.");
+        return CommonApiResponse.success("원서가 수정되었습니다.");
     }
 
     @Operation(summary = "실물 원서 제출 여부 수정", description = "맴버 id로 원서의 실물 원서 제출 여부를 수정합니다.")
@@ -124,7 +127,7 @@ public class OneseoController {
             @RequestParam Integer step,
             @AuthRequest Long memberId) {
         oneseoTempStorageService.execute(reqDto, step, memberId);
-        return CommonApiResponse.success("임시저장되었습니다.");
+        return CommonApiResponse.success("원서가 임시저장되었습니다.");
     }
 
     @Operation(summary = "엑셀 업로드", description = "엑셀 파일을 업로드하여 2차전형 점수를 입력합니다.")
@@ -158,10 +161,31 @@ public class OneseoController {
         return CommonApiResponse.success("수정되었습니다.");
     }
 
-    @Operation(summary = "원서 수정 가능여부", description = "원서 수정이 가능한지에 대해 반환합니다.")
+    @Operation(summary = "원서 수정 가능여부", description = "원서 수정이 가능한지에 대해 반환합니다. 지원자는 본인의 수정 권한 상태도 함께 반환합니다.")
     @GetMapping("/editability")
-    public OneseoEditabilityResDto getOneseoEditability() {
-        return queryOneseoEditabilityService.execute();
+    public OneseoEditabilityResDto getOneseoEditability(@AuthRequest Long memberId) {
+        return queryOneseoEditabilityService.execute(memberId);
+    }
+
+    @Operation(summary = "원서 수정 권한 요청", description = "지원자가 원서 수정 권한을 요청합니다.")
+    @PostMapping("/oneseo/me/request")
+    public CommonApiResponse requestEditPermission(@AuthRequest Long memberId) {
+        requestOneseoEditPermissionService.execute(memberId);
+        return CommonApiResponse.success("원서 수정 권한 요청이 완료되었습니다.");
+    }
+
+    @Operation(summary = "원서 수정 권한 승인", description = "관리자가 원서 수정 권한을 승인합니다.")
+    @PatchMapping("/oneseo/{memberId}/approval")
+    public CommonApiResponse approveEditPermission(@PathVariable Long memberId) {
+        approveOneseoEditPermissionService.execute(memberId);
+        return CommonApiResponse.success("원서 수정 권한 요청이 승인되었습니다.");
+    }
+
+    @Operation(summary = "내 원서 수정 (지원자)", description = "수정 권한이 승인된 지원자가 원서를 수정합니다.")
+    @PutMapping("/oneseo/me")
+    public CommonApiResponse modifyByApplicant(@RequestBody @Valid OneseoReqDto reqDto, @AuthRequest Long memberId) {
+        modifyOneseoByApplicantService.execute(reqDto, memberId);
+        return CommonApiResponse.success("원서가 수정되었습니다.");
     }
 
     @Operation(summary = "인적사항 수정", description = "내 원서의 인적사항(이름, 생년월일, 성별, 주소, 보호자 정보, 학교 정보 등)을 수정합니다.")
