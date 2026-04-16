@@ -3,6 +3,7 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 import static team.themoment.hellogsmv3.domain.oneseo.service.OneseoService.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
@@ -82,17 +83,30 @@ public class OneseoTempStorageService {
                 .newSubjects(middleSchoolAchievement.newSubjects())
                 .artsPhysicalAchievement(middleSchoolAchievement.artsPhysicalAchievement())
                 .artsPhysicalSubjects(middleSchoolAchievement.artsPhysicalSubjects()).absentDays(absentDays)
-                .absentDaysCount(OneseoService.calcAbsentDaysCount(absentDays, attendanceDays))
-                .attendanceDays(attendanceDays).volunteerTime(middleSchoolAchievement.volunteerTime())
+                .absentDaysCount(calcAbsentDaysCountSafely(absentDays, attendanceDays)).attendanceDays(attendanceDays)
+                .volunteerTime(middleSchoolAchievement.volunteerTime())
                 .liberalSystem(middleSchoolAchievement.liberalSystem())
                 .freeSemester(middleSchoolAchievement.freeSemester()).gedAvgScore(middleSchoolAchievement.gedAvgScore())
                 .build();
     }
 
     private CalculatedScoreResDto calculateScore(OneseoTempReqDto reqDto) {
+        if (reqDto.middleSchoolAchievement() == null) {
+            return null;
+        }
         LambdaScoreCalculatorReqDto lambdaRequest = LambdaScoreCalculatorReqDto.from(reqDto.middleSchoolAchievement(),
                 reqDto.graduationType());
         return lambdaScoreCalculatorClient.calculateScore(lambdaRequest);
+    }
+
+    private Integer calcAbsentDaysCountSafely(List<Integer> absentDays, List<Integer> attendanceDays) {
+        if (absentDays == null || attendanceDays == null) {
+            return null;
+        }
+        if (absentDays.stream().anyMatch(Objects::isNull) || attendanceDays.stream().anyMatch(Objects::isNull)) {
+            return null;
+        }
+        return OneseoService.calcAbsentDaysCount(absentDays, attendanceDays);
     }
 
     private FoundOneseoResDto buildFoundOneseoResDto(OneseoTempReqDto reqDto,
