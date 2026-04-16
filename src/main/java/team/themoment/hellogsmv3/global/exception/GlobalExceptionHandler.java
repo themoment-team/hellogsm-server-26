@@ -15,11 +15,19 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
+import team.themoment.sdk.exception.ExpectedException;
 import team.themoment.sdk.response.CommonApiResponse;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ExpectedException.class)
+    public CommonApiResponse expectedException(ExpectedException ex) {
+        log.warn("Expected exception: {}", ex.getMessage());
+        log.trace("Expected exception details: ", ex);
+        return CommonApiResponse.error(ex.getMessage(), ex.getStatusCode());
+    }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class,
             ConstraintViolationException.class, MethodArgumentTypeMismatchException.class})
@@ -41,7 +49,7 @@ public class GlobalExceptionHandler {
             log.warn("Corrupted session detected, treating as invalid session: {}", ex.getMessage());
             return CommonApiResponse.error("Session is invalid or expired", HttpStatus.UNAUTHORIZED);
         }
-        return unExpectedException(ex); // 다른 IllegalStateException은 RuntimeException 핸들러로 위임
+        return unExpectedException(ex);
     }
 
     @ExceptionHandler(RuntimeException.class)
