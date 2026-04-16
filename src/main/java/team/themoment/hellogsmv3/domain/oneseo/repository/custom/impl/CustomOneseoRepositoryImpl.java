@@ -89,7 +89,8 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
                         oneseo.entranceTestResult.competencyEvaluationScore,
                         oneseo.entranceTestResult.interviewScore,
                         oneseo.entranceTestResult.secondTestPassYn,
-                        oneseo.entranceIntentionYn))
+                        oneseo.entranceIntentionYn,
+                        oneseo.oneseoEditStatus))
                 .from(oneseo).join(oneseo.member, member).join(oneseo.oneseoPrivacyDetail, oneseoPrivacyDetail)
                 .join(oneseo.entranceTestResult, entranceTestResult).where(builder)
                 .orderBy(oneseo.oneseoSubmitCode.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize())
@@ -209,4 +210,5 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
 
         return new FoundMemberAndOneseoDto(result.get(member), result.get(oneseo));
     }
+
 }

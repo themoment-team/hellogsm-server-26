@@ -61,6 +61,7 @@ public class ModifyOneseoService {
         saveMiddleSchoolAchievement(reqDto, middleSchoolAchievement, modifiedOneseo);
         saveHistoryIfWantedScreeningChange(reqDto.screening(), currentOneseo.getWantedScreening(), modifiedOneseo);
 
+        modifiedOneseo.revokeEditPermit();
         oneseoRepository.save(modifiedOneseo);
 
         CalculatedScoreResDto calculatedScoreResDto = calculateMiddleSchoolAchievement(reqDto.graduationType(),
@@ -240,7 +241,7 @@ public class ModifyOneseoService {
                 .realOneseoArrivedYn(oneseo.getRealOneseoArrivedYn()).wantedScreening(reqDto.screening())
                 .passYn(oneseo.getPassYn()).decidedMajor(oneseo.getDecidedMajor())
                 .entranceIntentionYn(oneseo.getEntranceIntentionYn()).oneseoSubmitCode(oneseo.getOneseoSubmitCode())
-                .build();
+                .oneseoEditStatus(oneseo.getOneseoEditStatus()).build();
     }
 
     private void saveOneseoPrivacyDetail(OneseoReqDto reqDto, OneseoPrivacyDetail oneseoPrivacyDetail, Oneseo oneseo) {
