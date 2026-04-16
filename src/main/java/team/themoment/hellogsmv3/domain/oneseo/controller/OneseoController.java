@@ -53,6 +53,7 @@ public class OneseoController {
     private final UploadExcelService uploadExcelService;
     private final RequestOneseoEditPermissionService requestOneseoEditPermissionService;
     private final ApproveOneseoEditPermissionService approveOneseoEditPermissionService;
+    private final ModifyPersonalInfoService modifyPersonalInfoService;
 
     @Operation(summary = "내 원서 등록", description = "원서를 등록합니다.")
     @PostMapping("/oneseo/me")
@@ -185,5 +186,13 @@ public class OneseoController {
     public CommonApiResponse modifyByApplicant(@RequestBody @Valid OneseoReqDto reqDto, @AuthRequest Long memberId) {
         modifyOneseoByApplicantService.execute(reqDto, memberId);
         return CommonApiResponse.success("원서가 수정되었습니다.");
+    }
+
+    @Operation(summary = "인적사항 수정", description = "내 원서의 인적사항(이름, 생년월일, 성별, 주소, 보호자 정보, 학교 정보 등)을 수정합니다.")
+    @PatchMapping("/personal-info/me")
+    public CommonApiResponse modifyPersonalInfo(@RequestBody @Valid ModifyPersonalInfoReqDto reqDto,
+            @AuthRequest Long memberId) {
+        modifyPersonalInfoService.execute(reqDto, memberId);
+        return CommonApiResponse.success("수정되었습니다.");
     }
 }
