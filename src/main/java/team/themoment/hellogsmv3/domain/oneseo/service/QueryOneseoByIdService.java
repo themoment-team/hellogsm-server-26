@@ -22,6 +22,13 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoPrivacyDetailRep
 @RequiredArgsConstructor
 public class QueryOneseoByIdService {
 
+    private static final String LIBERAL_YEAR_SYSTEM = "자유학년제";
+    private static final String FREE_SEMESTER_1_2 = "1-2";
+    private static final String FREE_SEMESTER_2_1 = "2-1";
+    private static final String FREE_SEMESTER_2_2 = "2-2";
+    private static final String FREE_SEMESTER_3_1 = "3-1";
+    private static final String FREE_SEMESTER_3_2 = "3-2";
+
     private final OneseoPrivacyDetailRepository oneseoPrivacyDetailRepository;
     private final MiddleSchoolAchievementRepository middleSchoolAchievementRepository;
     private final MemberService memberService;
@@ -108,15 +115,17 @@ public class QueryOneseoByIdService {
         List<Integer> achievement3_2 = middleSchoolAchievement.getAchievement3_2();
 
         // 점수 계산을 위해 복사된 자유학기 성적을 응답에서 null로 복원
-        if ("자유학년제".equals(liberalSystem)) {
+        if (LIBERAL_YEAR_SYSTEM.equals(liberalSystem)) {
             achievement1_2 = null;
-        } else if (freeSemester != null) {
+        }
+
+        if (freeSemester != null) {
             switch (freeSemester) {
-                case "1-2" -> achievement1_2 = null;
-                case "2-1" -> achievement2_1 = null;
-                case "2-2" -> achievement2_2 = null;
-                case "3-1" -> achievement3_1 = null;
-                case "3-2" -> achievement3_2 = null;
+                case FREE_SEMESTER_1_2 -> achievement1_2 = null;
+                case FREE_SEMESTER_2_1 -> achievement2_1 = null;
+                case FREE_SEMESTER_2_2 -> achievement2_2 = null;
+                case FREE_SEMESTER_3_1 -> achievement3_1 = null;
+                case FREE_SEMESTER_3_2 -> achievement3_2 = null;
             }
         }
 
