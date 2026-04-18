@@ -482,6 +482,30 @@ public class OneseoServiceTest {
             }
         }
 
+        @Nested
+        @DisplayName("예체능 과목이 있는데 예체능 성취점수가 빈 배열이면")
+        class Context_with_arts_physical_subjects_but_empty_achievement {
+            private GraduationType graduationType;
+
+            @BeforeEach
+            void setUp() {
+                middleSchoolAchievementReqDto = createDefaultDtoBuilder()
+                        .artsPhysicalSubjects(List.of("체육", "음악", "미술")).artsPhysicalAchievement(new ArrayList<>())
+                        .build();
+                graduationType = CANDIDATE;
+            }
+
+            @Test
+            @DisplayName("ExpectedException을 던진다.")
+            void it_throws_expected_exception() {
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> OneseoService.buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType));
+
+                assertEquals("예체능 성취점수가 비어있습니다.", exception.getMessage());
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            }
+        }
+
         private MiddleSchoolAchievementReqDto.MiddleSchoolAchievementReqDtoBuilder createDefaultDtoBuilder() {
             return MiddleSchoolAchievementReqDto.builder()
                     .achievement1_1(new ArrayList<>(List.of(1, 1, 1, 1, 1, 1, 1, 1, 1)))

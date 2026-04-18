@@ -275,7 +275,8 @@ public class ModifyOneseoService {
                 .achievement3_2(validationGeneralAchievement(calcDto.achievement3_2()))
                 .generalSubjects(updatedMiddleSchoolAchievement.generalSubjects())
                 .newSubjects(updatedMiddleSchoolAchievement.newSubjects())
-                .artsPhysicalAchievement(validationArtsPhysicalAchievement(calcDto.artsPhysicalAchievement()))
+                .artsPhysicalAchievement(validationArtsPhysicalAchievement(calcDto.artsPhysicalAchievement(),
+                        updatedMiddleSchoolAchievement.artsPhysicalSubjects()))
                 .artsPhysicalSubjects(updatedMiddleSchoolAchievement.artsPhysicalSubjects())
                 .absentDays(calcDto.absentDays()).attendanceDays(calcDto.attendanceDays())
                 .volunteerTime(calcDto.volunteerTime()).liberalSystem(calcDto.liberalSystem())
@@ -309,9 +310,12 @@ public class ModifyOneseoService {
         return achievements;
     }
 
-    private List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements) {
+    private List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements, List<String> subjects) {
         if (achievements == null)
             return null;
+
+        if (subjects != null && !subjects.isEmpty() && achievements.isEmpty())
+            throw new ExpectedException("예체능 성취점수가 비어있습니다.", HttpStatus.BAD_REQUEST);
 
         achievements.forEach(achievement -> {
             if (achievement != 0 && (achievement > 5 || achievement < 3))

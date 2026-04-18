@@ -91,10 +91,18 @@ public class OneseoTempStorageService {
     }
 
     private CalculatedScoreResDto calculateScore(OneseoTempReqDto reqDto) {
-        if (reqDto.middleSchoolAchievement() == null) {
+        MiddleSchoolAchievementReqDto achievement = reqDto.middleSchoolAchievement();
+        if (achievement == null) {
             return null;
         }
-        LambdaScoreCalculatorReqDto lambdaRequest = LambdaScoreCalculatorReqDto.from(reqDto.middleSchoolAchievement(),
+
+        List<String> subjects = achievement.artsPhysicalSubjects();
+        List<Integer> achievements = achievement.artsPhysicalAchievement();
+        if (subjects != null && !subjects.isEmpty() && (achievements == null || achievements.isEmpty())) {
+            return null;
+        }
+
+        LambdaScoreCalculatorReqDto lambdaRequest = LambdaScoreCalculatorReqDto.from(achievement,
                 reqDto.graduationType());
         return lambdaScoreCalculatorClient.calculateScore(lambdaRequest);
     }
