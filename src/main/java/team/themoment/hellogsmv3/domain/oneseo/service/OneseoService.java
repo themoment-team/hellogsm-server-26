@@ -100,11 +100,11 @@ public class OneseoService {
     }
 
     private static List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements, List<String> subjects) {
+        if (subjects != null && !subjects.isEmpty() && (achievements == null || achievements.isEmpty()))
+            throw new ExpectedException("예체능 성취점수가 비어있습니다.", HttpStatus.BAD_REQUEST);
+
         if (achievements == null)
             return null;
-
-        if (subjects != null && !subjects.isEmpty() && achievements.isEmpty())
-            throw new ExpectedException("예체능 성취점수가 비어있습니다.", HttpStatus.BAD_REQUEST);
 
         achievements.forEach(achievement -> {
             if (achievement != 0 && (achievement > 5 || achievement < 3))
