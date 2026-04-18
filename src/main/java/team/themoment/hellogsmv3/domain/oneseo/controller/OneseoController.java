@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -91,15 +92,15 @@ public class OneseoController {
         return CommonApiResponse.success("수정되었습니다.");
     }
 
-    @Operation(summary = "원서 검색", description = "조건을 파라미터로 받아 원서를 검색합니다. requested=true 시 수정 요청/승인된 원서만 반환합니다.")
+    @Operation(summary = "원서 검색", description = "조건을 파라미터로 받아 원서를 검색합니다.")
     @GetMapping("/oneseo/search")
     public SearchOneseosResDto search(@RequestParam @Min(0) Integer page,
             @RequestParam @Min(0) Integer size,
             @RequestParam TestResultTag testResultTag,
             @RequestParam(required = false) ScreeningCategory screeningTag,
-            @RequestParam(required = false) YesNo isSubmitted,
+            @Schema(description = "서류 제출 여부") @RequestParam(required = false) YesNo isSubmitted,
             @RequestParam(name = "keyword", required = false) String keyword,
-            @RequestParam(required = false) Boolean requested) {
+            @Schema(description = "수정 요청/승인 원서 필터") @RequestParam(required = false) Boolean requested) {
         return searchOneseoService.execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, requested);
     }
 
