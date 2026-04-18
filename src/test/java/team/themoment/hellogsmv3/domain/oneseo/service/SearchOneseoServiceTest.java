@@ -71,6 +71,7 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         testResultTag,
+                        null,
                         pageable)).willReturn(emptyPage);
             }
 
@@ -78,7 +79,7 @@ class SearchOneseoServiceTest {
             @DisplayName("빈 결과를 반환한다")
             void it_returns_empty_result() {
                 SearchOneseosResDto result = searchOneseoService
-                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
 
                 assertEquals(0, result.info().totalElements());
                 assertEquals(0, result.info().totalPages());
@@ -114,6 +115,7 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         testResultTag,
+                        null,
                         pageable)).willReturn(oneseoPage);
             }
 
@@ -121,7 +123,7 @@ class SearchOneseoServiceTest {
             @DisplayName("적절한 데이터를 반환한다")
             void it_returns_filtered_results() {
                 SearchOneseosResDto result = searchOneseoService
-                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
 
                 SearchOneseoPageInfoDto searchOneseoPageInfoDto = result.info();
                 assertEquals(1, searchOneseoPageInfoDto.totalElements());

@@ -28,6 +28,7 @@ public interface CustomOneseoRepository {
             ScreeningCategory screening,
             YesNo isSubmitted,
             TestResultTag testResultTag,
+            Boolean requested,
             Pageable pageable);
 
     List<AdmissionTicketsResDto> findAdmissionTickets();
