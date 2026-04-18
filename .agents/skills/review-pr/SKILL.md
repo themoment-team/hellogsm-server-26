@@ -2,7 +2,7 @@
 name: review-pr
 description: Collect PR review comments, critically assess each one against project conventions, auto-apply valid ones, post refutation replies for invalid ones, and prompt for partial ones. Replaces resolve-pr-comments.
 compatibility: Requires git, gh (GitHub CLI), and jq
-allowed-tools: Bash(bash *get-pr-data.sh:*), Bash(gh api:*), Bash(gh pr view:*), Bash(gh repo:*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git push:*), Bash(git rev-parse:*), Bash(rm:*), Edit, Read
+allowed-tools: Bash(bash *get-pr-data.sh:*), Bash(gh api:*), Bash(gh pr view:*), Bash(gh repo:*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git push:*), Bash(git rev-parse:*), Bash(rm:*), Edit, Read, AskUserQuestion
 ---
 
 ## Step 1 — Collect PR Data
@@ -50,7 +50,7 @@ Always cite a specific source in the rationale (e.g. `CLAUDE.md §Logging Style`
 1. Read the target file with the Read tool
 2. Apply the reviewer's concern with the Edit tool
 3. If the changes have not been committed yet, commit them
-4. Record the short commit hash for use in Step 5:
+4. Record the short commit hash for use in Step 4 and Step 6:
    ```bash
    git rev-parse --short=7 HEAD
    ```
@@ -59,7 +59,7 @@ On failure: record the reason and fall back to PARTIAL.
 
 ### INVALID → Skip
 
-Do not modify any code. Record the refutation rationale for Step 5.
+Do not modify any code. Record the refutation rationale for Step 6.
 
 ### PARTIAL → Confirm with AskUserQuestion
 
