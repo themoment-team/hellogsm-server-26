@@ -159,8 +159,7 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
         if (requested == null || !requested)
             return;
 
-        builder.andAnyOf(oneseo.oneseoEditStatus.eq(OneseoEditStatus.REQUESTED),
-                oneseo.oneseoEditStatus.eq(OneseoEditStatus.APPROVED));
+        builder.and(oneseo.oneseoEditStatus.in(OneseoEditStatus.REQUESTED, OneseoEditStatus.APPROVED));
     }
 
     private void applyKeyword(BooleanBuilder builder, String keyword) {

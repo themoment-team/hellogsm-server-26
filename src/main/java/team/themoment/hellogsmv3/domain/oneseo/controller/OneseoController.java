@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -98,9 +97,9 @@ public class OneseoController {
             @RequestParam @Min(0) Integer size,
             @RequestParam TestResultTag testResultTag,
             @RequestParam(required = false) ScreeningCategory screeningTag,
-            @Schema(description = "서류 제출 여부") @RequestParam(required = false) YesNo isSubmitted,
+            @RequestParam(required = false) YesNo isSubmitted,
             @RequestParam(name = "keyword", required = false) String keyword,
-            @Schema(description = "수정 요청/승인 원서 필터") @RequestParam(required = false) Boolean requested) {
+            @RequestParam(required = false) Boolean requested) {
         return searchOneseoService.execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, requested);
     }
 
