@@ -6,7 +6,6 @@ import static team.themoment.hellogsmv3.domain.oneseo.service.OneseoService.isVa
 import java.util.List;
 
 import org.springframework.cache.annotation.CachePut;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +23,6 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.repository.*;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
-import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -267,15 +265,12 @@ public class ModifyOneseoService {
                 reqDto.graduationType());
 
         MiddleSchoolAchievement modifiedMiddleSchoolAchievement = MiddleSchoolAchievement.builder()
-                .id(middleSchoolAchievement.getId()).oneseo(oneseo)
-                .achievement1_2(validationGeneralAchievement(calcDto.achievement1_2()))
-                .achievement2_1(validationGeneralAchievement(calcDto.achievement2_1()))
-                .achievement2_2(validationGeneralAchievement(calcDto.achievement2_2()))
-                .achievement3_1(validationGeneralAchievement(calcDto.achievement3_1()))
-                .achievement3_2(validationGeneralAchievement(calcDto.achievement3_2()))
+                .id(middleSchoolAchievement.getId()).oneseo(oneseo).achievement1_2(calcDto.achievement1_2())
+                .achievement2_1(calcDto.achievement2_1()).achievement2_2(calcDto.achievement2_2())
+                .achievement3_1(calcDto.achievement3_1()).achievement3_2(calcDto.achievement3_2())
                 .generalSubjects(updatedMiddleSchoolAchievement.generalSubjects())
                 .newSubjects(updatedMiddleSchoolAchievement.newSubjects())
-                .artsPhysicalAchievement(validationArtsPhysicalAchievement(calcDto.artsPhysicalAchievement()))
+                .artsPhysicalAchievement(calcDto.artsPhysicalAchievement())
                 .artsPhysicalSubjects(updatedMiddleSchoolAchievement.artsPhysicalSubjects())
                 .absentDays(calcDto.absentDays()).attendanceDays(calcDto.attendanceDays())
                 .volunteerTime(calcDto.volunteerTime()).liberalSystem(calcDto.liberalSystem())
@@ -297,27 +292,4 @@ public class ModifyOneseoService {
         }
     }
 
-    private List<Integer> validationGeneralAchievement(List<Integer> achievements) {
-        if (achievements == null)
-            return null;
-
-        achievements.forEach(achievement -> {
-            if (achievement > 5 || achievement < 0)
-                throw new ExpectedException("올바르지 않은 일반교과 등급이 입력되었습니다.", HttpStatus.BAD_REQUEST);
-        });
-
-        return achievements;
-    }
-
-    private List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements) {
-        if (achievements == null)
-            return null;
-
-        achievements.forEach(achievement -> {
-            if (achievement != 0 && (achievement > 5 || achievement < 3))
-                throw new ExpectedException("올바르지 않은 예체능 등급이 입력되었습니다.", HttpStatus.BAD_REQUEST);
-        });
-
-        return achievements;
-    }
 }

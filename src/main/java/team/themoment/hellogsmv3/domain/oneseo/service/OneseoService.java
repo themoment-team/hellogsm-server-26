@@ -92,13 +92,17 @@ public class OneseoService {
                 .achievement2_2(validationGeneralAchievement(tmpAchievement2_2))
                 .achievement3_1(validationGeneralAchievement(tmpAchievement3_1))
                 .achievement3_2(validationGeneralAchievement(tmpAchievement3_2))
-                .artsPhysicalAchievement(validationArtsPhysicalAchievement(dto.artsPhysicalAchievement()))
+                .artsPhysicalAchievement(
+                        validationArtsPhysicalAchievement(dto.artsPhysicalAchievement(), dto.artsPhysicalSubjects()))
                 .absentDays(dto.absentDays()).attendanceDays(dto.attendanceDays()).volunteerTime(dto.volunteerTime())
                 .liberalSystem(dto.liberalSystem()).freeSemester(dto.freeSemester()).gedAvgScore(dto.gedAvgScore());
         return builder.build();
     }
 
-    private static List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements) {
+    private static List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements, List<String> subjects) {
+        if (subjects != null && !subjects.isEmpty() && (achievements == null || achievements.isEmpty()))
+            throw new ExpectedException("예체능 성취점수가 비어있습니다.", HttpStatus.BAD_REQUEST);
+
         if (achievements == null)
             return null;
 
