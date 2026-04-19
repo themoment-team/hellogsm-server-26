@@ -71,6 +71,7 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         testResultTag,
+                        null,
                         pageable)).willReturn(emptyPage);
             }
 
@@ -78,7 +79,7 @@ class SearchOneseoServiceTest {
             @DisplayName("빈 결과를 반환한다")
             void it_returns_empty_result() {
                 SearchOneseosResDto result = searchOneseoService
-                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
 
                 assertEquals(0, result.info().totalElements());
                 assertEquals(0, result.info().totalPages());
@@ -114,6 +115,7 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         testResultTag,
+                        null,
                         pageable)).willReturn(oneseoPage);
             }
 
@@ -121,7 +123,7 @@ class SearchOneseoServiceTest {
             @DisplayName("적절한 데이터를 반환한다")
             void it_returns_filtered_results() {
                 SearchOneseosResDto result = searchOneseoService
-                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
 
                 SearchOneseoPageInfoDto searchOneseoPageInfoDto = result.info();
                 assertEquals(1, searchOneseoPageInfoDto.totalElements());
@@ -143,6 +145,48 @@ class SearchOneseoServiceTest {
                         searchOneseoResDto.competencyEvaluationScore());
                 assertEquals(entranceTestResult.getInterviewScore(), searchOneseoResDto.interviewScore());
                 assertEquals(entranceTestResult.getSecondTestPassYn(), searchOneseoResDto.secondTestPassYn());
+            }
+        }
+
+        @Nested
+        @DisplayName("requested=true가 주어진 경우")
+        class Context_with_requested_true {
+
+            private Member member;
+            private Oneseo oneseo;
+            private OneseoPrivacyDetail oneseoPrivacyDetail;
+            private EntranceTestResult entranceTestResult;
+
+            @BeforeEach
+            void setUp() {
+                Pageable pageable = PageRequest.of(page, size);
+                member = buildMember();
+                oneseo = buildOneseo();
+                oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                entranceTestResult = buildEntranceTestResult();
+
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
+                        entranceTestResult);
+                Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
+
+                given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        true,
+                        pageable)).willReturn(oneseoPage);
+            }
+
+            @Test
+            @DisplayName("수정 요청/승인 필터가 repository로 올바르게 전달된다")
+            void it_passes_requested_filter_to_repository() {
+                SearchOneseosResDto result = searchOneseoService
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, true);
+
+                assertEquals(1, result.info().totalElements());
+                assertEquals(1, result.oneseos().size());
             }
         }
     }

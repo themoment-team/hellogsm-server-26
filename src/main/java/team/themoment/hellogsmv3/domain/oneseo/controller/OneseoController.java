@@ -99,8 +99,9 @@ public class OneseoController {
             @RequestParam TestResultTag testResultTag,
             @RequestParam(required = false) ScreeningCategory screeningTag,
             @Schema(description = "서류 제출 여부") @RequestParam(required = false) YesNo isSubmitted,
-            @RequestParam(name = "keyword", required = false) String keyword) {
-        return searchOneseoService.execute(page, size, testResultTag, screeningTag, isSubmitted, keyword);
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @Schema(description = "수정 요청/승인 원서 필터") @RequestParam(required = false) Boolean requested) {
+        return searchOneseoService.execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, requested);
     }
 
     @Operation(summary = "내 원서 조회", description = "내 원서 정보를 조회합니다. 임시 저장된 원서가 있다면 임시 저장된 원서를 조회합니다.")

@@ -27,13 +27,15 @@ public class SearchOneseoService {
             TestResultTag testResultTag,
             ScreeningCategory screeningTag,
             YesNo isSubmitted,
-            String keyword) {
+            String keyword,
+            Boolean requested) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<SearchOneseoResDto> oneseoPage = findOneseoByTagsAndKeyword(testResultTag,
                 screeningTag,
                 isSubmitted,
                 keyword,
+                requested,
                 pageable);
 
         SearchOneseoPageInfoDto infoDto = SearchOneseoPageInfoDto.builder().totalPages(oneseoPage.getTotalPages())
@@ -46,11 +48,13 @@ public class SearchOneseoService {
             ScreeningCategory screeningTag,
             YesNo isSubmitted,
             String keyword,
+            Boolean requested,
             Pageable pageable) {
         return oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
                 screeningTag,
                 isSubmitted,
                 testResultTag,
+                requested,
                 pageable);
     }
 }
