@@ -74,7 +74,8 @@ public class OneseoTempStorageService {
         List<Integer> absentDays = middleSchoolAchievement.absentDays();
         List<Integer> attendanceDays = middleSchoolAchievement.attendanceDays();
 
-        return MiddleSchoolAchievementResDto.builder().achievement1_2(middleSchoolAchievement.achievement1_2())
+        return MiddleSchoolAchievementResDto.builder().achievement1_1(middleSchoolAchievement.achievement1_1())
+                .achievement1_2(middleSchoolAchievement.achievement1_2())
                 .achievement2_1(middleSchoolAchievement.achievement2_1())
                 .achievement2_2(middleSchoolAchievement.achievement2_2())
                 .achievement3_1(middleSchoolAchievement.achievement3_1())
