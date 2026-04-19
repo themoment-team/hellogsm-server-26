@@ -61,7 +61,8 @@ public class OneseoTempStorageServiceTest {
                 .relationshipWithGuardian("모").schoolName("금호중앙중학교").schoolAddress("광주광역시 북구 운암2동 금호로 100")
                 .schoolTeacherName("김선생").schoolTeacherPhoneNumber("01012345678")
                 .profileImg("https://example.com/image.jpg")
-                .middleSchoolAchievement(MiddleSchoolAchievementReqDto.builder().achievement1_2(null)
+                .middleSchoolAchievement(MiddleSchoolAchievementReqDto.builder()
+                        .achievement1_1(List.of(3, 4, 5, 3, 4, 5, 3, 4)).achievement1_2(null)
                         .achievement2_1(List.of(4, 5, 3, 5, 4, 5, 3, 5, 2))
                         .achievement2_2(List.of(5, 2, 5, 5, 4, 1, 5, 5, 0))
                         .achievement3_1(List.of(3, 5, 3, 5, 1, 3, 5, 2, 0)).achievement3_2(null)
@@ -127,6 +128,8 @@ public class OneseoTempStorageServiceTest {
                     assertEquals(reqDto.schoolTeacherPhoneNumber(), resDto.privacyDetail().schoolTeacherPhoneNumber());
                     assertEquals(reqDto.profileImg(), resDto.privacyDetail().profileImg());
                     assertEquals(reqDto.studentNumber(), resDto.privacyDetail().studentNumber());
+                    assertEquals(reqDto.middleSchoolAchievement().achievement1_1(),
+                            resDto.middleSchoolAchievement().achievement1_1());
                     assertEquals(reqDto.middleSchoolAchievement().achievement1_2(),
                             resDto.middleSchoolAchievement().achievement1_2());
                     assertEquals(reqDto.middleSchoolAchievement().achievement2_1(),
