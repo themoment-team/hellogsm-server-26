@@ -193,15 +193,15 @@ public class OneseoController {
     @PatchMapping("/personal-info/me")
     public CommonApiResponse modifyMyPersonalInfo(@RequestBody @Valid ModifyPersonalInfoReqDto reqDto,
             @AuthRequest Long memberId) {
-        modifyPersonalInfoService.execute(reqDto, memberId);
+        modifyPersonalInfoService.execute(reqDto, memberId, true);
         return CommonApiResponse.success("수정되었습니다.");
     }
 
-    @Operation(summary = "인적사항 수정", description = "관리자가 맴버 id로 회원의 인적사항(이름, 생년월일, 성별)을 수정합니다.")
+    @Operation(summary = "인적사항 수정", description = "관리자가 멤버 id로 회원의 인적사항(이름, 생년월일, 성별)을 수정합니다.")
     @PatchMapping("/personal-info/{memberId}")
     public CommonApiResponse modifyPersonalInfo(@RequestBody @Valid ModifyPersonalInfoReqDto reqDto,
             @PathVariable Long memberId) {
-        modifyPersonalInfoService.execute(reqDto, memberId);
+        modifyPersonalInfoService.execute(reqDto, memberId, false);
         return CommonApiResponse.success("수정되었습니다.");
     }
 }
