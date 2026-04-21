@@ -27,7 +27,7 @@ public class ModifyPersonalInfoService {
 
         if (checkFirstTest) {
             Optional<Oneseo> oneseo = oneseoRepository.findByMember(member);
-            oneseo.ifPresent(o -> OneseoService.isBeforeFirstTest(o.getEntranceTestResult().getFirstTestPassYn()));
+            oneseo.map(Oneseo::getEntranceTestResult).ifPresent(result -> OneseoService.isBeforeFirstTest(result.getFirstTestPassYn()));
         }
 
         member.modifyMember(reqDto.name(), reqDto.birth(), member.getPhoneNumber(), reqDto.sex());
