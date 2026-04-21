@@ -18,13 +18,14 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/*
 *.iws
 *.iml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+!/.idea/icon.svg
 
 ### NetBeans ###
 /nbproject/private/
@@ -41,5 +42,5 @@ out/
 
 ### LLM Outputs ###
 PR_BODY.md
-.pr-tmp/
+/.pr-tmp/
 /.claude/command.log
