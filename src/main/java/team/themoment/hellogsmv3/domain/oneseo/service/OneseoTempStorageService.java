@@ -39,7 +39,7 @@ public class OneseoTempStorageService {
     public FoundOneseoResDto execute(OneseoTempReqDto reqDto, Integer step, Long memberId) {
         Member member = memberService.findByIdOrThrow(memberId);
 
-        isNotExistOneseo(member);
+        validateOneseoEditable(member);
 
         OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto = buildOneseoPrivacyDetailResDto(member, reqDto);
         MiddleSchoolAchievementResDto middleSchoolAchievementResDto = buildMiddleSchoolAchievementResDto(reqDto);
@@ -52,7 +52,7 @@ public class OneseoTempStorageService {
                 calculatedScoreResDto);
     }
 
-    private void isNotExistOneseo(Member member) {
+    private void validateOneseoEditable(Member member) {
         oneseoRepository.findByMember(member).ifPresent(oneseo -> {
             if (oneseo.getOneseoEditStatus() != OneseoEditStatus.APPROVED) {
                 throw new ExpectedException("이미 원서 제출을 하였습니다.", HttpStatus.BAD_REQUEST);

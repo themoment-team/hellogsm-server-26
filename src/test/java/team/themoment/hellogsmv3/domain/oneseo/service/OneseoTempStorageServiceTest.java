@@ -209,6 +209,13 @@ public class OneseoTempStorageServiceTest {
                 void it_returns_found_oneseo_res_dto() {
                     FoundOneseoResDto result = oneseoTempStorageService.execute(reqDto, step, memberId);
                     assertNotNull(result);
+                    assertNull(result.oneseoId());
+                    assertNull(result.submitCode());
+                    assertEquals(reqDto.screening(), result.wantedScreening());
+                    assertEquals(reqDto.firstDesiredMajor(), result.desiredMajors().firstDesiredMajor());
+                    assertEquals(reqDto.graduationType(), result.privacyDetail().graduationType());
+                    assertEquals(calculatedScoreResDto, result.calculatedScore());
+                    assertEquals(step, result.step());
                 }
             }
         }
