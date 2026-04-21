@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,8 +25,10 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.request.MiddleSchoolAchieveme
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoTempReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.CalculatedScoreResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
+import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
+import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
@@ -96,7 +99,7 @@ public class OneseoTempStorageServiceTest {
 
                 @BeforeEach
                 void setUp() {
-                    given(oneseoRepository.existsByMember(member)).willReturn(false);
+                    given(oneseoRepository.findByMember(member)).willReturn(Optional.empty());
                     given(lambdaScoreCalculatorClient.calculateScore(any(LambdaScoreCalculatorReqDto.class)))
                             .willReturn(calculatedScoreResDto);
                 }
@@ -166,11 +169,12 @@ public class OneseoTempStorageServiceTest {
             }
 
             @Nested
-            @DisplayName("회원이 원서를 제출했다면")
-            class Oneseo_exist {
+            @DisplayName("회원이 원서를 제출했고 수정 권한이 없다면")
+            class Oneseo_exist_without_edit_permission {
                 @BeforeEach
                 void setUp() {
-                    given(oneseoRepository.existsByMember(member)).willReturn(true);
+                    Oneseo oneseo = Oneseo.builder().member(member).oneseoEditStatus(OneseoEditStatus.NONE).build();
+                    given(oneseoRepository.findByMember(member)).willReturn(Optional.of(oneseo));
                 }
 
                 @Test
@@ -181,6 +185,30 @@ public class OneseoTempStorageServiceTest {
 
                     assertEquals("이미 원서 제출을 하였습니다.", exception.getMessage());
                     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+                }
+            }
+
+            @Nested
+            @DisplayName("회원이 원서를 제출했고 수정 권한이 APPROVED라면")
+            class Oneseo_exist_with_approved_edit_permission {
+                private final CalculatedScoreResDto calculatedScoreResDto = CalculatedScoreResDto.builder()
+                        .generalSubjectsScore(new BigDecimal("80.000"))
+                        .artsPhysicalSubjectsScore(new BigDecimal("10.000")).attendanceScore(new BigDecimal("5.000"))
+                        .volunteerScore(new BigDecimal("5.000")).totalScore(new BigDecimal("100.000")).build();
+
+                @BeforeEach
+                void setUp() {
+                    Oneseo oneseo = Oneseo.builder().member(member).oneseoEditStatus(OneseoEditStatus.APPROVED).build();
+                    given(oneseoRepository.findByMember(member)).willReturn(Optional.of(oneseo));
+                    given(lambdaScoreCalculatorClient.calculateScore(any(LambdaScoreCalculatorReqDto.class)))
+                            .willReturn(calculatedScoreResDto);
+                }
+
+                @Test
+                @DisplayName("FoundOneseoResDto를 반환한다.")
+                void it_returns_found_oneseo_res_dto() {
+                    FoundOneseoResDto result = oneseoTempStorageService.execute(reqDto, step, memberId);
+                    assertNotNull(result);
                 }
             }
         }

@@ -20,6 +20,7 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.response.DesiredMajorsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.MiddleSchoolAchievementResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.OneseoPrivacyDetailResDto;
+import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
@@ -52,8 +53,11 @@ public class OneseoTempStorageService {
     }
 
     private void isNotExistOneseo(Member member) {
-        if (oneseoRepository.existsByMember(member))
-            throw new ExpectedException("이미 원서 제출을 하였습니다.", HttpStatus.BAD_REQUEST);
+        oneseoRepository.findByMember(member).ifPresent(oneseo -> {
+            if (oneseo.getOneseoEditStatus() != OneseoEditStatus.APPROVED) {
+                throw new ExpectedException("이미 원서 제출을 하였습니다.", HttpStatus.BAD_REQUEST);
+            }
+        });
     }
 
     private OneseoPrivacyDetailResDto buildOneseoPrivacyDetailResDto(Member member, OneseoTempReqDto reqDto) {
