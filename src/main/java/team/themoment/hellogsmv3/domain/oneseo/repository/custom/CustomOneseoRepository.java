@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.FoundMemberAndOneseoDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.AdmissionTicketsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -28,7 +29,7 @@ public interface CustomOneseoRepository {
             ScreeningCategory screening,
             YesNo isSubmitted,
             TestResultTag testResultTag,
-            Boolean requested,
+            OneseoEditStatusTag status,
             Pageable pageable);
 
     List<AdmissionTicketsResDto> findAdmissionTickets();
