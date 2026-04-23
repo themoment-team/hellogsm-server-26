@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoPageInfoDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -28,14 +29,14 @@ public class SearchOneseoService {
             ScreeningCategory screeningTag,
             YesNo isSubmitted,
             String keyword,
-            Boolean requested) {
+            OneseoEditStatusTag status) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<SearchOneseoResDto> oneseoPage = findOneseoByTagsAndKeyword(testResultTag,
                 screeningTag,
                 isSubmitted,
                 keyword,
-                requested,
+                status,
                 pageable);
 
         SearchOneseoPageInfoDto infoDto = SearchOneseoPageInfoDto.builder().totalPages(oneseoPage.getTotalPages())
@@ -48,13 +49,13 @@ public class SearchOneseoService {
             ScreeningCategory screeningTag,
             YesNo isSubmitted,
             String keyword,
-            Boolean requested,
+            OneseoEditStatusTag status,
             Pageable pageable) {
         return oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
                 screeningTag,
                 isSubmitted,
                 testResultTag,
-                requested,
+                status,
                 pageable);
     }
 }

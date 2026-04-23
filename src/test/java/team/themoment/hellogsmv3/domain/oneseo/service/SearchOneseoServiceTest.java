@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoPageInfoDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -149,8 +150,8 @@ class SearchOneseoServiceTest {
         }
 
         @Nested
-        @DisplayName("requested=true가 주어진 경우")
-        class Context_with_requested_true {
+        @DisplayName("status=ANY_EDIT이 주어진 경우")
+        class Context_with_status_any_edit {
 
             private Member member;
             private Oneseo oneseo;
@@ -175,18 +176,123 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         testResultTag,
-                        true,
+                        OneseoEditStatusTag.ANY_EDIT,
                         pageable)).willReturn(oneseoPage);
             }
 
             @Test
-            @DisplayName("수정 요청/승인 필터가 repository로 올바르게 전달된다")
-            void it_passes_requested_filter_to_repository() {
-                SearchOneseosResDto result = searchOneseoService
-                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, true);
+            @DisplayName("ANY_EDIT 필터가 repository로 올바르게 전달된다")
+            void it_passes_any_edit_status_filter_to_repository() {
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        OneseoEditStatusTag.ANY_EDIT);
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().get(0).memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("status=REQUESTED가 주어진 경우")
+        class Context_with_status_requested {
+
+            private Member member;
+            private Oneseo oneseo;
+            private OneseoPrivacyDetail oneseoPrivacyDetail;
+            private EntranceTestResult entranceTestResult;
+
+            @BeforeEach
+            void setUp() {
+                Pageable pageable = PageRequest.of(page, size);
+                member = buildMember();
+                oneseo = buildOneseo();
+                oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                entranceTestResult = buildEntranceTestResult();
+
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
+                        entranceTestResult);
+                Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
+
+                given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        OneseoEditStatusTag.REQUESTED,
+                        pageable)).willReturn(oneseoPage);
+            }
+
+            @Test
+            @DisplayName("REQUESTED 필터가 repository로 올바르게 전달된다")
+            void it_passes_requested_status_filter_to_repository() {
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        OneseoEditStatusTag.REQUESTED);
+
+                assertEquals(1, result.info().totalElements());
+                assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().get(0).memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("status=APPROVED가 주어진 경우")
+        class Context_with_status_approved {
+
+            private Member member;
+            private Oneseo oneseo;
+            private OneseoPrivacyDetail oneseoPrivacyDetail;
+            private EntranceTestResult entranceTestResult;
+
+            @BeforeEach
+            void setUp() {
+                Pageable pageable = PageRequest.of(page, size);
+                member = buildMember();
+                oneseo = buildOneseo();
+                oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                entranceTestResult = buildEntranceTestResult();
+
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
+                        entranceTestResult);
+                Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
+
+                given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        OneseoEditStatusTag.APPROVED,
+                        pageable)).willReturn(oneseoPage);
+            }
+
+            @Test
+            @DisplayName("APPROVED 필터가 repository로 올바르게 전달된다")
+            void it_passes_approved_status_filter_to_repository() {
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        OneseoEditStatusTag.APPROVED);
+
+                assertEquals(1, result.info().totalElements());
+                assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().get(0).memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
             }
         }
     }

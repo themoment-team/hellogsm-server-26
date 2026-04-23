@@ -26,6 +26,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.FoundMemberAndOneseoDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.AdmissionTicketsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -70,10 +71,10 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
             ScreeningCategory screeningTag,
             YesNo isSubmitted,
             TestResultTag testResultTag,
-            Boolean requested,
+            OneseoEditStatusTag status,
             Pageable pageable) {
 
-        BooleanBuilder builder = createBooleanBuilder(keyword, screeningTag, isSubmitted, testResultTag, requested);
+        BooleanBuilder builder = createBooleanBuilder(keyword, screeningTag, isSubmitted, testResultTag, status);
 
         List<SearchOneseoResDto> oneseos = queryFactory
                 .select(Projections.constructor(SearchOneseoResDto.class,
@@ -143,23 +144,28 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
             ScreeningCategory screeningTag,
             YesNo isSubmitted,
             TestResultTag testResultTag,
-            Boolean requested) {
+            OneseoEditStatusTag status) {
 
         BooleanBuilder builder = new BooleanBuilder();
         applyKeyword(builder, keyword);
         applyScreeningTag(builder, screeningTag);
         applyIsSubmittedTag(builder, isSubmitted);
         applyTestResultTag(builder, testResultTag);
-        applyRequestedTag(builder, requested);
+        applyEditStatusTag(builder, status);
 
         return builder;
     }
 
-    private void applyRequestedTag(BooleanBuilder builder, Boolean requested) {
-        if (requested == null || !requested)
+    private void applyEditStatusTag(BooleanBuilder builder, OneseoEditStatusTag status) {
+        if (status == null)
             return;
 
-        builder.and(oneseo.oneseoEditStatus.in(OneseoEditStatus.REQUESTED, OneseoEditStatus.APPROVED));
+        switch (status) {
+            case ANY_EDIT ->
+                builder.and(oneseo.oneseoEditStatus.in(OneseoEditStatus.REQUESTED, OneseoEditStatus.APPROVED));
+            case REQUESTED -> builder.and(oneseo.oneseoEditStatus.eq(OneseoEditStatus.REQUESTED));
+            case APPROVED -> builder.and(oneseo.oneseoEditStatus.eq(OneseoEditStatus.APPROVED));
+        }
     }
 
     private void applyKeyword(BooleanBuilder builder, String keyword) {
