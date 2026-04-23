@@ -161,8 +161,9 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
             return;
 
         switch (status) {
-            case ALL -> builder.and(oneseo.oneseoEditStatus.in(OneseoEditStatus.REQUESTED, OneseoEditStatus.APPROVED));
-            case PENDING -> builder.and(oneseo.oneseoEditStatus.eq(OneseoEditStatus.REQUESTED));
+            case ANY_EDIT ->
+                builder.and(oneseo.oneseoEditStatus.in(OneseoEditStatus.REQUESTED, OneseoEditStatus.APPROVED));
+            case REQUESTED -> builder.and(oneseo.oneseoEditStatus.eq(OneseoEditStatus.REQUESTED));
             case APPROVED -> builder.and(oneseo.oneseoEditStatus.eq(OneseoEditStatus.APPROVED));
         }
     }

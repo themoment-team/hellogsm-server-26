@@ -150,8 +150,8 @@ class SearchOneseoServiceTest {
         }
 
         @Nested
-@DisplayName("status=ALL이 주어진 경우")
-        class Context_with_status_all {
+        @DisplayName("status=ANY_EDIT이 주어진 경우")
+        class Context_with_status_any_edit {
 
             private Member member;
             private Oneseo oneseo;
@@ -176,29 +176,31 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         testResultTag,
-                        OneseoEditStatusTag.ALL,
+                        OneseoEditStatusTag.ANY_EDIT,
                         pageable)).willReturn(oneseoPage);
             }
 
             @Test
-            @DisplayName("ALL 필터가 repository로 올바르게 전달된다")
-            void it_passes_all_status_filter_to_repository() {
+            @DisplayName("ANY_EDIT 필터가 repository로 올바르게 전달된다")
+            void it_passes_any_edit_status_filter_to_repository() {
                 SearchOneseosResDto result = searchOneseoService.execute(page,
                         size,
                         testResultTag,
                         screeningTag,
                         isSubmitted,
                         keyword,
-                        OneseoEditStatusTag.ALL);
+                        OneseoEditStatusTag.ANY_EDIT);
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().get(0).memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
             }
         }
 
         @Nested
-        @DisplayName("status=PENDING이 주어진 경우")
-        class Context_with_status_pending {
+        @DisplayName("status=REQUESTED가 주어진 경우")
+        class Context_with_status_requested {
 
             private Member member;
             private Oneseo oneseo;
@@ -223,23 +225,25 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         testResultTag,
-                        OneseoEditStatusTag.PENDING,
+                        OneseoEditStatusTag.REQUESTED,
                         pageable)).willReturn(oneseoPage);
             }
 
             @Test
-            @DisplayName("PENDING 필터가 repository로 올바르게 전달된다")
-            void it_passes_pending_status_filter_to_repository() {
+            @DisplayName("REQUESTED 필터가 repository로 올바르게 전달된다")
+            void it_passes_requested_status_filter_to_repository() {
                 SearchOneseosResDto result = searchOneseoService.execute(page,
                         size,
                         testResultTag,
                         screeningTag,
                         isSubmitted,
                         keyword,
-                        OneseoEditStatusTag.PENDING);
+                        OneseoEditStatusTag.REQUESTED);
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().get(0).memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
             }
         }
 
@@ -287,6 +291,8 @@ class SearchOneseoServiceTest {
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().get(0).memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
             }
         }
     }

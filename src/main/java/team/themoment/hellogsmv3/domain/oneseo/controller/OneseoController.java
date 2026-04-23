@@ -100,7 +100,7 @@ public class OneseoController {
             @RequestParam(required = false) ScreeningCategory screeningTag,
             @Schema(description = "서류 제출 여부") @RequestParam(required = false) YesNo isSubmitted,
             @RequestParam(name = "keyword", required = false) String keyword,
-            @Schema(description = "수정 상태 필터 (ALL, PENDING, APPROVED)") @RequestParam(required = false) OneseoEditStatusTag status) {
+            @Schema(description = "수정 상태 필터 (ANY_EDIT, REQUESTED, APPROVED)") @RequestParam(required = false) OneseoEditStatusTag status) {
         return searchOneseoService.execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, status);
     }
 
