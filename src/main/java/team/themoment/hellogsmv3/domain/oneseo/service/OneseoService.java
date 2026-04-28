@@ -107,6 +107,8 @@ public class OneseoService {
             return null;
 
         achievements.forEach(achievement -> {
+            if (achievement == null)
+                throw new ExpectedException("예체능 성취점수에 null 값이 포함되어 있습니다.", HttpStatus.BAD_REQUEST);
             if (achievement != 0 && (achievement > 5 || achievement < 3))
                 throw new ExpectedException("올바르지 않은 예체능 등급이 입력되었습니다.", HttpStatus.BAD_REQUEST);
         });
@@ -119,6 +121,8 @@ public class OneseoService {
             return null;
 
         achievements.forEach(achievement -> {
+            if (achievement == null)
+                throw new ExpectedException("일반교과 성취점수에 null 값이 포함되어 있습니다.", HttpStatus.BAD_REQUEST);
             if (achievement > 5 || achievement < 0)
                 throw new ExpectedException("올바르지 않은 일반교과 등급이 입력되었습니다.", HttpStatus.BAD_REQUEST);
         });
