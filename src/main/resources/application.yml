@@ -83,6 +83,10 @@ spring:
 auth:
   allowed-origins:
       - '*'
+  allowed-redirect-uris:
+      - "http://localhost:3000/oauth/callback"
+      - "https://stage.hellogsm.kr/oauth/callback"
+      - "https://www.hellogsm.kr/oauth/callback"
 schedule:
   oneseoSubmissionStart: ${ONESEO_SUBMISSION_START}
   oneseoSubmissionEnd: ${ONESEO_SUBMISSION_END}

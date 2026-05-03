@@ -11,5 +11,5 @@ public interface OAuthProvider {
 
     AuthReferrerType getAuthReferrerType();
 
-    UserAuthInfo authenticate(String authorizationCode);
+    UserAuthInfo authenticate(String authorizationCode, String redirectUri);
 }

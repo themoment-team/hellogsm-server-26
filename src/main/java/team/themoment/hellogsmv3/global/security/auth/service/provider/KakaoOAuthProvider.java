@@ -38,11 +38,11 @@ public class KakaoOAuthProvider implements OAuthProvider {
     }
 
     @Override
-    public UserAuthInfo authenticate(String authorizationCode) {
+    public UserAuthInfo authenticate(String authorizationCode, String redirectUri) {
         validateAuthorizationCode(authorizationCode);
 
         ClientRegistration clientRegistration = getClientRegistration();
-        KakaoTokenResDto tokenResponse = exchangeCodeForToken(authorizationCode, clientRegistration);
+        KakaoTokenResDto tokenResponse = exchangeCodeForToken(authorizationCode, clientRegistration, redirectUri);
         KakaoUserInfoResDto userInfo = getUserInfo(tokenResponse.accessToken());
 
         String providerId = extractUserEmail(userInfo);
@@ -66,7 +66,9 @@ public class KakaoOAuthProvider implements OAuthProvider {
         return clientRegistration;
     }
 
-    private KakaoTokenResDto exchangeCodeForToken(String code, ClientRegistration clientRegistration) {
+    private KakaoTokenResDto exchangeCodeForToken(String code,
+            ClientRegistration clientRegistration,
+            String redirectUri) {
         try {
             Map<String, String> params = Map.of("grant_type",
                     clientRegistration.getAuthorizationGrantType().getValue(),
@@ -77,7 +79,7 @@ public class KakaoOAuthProvider implements OAuthProvider {
                     "code",
                     code,
                     "redirect_uri",
-                    clientRegistration.getRedirectUri());
+                    redirectUri);
             return kakaoOAuth2Client.exchangeCodeForToken(params);
         } catch (Exception e) {
             throw new ExpectedException("Kakao OAuth 토큰 교환에 실패했습니다: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
