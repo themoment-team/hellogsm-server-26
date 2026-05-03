@@ -35,6 +35,7 @@ import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticatio
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthProviderFactory;
 import team.themoment.hellogsmv3.global.security.auth.service.provider.OAuthProvider;
 import team.themoment.hellogsmv3.global.security.data.AuthEnvironment;
+import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("OAuthAuthenticationService 클래스의")
 class OAuthAuthenticationServiceTest {
@@ -384,6 +385,24 @@ class OAuthAuthenticationServiceTest {
                     verify(session).setMaxInactiveInterval(10800);
                     mockSecurityContextHolder.verify(() -> SecurityContextHolder.setContext(securityContext));
                 }
+            }
+        }
+
+        @Nested
+        @DisplayName("허용 목록에 없는 redirect_uri가 주어진 경우")
+        class Context_with_disallowed_redirect_uri {
+
+            private final String provider = "google";
+            private final String code = "auth_code_123";
+            private final String redirectUri = "https://malicious.example.com/callback";
+
+            @Test
+            @DisplayName("ExpectedException을 던진다")
+            void it_throws_expected_exception() {
+                assertThrows(ExpectedException.class,
+                        () -> oAuthAuthenticationService.execute(provider, code, redirectUri, request));
+
+                verify(oAuthProviderFactory, never()).getProvider(any());
             }
         }
     }
