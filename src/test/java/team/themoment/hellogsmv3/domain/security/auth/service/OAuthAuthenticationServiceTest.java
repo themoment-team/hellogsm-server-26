@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -34,8 +33,6 @@ import team.themoment.hellogsmv3.global.security.auth.dto.UserAuthInfo;
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticationService;
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthProviderFactory;
 import team.themoment.hellogsmv3.global.security.auth.service.provider.OAuthProvider;
-import team.themoment.hellogsmv3.global.security.data.AuthEnvironment;
-import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("OAuthAuthenticationService 클래스의")
 class OAuthAuthenticationServiceTest {
@@ -45,9 +42,6 @@ class OAuthAuthenticationServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
-
-    @Mock
-    private AuthEnvironment authEnvironment;
 
     @Mock
     private OAuthProvider oAuthProvider;
@@ -63,16 +57,13 @@ class OAuthAuthenticationServiceTest {
 
     private OAuthAuthenticationService oAuthAuthenticationService;
 
-    private static final String ALLOWED_REDIRECT_URI = "http://localhost:3000/oauth/callback";
+    private static final String REDIRECT_URI = "http://localhost:3000/oauth/callback";
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        oAuthAuthenticationService = new OAuthAuthenticationService(oAuthProviderFactory,
-                memberRepository,
-                authEnvironment);
+        oAuthAuthenticationService = new OAuthAuthenticationService(oAuthProviderFactory, memberRepository);
         ReflectionTestUtils.setField(oAuthAuthenticationService, "sessionTimeout", Duration.ofSeconds(10800));
-        given(authEnvironment.allowedRedirectUris()).willReturn(List.of(ALLOWED_REDIRECT_URI));
     }
 
     @Nested
@@ -85,7 +76,7 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String redirectUri = ALLOWED_REDIRECT_URI;
+            private final String redirectUri = REDIRECT_URI;
             private final String email = "s24058@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
             private final Long memberId = 1L;
@@ -159,7 +150,7 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String redirectUri = ALLOWED_REDIRECT_URI;
+            private final String redirectUri = REDIRECT_URI;
             private final String email = "s24059@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
             private final Long newMemberId = 2L;
@@ -227,7 +218,7 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String redirectUri = ALLOWED_REDIRECT_URI;
+            private final String redirectUri = REDIRECT_URI;
             private final String email = "s23020@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
 
@@ -286,7 +277,7 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String redirectUri = ALLOWED_REDIRECT_URI;
+            private final String redirectUri = REDIRECT_URI;
             private final String email = "s24059@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
 
@@ -337,7 +328,7 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String redirectUri = ALLOWED_REDIRECT_URI;
+            private final String redirectUri = REDIRECT_URI;
             private final String email = "s23009@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
 
@@ -388,22 +379,5 @@ class OAuthAuthenticationServiceTest {
             }
         }
 
-        @Nested
-        @DisplayName("허용 목록에 없는 redirect_uri가 주어진 경우")
-        class Context_with_disallowed_redirect_uri {
-
-            private final String provider = "google";
-            private final String code = "auth_code_123";
-            private final String redirectUri = "https://malicious.example.com/callback";
-
-            @Test
-            @DisplayName("ExpectedException을 던진다")
-            void it_throws_expected_exception() {
-                assertThrows(ExpectedException.class,
-                        () -> oAuthAuthenticationService.execute(provider, code, redirectUri, request));
-
-                verify(oAuthProviderFactory, never()).getProvider(any());
-            }
-        }
     }
 }

@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,8 +31,6 @@ import team.themoment.hellogsmv3.domain.member.entity.type.Role;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
 import team.themoment.hellogsmv3.global.security.auth.dto.UserAuthInfo;
 import team.themoment.hellogsmv3.global.security.auth.service.provider.OAuthProvider;
-import team.themoment.hellogsmv3.global.security.data.AuthEnvironment;
-import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -42,14 +39,11 @@ public class OAuthAuthenticationService {
 
     private final OAuthProviderFactory oAuthProviderFactory;
     private final MemberRepository memberRepository;
-    private final AuthEnvironment authEnvironment;
 
     @Value("${spring.session.timeout:${server.servlet.session.timeout}}")
     private Duration sessionTimeout;
 
     public void execute(String provider, String code, String redirectUri, HttpServletRequest request) {
-        validateRedirectUri(redirectUri);
-
         String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
         OAuthProvider oAuthProvider = oAuthProviderFactory.getProvider(provider);
 
@@ -97,12 +91,6 @@ public class OAuthAuthenticationService {
         return List.of(new SimpleGrantedAuthority("OAUTH2_USER"),
                 new SimpleGrantedAuthority("SCOPE_email"),
                 new SimpleGrantedAuthority(userRole.name()));
-    }
-
-    private void validateRedirectUri(String redirectUri) {
-        if (!authEnvironment.allowedRedirectUris().contains(redirectUri)) {
-            throw new ExpectedException("허용되지 않은 redirect_uri입니다: " + redirectUri, HttpStatus.BAD_REQUEST);
-        }
     }
 
     private void setSecurityContext(HttpServletRequest request, Authentication authentication) {
