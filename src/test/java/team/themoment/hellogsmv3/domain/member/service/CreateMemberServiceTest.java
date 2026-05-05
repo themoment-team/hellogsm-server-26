@@ -28,7 +28,6 @@ import team.themoment.hellogsmv3.domain.member.entity.type.Role;
 import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
-import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import team.themoment.sdk.exception.ExpectedException;
 
@@ -42,8 +41,6 @@ class CreateMemberServiceTest {
     @Mock
     private ScheduleEnvironment scheduleEnvironment;
     @Mock
-    private OneseoRepository oneseoRepository;
-    @Mock
     private EntranceTestResultRepository entranceTestResultRepository;
     @Mock
     private CommonCodeService commonCodeService;
@@ -56,7 +53,7 @@ class CreateMemberServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -108,7 +105,7 @@ class CreateMemberServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(memberService.findByIdOrThrow(memberId)).thenThrow(
+                given(memberService.findByIdOrThrow(memberId)).willThrow(
                         new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
                 willDoNothing().given(commonCodeService)
                         .validateAndDelete(memberId, reqDto.code(), reqDto.phoneNumber(), SIGNUP);

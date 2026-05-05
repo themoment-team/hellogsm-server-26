@@ -15,7 +15,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.ArrivedStatusResDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
@@ -25,10 +24,7 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("ModifyRealOneseoArrivedYnService 클래스의")
-public class ModifyRealOneseoArrivedYnServiceTest {
-
-    @Mock
-    private MemberService memberService;
+class ModifyRealOneseoArrivedYnServiceTest {
 
     @Mock
     private OneseoService oneseoService;
@@ -45,7 +41,7 @@ public class ModifyRealOneseoArrivedYnServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
         private final Long memberId = 1L;
 
@@ -68,7 +64,7 @@ public class ModifyRealOneseoArrivedYnServiceTest {
             }
 
             @Test
-            @DisplayName("원서 도착 여부를 전환하고, 해당 정보를 반환한다.")
+            @DisplayName("원서 도착 여부를 전환하고, 해당 정보를 반환한다")
             void it_switch_and_returns_arrived_status() {
                 ArrivedStatusResDto result = modifyRealOneseoArrivedYnService.execute(memberId);
 

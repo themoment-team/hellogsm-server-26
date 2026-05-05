@@ -49,7 +49,7 @@ class SearchOneseoServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final int page = 0;
@@ -130,7 +130,7 @@ class SearchOneseoServiceTest {
                 assertEquals(1, searchOneseoPageInfoDto.totalElements());
                 assertEquals(1, searchOneseoPageInfoDto.totalPages());
 
-                SearchOneseoResDto searchOneseoResDto = result.oneseos().get(0);
+                SearchOneseoResDto searchOneseoResDto = result.oneseos().getFirst();
                 assertEquals(member.getId(), searchOneseoResDto.memberId());
                 assertEquals(oneseo.getOneseoSubmitCode(), searchOneseoResDto.submitCode());
                 assertEquals(oneseo.getRealOneseoArrivedYn(), searchOneseoResDto.realOneseoArrivedYn());
@@ -155,16 +155,14 @@ class SearchOneseoServiceTest {
 
             private Member member;
             private Oneseo oneseo;
-            private OneseoPrivacyDetail oneseoPrivacyDetail;
-            private EntranceTestResult entranceTestResult;
 
             @BeforeEach
             void setUp() {
                 Pageable pageable = PageRequest.of(page, size);
                 member = buildMember();
                 oneseo = buildOneseo();
-                oneseoPrivacyDetail = buildOneseoPrivacyDetail();
-                entranceTestResult = buildEntranceTestResult();
+                OneseoPrivacyDetail oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                EntranceTestResult entranceTestResult = buildEntranceTestResult();
 
                 SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
                         oneseo,
@@ -193,8 +191,8 @@ class SearchOneseoServiceTest {
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
-                assertEquals(member.getId(), result.oneseos().get(0).memberId());
-                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
+                assertEquals(member.getId(), result.oneseos().getFirst().memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().getFirst().submitCode());
             }
         }
 
@@ -204,16 +202,14 @@ class SearchOneseoServiceTest {
 
             private Member member;
             private Oneseo oneseo;
-            private OneseoPrivacyDetail oneseoPrivacyDetail;
-            private EntranceTestResult entranceTestResult;
 
             @BeforeEach
             void setUp() {
                 Pageable pageable = PageRequest.of(page, size);
                 member = buildMember();
                 oneseo = buildOneseo();
-                oneseoPrivacyDetail = buildOneseoPrivacyDetail();
-                entranceTestResult = buildEntranceTestResult();
+                OneseoPrivacyDetail oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                EntranceTestResult entranceTestResult = buildEntranceTestResult();
 
                 SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
                         oneseo,
@@ -242,8 +238,8 @@ class SearchOneseoServiceTest {
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
-                assertEquals(member.getId(), result.oneseos().get(0).memberId());
-                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
+                assertEquals(member.getId(), result.oneseos().getFirst().memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().getFirst().submitCode());
             }
         }
 
@@ -253,16 +249,14 @@ class SearchOneseoServiceTest {
 
             private Member member;
             private Oneseo oneseo;
-            private OneseoPrivacyDetail oneseoPrivacyDetail;
-            private EntranceTestResult entranceTestResult;
 
             @BeforeEach
             void setUp() {
                 Pageable pageable = PageRequest.of(page, size);
                 member = buildMember();
                 oneseo = buildOneseo();
-                oneseoPrivacyDetail = buildOneseoPrivacyDetail();
-                entranceTestResult = buildEntranceTestResult();
+                OneseoPrivacyDetail oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                EntranceTestResult entranceTestResult = buildEntranceTestResult();
 
                 SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
                         oneseo,
@@ -291,8 +285,8 @@ class SearchOneseoServiceTest {
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
-                assertEquals(member.getId(), result.oneseos().get(0).memberId());
-                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().get(0).submitCode());
+                assertEquals(member.getId(), result.oneseos().getFirst().memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().getFirst().submitCode());
             }
         }
     }

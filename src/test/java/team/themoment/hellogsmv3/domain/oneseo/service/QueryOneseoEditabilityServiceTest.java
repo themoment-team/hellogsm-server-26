@@ -38,7 +38,7 @@ class QueryOneseoEditabilityServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested

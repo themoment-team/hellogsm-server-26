@@ -36,7 +36,7 @@ class QueryMemberByIdServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -80,9 +80,8 @@ class QueryMemberByIdServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    queryMemberByIdService.execute(memberId);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> queryMemberByIdService.execute(memberId));
 
                 assertEquals("존재하지 않는 지원자입니다. member ID: " + memberId, exception.getMessage());
                 assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());

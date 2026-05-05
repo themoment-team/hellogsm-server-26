@@ -2,6 +2,7 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayOutputStream;
@@ -51,7 +52,7 @@ class UploadExcelServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested
@@ -69,8 +70,8 @@ class UploadExcelServiceTest {
                 Map<String, EntranceTestResult> map = new HashMap<>();
                 map.put(exam1, r1);
                 map.put(exam2, r2);
-                when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).thenReturn(map);
-                when(entranceTestResultRepository.saveAll(any())).thenAnswer(inv -> {
+                given(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).willReturn(map);
+                given(entranceTestResultRepository.saveAll(any())).willAnswer(inv -> {
                     Iterable<EntranceTestResult> it = inv.getArgument(0);
                     List<EntranceTestResult> list = new ArrayList<>();
                     it.forEach(list::add);
@@ -213,8 +214,8 @@ class UploadExcelServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_not_found_exception() throws Exception {
-                when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any()))
-                        .thenReturn(Collections.emptyMap());
+                given(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any()))
+                        .willReturn(Collections.emptyMap());
                 MultipartFile file = buildWorkbook(wb -> {
                     Sheet sheet = wb.createSheet();
                     Row header = sheet.createRow(0);
@@ -248,8 +249,8 @@ class UploadExcelServiceTest {
         EntranceTestResult result = mock(EntranceTestResult.class);
         final BigDecimal[] compHolder = {competency};
         final BigDecimal[] interHolder = {interview};
-        when(result.getCompetencyEvaluationScore()).thenAnswer(a -> compHolder[0]);
-        when(result.getInterviewScore()).thenAnswer(a -> interHolder[0]);
+        given(result.getCompetencyEvaluationScore()).willAnswer(a -> compHolder[0]);
+        given(result.getInterviewScore()).willAnswer(a -> interHolder[0]);
         doAnswer(a -> {
             compHolder[0] = a.getArgument(0);
             return null;
@@ -265,8 +266,8 @@ class UploadExcelServiceTest {
         EntranceTestResult r = mockEntranceResult(BigDecimal.ZERO, BigDecimal.ZERO);
         Map<String, EntranceTestResult> map = new HashMap<>();
         map.put(exam, r);
-        when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).thenReturn(map);
-        when(entranceTestResultRepository.saveAll(any())).thenAnswer(inv -> {
+        given(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).willReturn(map);
+        given(entranceTestResultRepository.saveAll(any())).willAnswer(inv -> {
             Iterable<EntranceTestResult> it = inv.getArgument(0);
             List<EntranceTestResult> list = new ArrayList<>();
             it.forEach(list::add);

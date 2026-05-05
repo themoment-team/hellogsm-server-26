@@ -3,6 +3,7 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType.CANDIDATE;
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.Major.*;
@@ -21,7 +22,6 @@ import org.mockito.*;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.MiddleSchoolAchievementReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.CalculatedScoreResDto;
@@ -58,8 +58,6 @@ class ModifyOneseoServiceTest {
     @Mock
     private OneseoService oneseoService;
     @Mock
-    private MemberService memberService;
-    @Mock
     private LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
 
     @InjectMocks
@@ -78,7 +76,7 @@ class ModifyOneseoServiceTest {
 
         List<Integer> achievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> generalSubjects = Arrays.asList("국어", "도덕", "사회", "역사", "수학", "과학", "기술가정", "영어");
-        List<String> newSubjects = Arrays.asList("프로그래밍");
+        List<String> newSubjects = List.of("프로그래밍");
         List<Integer> artsPhysicalAchievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> artsPhysicalSubjects = Arrays.asList("체육", "미술", "음악");
         List<Integer> absentDays = Arrays.asList(0, 0, 0);
@@ -220,10 +218,9 @@ class ModifyOneseoServiceTest {
             }
 
             @Test
-            @DisplayName("전형이 변경되었다면 히스토리를 남긴다.")
+            @DisplayName("전형이 변경되었다면 히스토리를 남긴다")
             void it_change_screening_entity_save() {
                 Screening beforeScreening = SPECIAL;
-                Screening afterScreening = GENERAL;
                 Member existingMember = mock(Member.class);
                 Oneseo oneseo = Oneseo.builder().id(1L).member(existingMember).wantedScreening(beforeScreening)
                         .desiredMajors(desiredMajors)
@@ -252,7 +249,7 @@ class ModifyOneseoServiceTest {
                         .getValue();
 
                 assertEquals(beforeScreening, capturedScreeningChangeHistory.getBeforeScreening());
-                assertEquals(afterScreening, capturedScreeningChangeHistory.getAfterScreening());
+                assertEquals(GENERAL, capturedScreeningChangeHistory.getAfterScreening());
             }
         }
 
@@ -262,8 +259,9 @@ class ModifyOneseoServiceTest {
 
             @BeforeEach
             void setUp() {
-                doThrow(new ExpectedException("해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.BAD_REQUEST))
-                        .when(oneseoService).findWithMemberByMemberIdOrThrow(memberId);
+                willThrow(
+                        new ExpectedException("해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.BAD_REQUEST))
+                        .given(oneseoService).findWithMemberByMemberIdOrThrow(memberId);
             }
 
             @Test
@@ -282,8 +280,9 @@ class ModifyOneseoServiceTest {
 
             @BeforeEach
             void setUp() {
-                doThrow(new ExpectedException("해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.BAD_REQUEST))
-                        .when(oneseoService).findWithMemberByMemberIdOrThrow(memberId);
+                willThrow(
+                        new ExpectedException("해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.BAD_REQUEST))
+                        .given(oneseoService).findWithMemberByMemberIdOrThrow(memberId);
             }
 
             @Test

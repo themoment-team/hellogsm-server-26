@@ -22,7 +22,7 @@ import team.themoment.hellogsmv3.domain.common.operation.repository.OperationTes
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("QueryAnnounceTestResultService 클래스의")
-public class QueryAnnounceTestResultServiceTest {
+class QueryAnnounceTestResultServiceTest {
 
     @Mock
     private OperationTestResultRepository operationTestResultRepository;
@@ -36,7 +36,7 @@ public class QueryAnnounceTestResultServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested
@@ -66,7 +66,7 @@ public class QueryAnnounceTestResultServiceTest {
             OperationTestResult testResult;
 
             @BeforeEach
-            void setup() {
+            void setUp() {
                 testResult = OperationTestResult.builder().firstTestResultAnnouncementYn(NO)
                         .secondTestResultAnnouncementYn(NO).build();
 

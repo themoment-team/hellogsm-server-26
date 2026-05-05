@@ -20,7 +20,7 @@ import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("MemberService 클래스의")
-public class MemberServiceTest {
+class MemberServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
@@ -34,7 +34,7 @@ public class MemberServiceTest {
     }
 
     @Nested
-    @DisplayName("findByIdOrThrow 메소드는")
+    @DisplayName("findByIdOrThrow 메서드는")
     class Describe_findByIdOrThrow {
 
         private final Long memberId = 1L;
@@ -50,7 +50,7 @@ public class MemberServiceTest {
             }
 
             @Test
-            @DisplayName("회원 정보를 반환한다.")
+            @DisplayName("회원 정보를 반환한다")
             void it_returns_member() {
                 Member foundMember = memberService.findByIdOrThrow(memberId);
                 assertEquals(member, foundMember);
@@ -67,7 +67,7 @@ public class MemberServiceTest {
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> memberService.findByIdOrThrow(memberId));

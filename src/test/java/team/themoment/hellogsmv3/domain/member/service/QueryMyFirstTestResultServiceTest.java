@@ -19,10 +19,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.service.OneseoService;
 
 @DisplayName("QueryMyFirstTestResultService 클래스의")
-public class QueryMyFirstTestResultServiceTest {
-    @Mock
-    private MemberService memberService;
-
+class QueryMyFirstTestResultServiceTest {
     @Mock
     private OneseoService oneseoService;
 
@@ -35,16 +32,15 @@ public class QueryMyFirstTestResultServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
-        private Member member;
         private Oneseo oneseo;
 
         @BeforeEach
         void setUp() {
-            member = Member.builder().id(memberId).build();
+            Member member = Member.builder().id(memberId).build();
 
             oneseo = Oneseo.builder().member(member)
                     .entranceTestResult(EntranceTestResult.builder().firstTestPassYn(YesNo.YES).build()).build();

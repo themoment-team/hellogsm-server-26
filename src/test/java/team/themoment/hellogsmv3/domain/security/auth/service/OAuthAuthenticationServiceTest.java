@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +66,7 @@ class OAuthAuthenticationServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested
@@ -78,15 +79,12 @@ class OAuthAuthenticationServiceTest {
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
             private final Long memberId = 1L;
 
-            private Member existingMember;
-            private UserAuthInfo userAuthInfo;
-
             @BeforeEach
             void setUp() {
-                existingMember = Member.builder().id(memberId).email(email).role(Role.APPLICANT)
+                Member existingMember = Member.builder().id(memberId).email(email).role(Role.APPLICANT)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
                 given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);
@@ -127,7 +125,7 @@ class OAuthAuthenticationServiceTest {
                     assertTrue(oAuthToken.getAuthorities().contains(new SimpleGrantedAuthority(Role.APPLICANT.name())));
 
                     DefaultOAuth2User oAuth2User = (DefaultOAuth2User) oAuthToken.getPrincipal();
-                    assertEquals(memberId, oAuth2User.getAttribute("id"));
+                    assertEquals(memberId, Objects.requireNonNull(oAuth2User).getAttribute("id"));
                     assertEquals(Role.APPLICANT, oAuth2User.getAttribute("role"));
                     assertEquals(provider, oAuth2User.getAttribute("provider"));
                     assertEquals(email, oAuth2User.getAttribute("email"));
@@ -149,17 +147,14 @@ class OAuthAuthenticationServiceTest {
             private final String code = "auth_code_123";
             private final String email = "s24059@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
-            private final Long newMemberId = 2L;
-
-            private Member newMember;
-            private UserAuthInfo userAuthInfo;
 
             @BeforeEach
             void setUp() {
-                newMember = Member.builder().id(newMemberId).email(email).role(Role.UNAUTHENTICATED)
+                Long newMemberId = 2L;
+                Member newMember = Member.builder().id(newMemberId).email(email).role(Role.UNAUTHENTICATED)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
                 given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);
@@ -214,19 +209,17 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String email = "s23020@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
 
-            private Member existingMember;
-            private UserAuthInfo userAuthInfo;
             private HttpSession newSession;
 
             @BeforeEach
             void setUp() {
-                existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
+                String email = "s23020@gsm.hs.kr";
+                Member existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
                 newSession = mock(HttpSession.class);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
@@ -272,19 +265,17 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String email = "s24059@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
 
-            private Member existingMember;
-            private UserAuthInfo userAuthInfo;
             private HttpSession newSession;
 
             @BeforeEach
             void setUp() {
-                existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
+                String email = "s24059@gsm.hs.kr";
+                Member existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
                 newSession = mock(HttpSession.class);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
@@ -322,18 +313,15 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String email = "s23009@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
-
-            private Member memberWithNullRole;
-            private UserAuthInfo userAuthInfo;
 
             @BeforeEach
             void setUp() {
-                memberWithNullRole = Member.builder().id(1L).email(email).role(null).authReferrerType(authReferrerType)
-                        .build();
+                String email = "s23009@gsm.hs.kr";
+                Member memberWithNullRole = Member.builder().id(1L).email(email).role(null)
+                        .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
                 given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);

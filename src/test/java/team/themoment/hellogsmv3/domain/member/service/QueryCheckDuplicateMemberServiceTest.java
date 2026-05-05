@@ -36,7 +36,7 @@ class QueryCheckDuplicateMemberServiceTest {
         @DisplayName("파라미터로 받은 전화번호가 주어졌을 때")
         class Context_with_phone_number {
             @Test
-            @DisplayName("중복된 전화번호라면 YES를 반환한다.")
+            @DisplayName("중복된 전화번호라면 YES를 반환한다")
             void it_duplicate_return_yes() {
                 // given
                 given(memberRepository.existsByPhoneNumber(phoneNumber)).willReturn(true);
@@ -47,7 +47,7 @@ class QueryCheckDuplicateMemberServiceTest {
             }
 
             @Test
-            @DisplayName("중복된 전화번호가 아니라면 NO를 반환한다.")
+            @DisplayName("중복된 전화번호가 아니라면 NO를 반환한다")
             void it_not_duplicate_return_no() {
                 // given
                 given(memberRepository.existsByPhoneNumber(phoneNumber)).willReturn(false);

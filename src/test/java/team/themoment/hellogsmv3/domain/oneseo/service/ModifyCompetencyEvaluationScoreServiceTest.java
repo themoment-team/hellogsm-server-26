@@ -17,7 +17,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.CompetencyEvaluationScoreReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
@@ -25,10 +24,8 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepo
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("ModifyCompetencyEvaluationScoreService 클래스의")
-public class ModifyCompetencyEvaluationScoreServiceTest {
+class ModifyCompetencyEvaluationScoreServiceTest {
 
-    @Mock
-    private MemberService memberService;
     @Mock
     private OneseoService oneseoService;
     @Mock
@@ -43,7 +40,7 @@ public class ModifyCompetencyEvaluationScoreServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
         private final Long memberId = 1L;
         private final BigDecimal newScore = BigDecimal.valueOf(85);
@@ -66,7 +63,7 @@ public class ModifyCompetencyEvaluationScoreServiceTest {
             }
 
             @Test
-            @DisplayName("역량검사 점수를 저장한다.")
+            @DisplayName("역량검사 점수를 저장한다")
             void it_save_competency_evaluation_score() {
                 CompetencyEvaluationScoreReqDto competencyEvaluationScoreReqDto = new CompetencyEvaluationScoreReqDto(
                         newScore);

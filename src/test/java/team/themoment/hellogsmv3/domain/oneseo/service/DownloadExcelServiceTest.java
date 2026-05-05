@@ -33,7 +33,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.*;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 
 @DisplayName("DownloadExcelService 클래스의")
-public class DownloadExcelServiceTest {
+class DownloadExcelServiceTest {
 
     @Mock
     private OneseoRepository oneseoRepository;
@@ -78,7 +78,7 @@ public class DownloadExcelServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested

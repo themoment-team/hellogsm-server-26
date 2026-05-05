@@ -16,7 +16,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.EntranceIntentionReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
@@ -25,10 +24,7 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("ModifyEntranceIntentionService 클래스의")
-public class ModifyEntranceIntentionServiceTest {
-
-    @Mock
-    private MemberService memberService;
+class ModifyEntranceIntentionServiceTest {
     @Mock
     private OneseoService oneseoService;
     @Mock
@@ -43,7 +39,7 @@ public class ModifyEntranceIntentionServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -80,7 +76,7 @@ public class ModifyEntranceIntentionServiceTest {
                     }
 
                     @Test
-                    @DisplayName("입학 의사 여부를 수정하고 저장한다.")
+                    @DisplayName("입학 의사 여부를 수정하고 저장한다")
                     void it_saves_entrance_intention() {
                         EntranceIntentionReqDto reqDto = new EntranceIntentionReqDto(targetYn);
                         modifyEntranceIntentionService.execute(memberId, reqDto);

@@ -19,7 +19,7 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.response.AdmissionTicketsResD
 import team.themoment.hellogsmv3.domain.oneseo.repository.custom.CustomOneseoRepository;
 
 @DisplayName("QueryAdmissionTicketsService 클래스의")
-public class QueryAdmissionTicketsServiceTest {
+class QueryAdmissionTicketsServiceTest {
 
     @Mock
     private CustomOneseoRepository customOneseoRepository;
@@ -33,7 +33,7 @@ public class QueryAdmissionTicketsServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
         AdmissionTicketsResDto firstadmissionTicketsResDto = AdmissionTicketsResDto.builder().memberName("홍길동")
                 .memberBirth(LocalDate.parse("2024-07-28")).profileImg("profileImg.com").schoolName("광주소프트웨어마이스터고등학교")
@@ -47,12 +47,12 @@ public class QueryAdmissionTicketsServiceTest {
                 secontadmissionTicketsResDto);
 
         @BeforeEach
-        void setup() {
+        void setUp() {
             given(customOneseoRepository.findAdmissionTickets()).willReturn(expectedTickets);
         }
 
         @Test
-        @DisplayName("수험표 리스트를 반환한다.")
+        @DisplayName("수험표 리스트를 반환한다")
         void it_return_admission_tickets() {
             List<AdmissionTicketsResDto> result = queryAdmissionTicketsService.execute();
 

@@ -45,7 +45,7 @@ class AnnounceSecondTestResultServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested
@@ -255,7 +255,7 @@ class AnnounceSecondTestResultServiceTest {
             }
 
             @Test
-            @DisplayName("2차 결과를 발표하고 저장한다.")
+            @DisplayName("2차 결과를 발표하고 저장한다")
             void it_announces_and_saves() {
                 announceSecondTestResultService.execute();
                 verify(testResult).announceSecondTestResult();

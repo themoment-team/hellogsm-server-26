@@ -36,7 +36,7 @@ class ModifyMemberRoleServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final String phoneNumber = "01012345678";

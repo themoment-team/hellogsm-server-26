@@ -35,7 +35,7 @@ import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaSco
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("OneseoTempStorageService 클래스의")
-public class OneseoTempStorageServiceTest {
+class OneseoTempStorageServiceTest {
 
     @Mock
     private MemberService memberService;
@@ -52,7 +52,7 @@ public class OneseoTempStorageServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -91,7 +91,7 @@ public class OneseoTempStorageServiceTest {
 
             @Nested
             @DisplayName("회원이 원서를 제출하지 않았다면")
-            class Oneseo_not_exist {
+            class Context_oneseo_not_exist {
                 private final CalculatedScoreResDto calculatedScoreResDto = CalculatedScoreResDto.builder()
                         .generalSubjectsScore(new BigDecimal("80.000"))
                         .artsPhysicalSubjectsScore(new BigDecimal("10.000")).attendanceScore(new BigDecimal("5.000"))
@@ -105,7 +105,7 @@ public class OneseoTempStorageServiceTest {
                 }
 
                 @Test
-                @DisplayName("FoundOneseoResDto를 반환한다.")
+                @DisplayName("FoundOneseoResDto를 반환한다")
                 void it_returns_found_oneseo_res_dto() {
                     FoundOneseoResDto result = oneseoTempStorageService.execute(reqDto, step, memberId);
                     assertDto(result);
@@ -170,7 +170,7 @@ public class OneseoTempStorageServiceTest {
 
             @Nested
             @DisplayName("회원이 원서를 제출했고 수정 권한이 없다면")
-            class Oneseo_exist_without_edit_permission {
+            class Context_oneseo_exist_without_edit_permission {
                 @BeforeEach
                 void setUp() {
                     Oneseo oneseo = Oneseo.builder().member(member).oneseoEditStatus(OneseoEditStatus.NONE).build();
@@ -178,7 +178,7 @@ public class OneseoTempStorageServiceTest {
                 }
 
                 @Test
-                @DisplayName("ExpectedException을 던진다.")
+                @DisplayName("ExpectedException을 던진다")
                 void it_throws_expected_exception() {
                     ExpectedException exception = assertThrows(ExpectedException.class,
                             () -> oneseoTempStorageService.execute(reqDto, step, memberId));
@@ -190,7 +190,7 @@ public class OneseoTempStorageServiceTest {
 
             @Nested
             @DisplayName("회원이 원서를 제출했고 수정 권한이 APPROVED라면")
-            class Oneseo_exist_with_approved_edit_permission {
+            class Context_oneseo_exist_with_approved_edit_permission {
                 private final CalculatedScoreResDto calculatedScoreResDto = CalculatedScoreResDto.builder()
                         .generalSubjectsScore(new BigDecimal("80.000"))
                         .artsPhysicalSubjectsScore(new BigDecimal("10.000")).attendanceScore(new BigDecimal("5.000"))
@@ -205,7 +205,7 @@ public class OneseoTempStorageServiceTest {
                 }
 
                 @Test
-                @DisplayName("FoundOneseoResDto를 반환한다.")
+                @DisplayName("FoundOneseoResDto를 반환한다")
                 void it_returns_found_oneseo_res_dto() {
                     FoundOneseoResDto result = oneseoTempStorageService.execute(reqDto, step, memberId);
                     assertNotNull(result);
@@ -231,7 +231,7 @@ public class OneseoTempStorageServiceTest {
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> oneseoTempStorageService.execute(reqDto, step, memberId));

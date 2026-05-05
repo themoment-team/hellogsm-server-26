@@ -22,7 +22,7 @@ import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
 @DisplayName("QueryMemberAuthInfoByIdService 클래스의")
-public class QueryMemberAuthInfoByIdServiceTest {
+class QueryMemberAuthInfoByIdServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
@@ -36,7 +36,7 @@ public class QueryMemberAuthInfoByIdServiceTest {
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -53,7 +53,7 @@ public class QueryMemberAuthInfoByIdServiceTest {
             }
 
             @Test
-            @DisplayName("회원 인증 정보를 반환한다.")
+            @DisplayName("회원 인증 정보를 반환한다")
             void it_return_member_auth_info() {
                 FoundMemberAuthInfoResDto result = queryMemberAuthInfoByIdService.execute(memberId);
 
