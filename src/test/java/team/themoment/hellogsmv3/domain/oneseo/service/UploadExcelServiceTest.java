@@ -15,10 +15,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepo
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("UploadExcelService 클래스의")
 class UploadExcelServiceTest {
 
@@ -38,18 +40,6 @@ class UploadExcelServiceTest {
 
     @InjectMocks
     private UploadExcelService uploadExcelService;
-
-    private AutoCloseable mocks;
-
-    @BeforeEach
-    void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        mocks.close();
-    }
 
     @Nested
     @DisplayName("execute 메서드는")
@@ -143,7 +133,6 @@ class UploadExcelServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_out_of_range_exception() throws Exception {
-                mockFindEntranceResults("1001");
                 MultipartFile file = buildWorkbook(wb -> {
                     Sheet sheet = wb.createSheet();
                     Row header = sheet.createRow(0);
@@ -167,7 +156,6 @@ class UploadExcelServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_number_format_exception() throws Exception {
-                mockFindEntranceResults("1001");
                 MultipartFile file = buildWorkbook(wb -> {
                     Sheet sheet = wb.createSheet();
                     Row header = sheet.createRow(0);
@@ -249,8 +237,8 @@ class UploadExcelServiceTest {
         EntranceTestResult result = mock(EntranceTestResult.class);
         final BigDecimal[] compHolder = {competency};
         final BigDecimal[] interHolder = {interview};
-        given(result.getCompetencyEvaluationScore()).willAnswer(a -> compHolder[0]);
-        given(result.getInterviewScore()).willAnswer(a -> interHolder[0]);
+        given(result.getCompetencyEvaluationScore()).willAnswer(_ -> compHolder[0]);
+        given(result.getInterviewScore()).willAnswer(_ -> interHolder[0]);
         doAnswer(a -> {
             compHolder[0] = a.getArgument(0);
             return null;
@@ -260,19 +248,6 @@ class UploadExcelServiceTest {
             return null;
         }).when(result).modifyInterviewScore(any(BigDecimal.class));
         return result;
-    }
-
-    private void mockFindEntranceResults(String exam) {
-        EntranceTestResult r = mockEntranceResult(BigDecimal.ZERO, BigDecimal.ZERO);
-        Map<String, EntranceTestResult> map = new HashMap<>();
-        map.put(exam, r);
-        given(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).willReturn(map);
-        given(entranceTestResultRepository.saveAll(any())).willAnswer(inv -> {
-            Iterable<EntranceTestResult> it = inv.getArgument(0);
-            List<EntranceTestResult> list = new ArrayList<>();
-            it.forEach(list::add);
-            return list;
-        });
     }
 
     @FunctionalInterface

@@ -8,14 +8,14 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +28,7 @@ import team.themoment.hellogsmv3.global.thirdParty.aws.s3.dto.response.UploadIma
 import team.themoment.hellogsmv3.global.thirdParty.aws.s3.service.UploadImageService;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("UploadImageService 클래스의")
 class UploadImageServiceTest {
 
@@ -40,24 +41,9 @@ class UploadImageServiceTest {
     @InjectMocks
     private UploadImageService uploadImageService;
 
-    private AutoCloseable closeable;
-
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
-
-        s3Template = mock(S3Template.class);
-        s3Environment = mock(S3Environment.class);
         uploadImageService = new UploadImageService(s3Template, s3Environment);
-
-        given(s3Environment.bucketName()).willReturn("bucket-name");
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        if (closeable != null) {
-            closeable.close();
-        }
     }
 
     @Nested
@@ -106,6 +92,7 @@ class UploadImageServiceTest {
             @BeforeEach
             void setUp() throws Exception {
                 URL mockUrl = URI.create("https://bucket-name.s3.amazonaws.com/" + s3Key).toURL();
+                given(s3Environment.bucketName()).willReturn("bucket-name");
                 given(mockS3Resource.getURL()).willReturn(mockUrl);
 
                 given(s3Template.upload(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class)))
@@ -129,6 +116,7 @@ class UploadImageServiceTest {
 
             @BeforeEach
             void setUp() {
+                given(s3Environment.bucketName()).willReturn("bucket-name");
                 given(s3Template.upload(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class)))
                         .willThrow(new RuntimeException("AWS S3 upload error"));
             }

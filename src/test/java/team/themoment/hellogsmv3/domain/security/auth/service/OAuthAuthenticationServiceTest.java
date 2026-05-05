@@ -11,10 +11,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -35,6 +36,7 @@ import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticatio
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthProviderFactory;
 import team.themoment.hellogsmv3.global.security.auth.service.provider.OAuthProvider;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("OAuthAuthenticationService 클래스의")
 class OAuthAuthenticationServiceTest {
 
@@ -60,7 +62,6 @@ class OAuthAuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         oAuthAuthenticationService = new OAuthAuthenticationService(oAuthProviderFactory, memberRepository);
         ReflectionTestUtils.setField(oAuthAuthenticationService, "sessionTimeout", Duration.ofSeconds(10800));
     }
@@ -230,8 +231,6 @@ class OAuthAuthenticationServiceTest {
 
                 given(session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY))
                         .willThrow(new IllegalStateException("Session invalidated"));
-                given(session.getCreationTime()).willThrow(new IllegalStateException("Session invalidated"));
-                given(session.getLastAccessedTime()).willThrow(new IllegalStateException("Session invalidated"));
 
                 given(request.getSession(true)).willReturn(newSession);
             }

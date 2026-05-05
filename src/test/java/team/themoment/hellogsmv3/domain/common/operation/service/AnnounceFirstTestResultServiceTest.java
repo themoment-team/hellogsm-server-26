@@ -13,9 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.common.operation.entity.OperationTestResult;
@@ -24,6 +25,7 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepo
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AnnounceFirstTestResultService 클래스의")
 class AnnounceFirstTestResultServiceTest {
 
@@ -36,11 +38,6 @@ class AnnounceFirstTestResultServiceTest {
 
     @InjectMocks
     private AnnounceFirstTestResultService announceFirstTestResultService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")
@@ -75,7 +72,6 @@ class AnnounceFirstTestResultServiceTest {
             @BeforeEach
             void setUp() {
                 given(scheduleEnv.firstResultsAnnouncement()).willReturn(LocalDateTime.now().plusDays(1));
-                given(entranceTestResultRepository.existsByFirstTestPassYnIsNull()).willReturn(false);
             }
 
             @Test
@@ -119,10 +115,11 @@ class AnnounceFirstTestResultServiceTest {
         @DisplayName("정상 조건이라면")
         class Context_valid_condition {
 
-            OperationTestResult testResult = mock(OperationTestResult.class);
+            OperationTestResult testResult;
 
             @BeforeEach
             void setUp() {
+                testResult = mock(OperationTestResult.class);
                 given(scheduleEnv.firstResultsAnnouncement()).willReturn(LocalDateTime.now().minusDays(1));
                 given(entranceTestResultRepository.existsByFirstTestPassYnIsNull()).willReturn(false);
                 given(testResult.getFirstTestResultAnnouncementYn()).willReturn(NO);

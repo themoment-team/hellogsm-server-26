@@ -11,9 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.common.operation.dto.response.AnnounceTestResultResDto;
@@ -21,6 +22,7 @@ import team.themoment.hellogsmv3.domain.common.operation.entity.OperationTestRes
 import team.themoment.hellogsmv3.domain.common.operation.repository.OperationTestResultRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("QueryAnnounceTestResultService 클래스의")
 class QueryAnnounceTestResultServiceTest {
 
@@ -29,11 +31,6 @@ class QueryAnnounceTestResultServiceTest {
 
     @InjectMocks
     private QueryAnnounceTestResultService queryAnnounceTestResultService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")

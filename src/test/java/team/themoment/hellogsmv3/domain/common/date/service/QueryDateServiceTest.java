@@ -9,13 +9,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import team.themoment.hellogsmv3.domain.common.date.dto.DateResDto;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("QueryDateService 클래스의")
 class QueryDateServiceTest {
 
@@ -24,11 +26,6 @@ class QueryDateServiceTest {
 
     @InjectMocks
     private QueryDateService queryDateService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")

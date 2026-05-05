@@ -15,9 +15,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.common.operation.entity.OperationTestResult;
@@ -26,6 +27,7 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepo
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AnnounceSecondTestResultService 클래스의")
 class AnnounceSecondTestResultServiceTest {
 
@@ -38,11 +40,6 @@ class AnnounceSecondTestResultServiceTest {
 
     @InjectMocks
     private AnnounceSecondTestResultService announceSecondTestResultService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")
@@ -80,13 +77,6 @@ class AnnounceSecondTestResultServiceTest {
             @BeforeEach
             void setUp() {
                 given(scheduleEnv.finalResultsAnnouncement()).willReturn(LocalDateTime.now().plusDays(1));
-                given(entranceTestResultRepository.existsByFirstTestPassYnIsNull()).willReturn(false);
-                given(entranceTestResultRepository.existsByFirstTestPassYnAndSecondTestPassYnIsNull(YES))
-                        .willReturn(false);
-                given(operationTestResultRepository.existsByFirstTestResultAnnouncementYn(NO)).willReturn(false);
-
-                OperationTestResult testResult = mock(OperationTestResult.class);
-                given(operationTestResultRepository.findTestResult()).willReturn(Optional.of(testResult));
             }
 
             @Test
@@ -137,12 +127,6 @@ class AnnounceSecondTestResultServiceTest {
             void setUp() {
                 given(scheduleEnv.finalResultsAnnouncement()).willReturn(LocalDateTime.now().minusDays(1));
                 given(entranceTestResultRepository.existsByFirstTestPassYnIsNull()).willReturn(true);
-                given(entranceTestResultRepository.existsByFirstTestPassYnAndSecondTestPassYnIsNull(YES))
-                        .willReturn(false);
-                given(operationTestResultRepository.existsByFirstTestResultAnnouncementYn(NO)).willReturn(false);
-
-                OperationTestResult testResult = mock(OperationTestResult.class);
-                given(operationTestResultRepository.findTestResult()).willReturn(Optional.of(testResult));
             }
 
             @Test
@@ -167,9 +151,6 @@ class AnnounceSecondTestResultServiceTest {
                 given(entranceTestResultRepository.existsByFirstTestPassYnAndSecondTestPassYnIsNull(YES))
                         .willReturn(false);
                 given(operationTestResultRepository.existsByFirstTestResultAnnouncementYn(NO)).willReturn(true);
-
-                OperationTestResult testResult = mock(OperationTestResult.class);
-                given(operationTestResultRepository.findTestResult()).willReturn(Optional.of(testResult));
             }
 
             @Test
@@ -193,10 +174,6 @@ class AnnounceSecondTestResultServiceTest {
                 given(entranceTestResultRepository.existsByFirstTestPassYnIsNull()).willReturn(false);
                 given(entranceTestResultRepository.existsByFirstTestPassYnAndSecondTestPassYnIsNull(YES))
                         .willReturn(true);
-                given(operationTestResultRepository.existsByFirstTestResultAnnouncementYn(NO)).willReturn(false);
-
-                OperationTestResult testResult = mock(OperationTestResult.class);
-                given(operationTestResultRepository.findTestResult()).willReturn(Optional.of(testResult));
             }
 
             @Test
@@ -221,9 +198,6 @@ class AnnounceSecondTestResultServiceTest {
                 given(entranceTestResultRepository.existsByFirstTestPassYnAndSecondTestPassYnIsNull(YES))
                         .willReturn(false);
                 given(operationTestResultRepository.existsByFirstTestResultAnnouncementYn(NO)).willReturn(true);
-
-                OperationTestResult testResult = mock(OperationTestResult.class);
-                given(operationTestResultRepository.findTestResult()).willReturn(Optional.of(testResult));
             }
 
             @Test
@@ -241,10 +215,11 @@ class AnnounceSecondTestResultServiceTest {
         @DisplayName("2차 결과 발표 기간 이후이고, 아직 2차 결과가 발표되지 않은 경우")
         class Context_valid_condition {
 
-            OperationTestResult testResult = mock(OperationTestResult.class);
+            OperationTestResult testResult;
 
             @BeforeEach
             void setUp() {
+                testResult = mock(OperationTestResult.class);
                 given(scheduleEnv.finalResultsAnnouncement()).willReturn(LocalDateTime.now().minusDays(1));
                 given(entranceTestResultRepository.existsByFirstTestPassYnIsNull()).willReturn(false);
                 given(entranceTestResultRepository.existsByFirstTestPassYnAndSecondTestPassYnIsNull(YES))

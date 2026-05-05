@@ -16,11 +16,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationEventPublisher;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
@@ -39,6 +39,7 @@ import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.Lamb
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("CreateOneseoService 클래스의")
 class CreateOneseoServiceTest {
 
@@ -51,23 +52,12 @@ class CreateOneseoServiceTest {
     @Mock
     private EntranceTestResultRepository entranceTestResultRepository;
     @Mock
-    private EntranceTestFactorsDetailRepository entranceTestFactorsDetailRepository;
-    @Mock
     private MemberService memberService;
-    @Mock
-    private OneseoService oneseoService;
-    @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
     @Mock
     private LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
 
     @InjectMocks
     private CreateOneseoService createOneseoService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")
@@ -261,7 +251,7 @@ class CreateOneseoServiceTest {
                 Member existingMember = mock(Member.class);
 
                 given(reqDto.graduationType()).willReturn(GRADUATE);
-                given(memberService.findByIdOrThrow(memberId)).willReturn(existingMember);
+                given(memberService.findByIdForUpdateOrThrow(memberId)).willReturn(existingMember);
                 given(oneseoRepository.existsByMember(existingMember)).willReturn(false);
                 given(reqDto.middleSchoolAchievement()).willReturn(invalidMiddleSchoolAchievementReqDto);
             }
