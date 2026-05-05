@@ -21,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
@@ -52,9 +53,15 @@ class CreateOneseoServiceTest {
     @Mock
     private EntranceTestResultRepository entranceTestResultRepository;
     @Mock
+    private EntranceTestFactorsDetailRepository entranceTestFactorsDetailRepository;
+    @Mock
     private MemberService memberService;
     @Mock
     private LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
+    @Mock
+    private OneseoService oneseoService;
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @InjectMocks
     private CreateOneseoService createOneseoService;

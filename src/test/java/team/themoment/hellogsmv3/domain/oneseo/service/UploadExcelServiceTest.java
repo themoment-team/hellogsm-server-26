@@ -237,8 +237,8 @@ class UploadExcelServiceTest {
         EntranceTestResult result = mock(EntranceTestResult.class);
         final BigDecimal[] compHolder = {competency};
         final BigDecimal[] interHolder = {interview};
-        given(result.getCompetencyEvaluationScore()).willAnswer(_ -> compHolder[0]);
-        given(result.getInterviewScore()).willAnswer(_ -> interHolder[0]);
+        given(result.getCompetencyEvaluationScore()).willAnswer(invocation -> compHolder[0]);
+        given(result.getInterviewScore()).willAnswer(invocation -> interHolder[0]);
         doAnswer(a -> {
             compHolder[0] = a.getArgument(0);
             return null;
