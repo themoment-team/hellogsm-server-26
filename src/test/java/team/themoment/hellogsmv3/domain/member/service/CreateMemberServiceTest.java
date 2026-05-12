@@ -16,9 +16,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.dto.request.CreateMemberReqDto;
@@ -28,10 +29,10 @@ import team.themoment.hellogsmv3.domain.member.entity.type.Role;
 import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
-import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("CreateMemberService 클래스의")
 class CreateMemberServiceTest {
 
@@ -42,21 +43,14 @@ class CreateMemberServiceTest {
     @Mock
     private ScheduleEnvironment scheduleEnvironment;
     @Mock
-    private OneseoRepository oneseoRepository;
-    @Mock
     private EntranceTestResultRepository entranceTestResultRepository;
     @Mock
     private CommonCodeService commonCodeService;
     @InjectMocks
     private CreateMemberService createMemberService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -108,7 +102,7 @@ class CreateMemberServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(memberService.findByIdOrThrow(memberId)).thenThrow(
+                given(memberService.findByIdOrThrow(memberId)).willThrow(
                         new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
                 willDoNothing().given(commonCodeService)
                         .validateAndDelete(memberId, reqDto.code(), reqDto.phoneNumber(), SIGNUP);

@@ -19,9 +19,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
@@ -32,8 +33,9 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.OneseoPrivacyDetail;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.*;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("DownloadExcelService 클래스의")
-public class DownloadExcelServiceTest {
+class DownloadExcelServiceTest {
 
     @Mock
     private OneseoRepository oneseoRepository;
@@ -72,13 +74,8 @@ public class DownloadExcelServiceTest {
             "1차전형결과",
             "2차전형결과");
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested

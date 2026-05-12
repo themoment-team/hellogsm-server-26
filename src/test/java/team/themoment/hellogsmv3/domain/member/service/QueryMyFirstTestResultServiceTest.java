@@ -7,9 +7,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import team.themoment.hellogsmv3.domain.member.dto.response.FoundMemberFirstTestResDto;
 import team.themoment.hellogsmv3.domain.member.entity.Member;
@@ -18,33 +19,25 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.service.OneseoService;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("QueryMyFirstTestResultService 클래스의")
-public class QueryMyFirstTestResultServiceTest {
-    @Mock
-    private MemberService memberService;
-
+class QueryMyFirstTestResultServiceTest {
     @Mock
     private OneseoService oneseoService;
 
     @InjectMocks
     private QueryMyFirstTestResultService queryMyFirstTestResultService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
-        private Member member;
         private Oneseo oneseo;
 
         @BeforeEach
         void setUp() {
-            member = Member.builder().id(memberId).build();
+            Member member = Member.builder().id(memberId).build();
 
             oneseo = Oneseo.builder().member(member)
                     .entranceTestResult(EntranceTestResult.builder().firstTestPassYn(YesNo.YES).build()).build();

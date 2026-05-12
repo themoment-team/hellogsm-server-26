@@ -11,24 +11,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.CompetencyEvaluationScoreReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("ModifyCompetencyEvaluationScoreService 클래스의")
-public class ModifyCompetencyEvaluationScoreServiceTest {
+class ModifyCompetencyEvaluationScoreServiceTest {
 
-    @Mock
-    private MemberService memberService;
     @Mock
     private OneseoService oneseoService;
     @Mock
@@ -37,13 +36,8 @@ public class ModifyCompetencyEvaluationScoreServiceTest {
     @InjectMocks
     private ModifyCompetencyEvaluationScoreService modifyCompetencyEvaluationScoreService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
         private final Long memberId = 1L;
         private final BigDecimal newScore = BigDecimal.valueOf(85);
@@ -66,7 +60,7 @@ public class ModifyCompetencyEvaluationScoreServiceTest {
             }
 
             @Test
-            @DisplayName("역량검사 점수를 저장한다.")
+            @DisplayName("역량검사 점수를 저장한다")
             void it_save_competency_evaluation_score() {
                 CompetencyEvaluationScoreReqDto competencyEvaluationScoreReqDto = new CompetencyEvaluationScoreReqDto(
                         newScore);
