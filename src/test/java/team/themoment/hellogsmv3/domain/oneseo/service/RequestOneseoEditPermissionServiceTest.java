@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -56,7 +57,7 @@ class RequestOneseoEditPermissionServiceTest {
                 given(service.getCurrentTime()).willReturn(LocalTime.of(8, 59));
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                assert ex.getStatusCode() == HttpStatus.FORBIDDEN;
+                assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
             }
         }
 
@@ -105,7 +106,7 @@ class RequestOneseoEditPermissionServiceTest {
                     given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.APPROVED);
 
                     ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                    assert ex.getStatusCode() == HttpStatus.CONFLICT;
+                    assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
                 }
             }
 
@@ -120,7 +121,7 @@ class RequestOneseoEditPermissionServiceTest {
                     given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.REQUESTED);
 
                     ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                    assert ex.getStatusCode() == HttpStatus.CONFLICT;
+                    assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
                 }
             }
 

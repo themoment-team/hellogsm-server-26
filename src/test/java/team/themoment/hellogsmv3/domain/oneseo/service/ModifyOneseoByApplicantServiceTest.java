@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -59,7 +60,7 @@ class ModifyOneseoByApplicantServiceTest {
                 given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.NONE);
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(reqDto, memberId));
-                assert ex.getStatusCode() == HttpStatus.FORBIDDEN;
+                assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
             }
 
             @Test
@@ -68,7 +69,7 @@ class ModifyOneseoByApplicantServiceTest {
                 given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.REQUESTED);
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(reqDto, memberId));
-                assert ex.getStatusCode() == HttpStatus.FORBIDDEN;
+                assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
             }
         }
 
