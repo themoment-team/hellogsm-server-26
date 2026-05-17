@@ -43,21 +43,21 @@
 - `main` — production releases only
 - `develop` — integration branch
 - `{type}/{description}` — work branches cut from `develop`
-  - `{type}`은 commit type과 동일한 단일 토큰: `feature`, `fix`, `update`, `refactor`, `add`, `chore`, `docs`, `test`, `code`, `ci/cd`
-  - `{description}` 은 kebab-case 영문 또는 짧은 식별자
-  - **이중 type 토큰 금지** — `feature/update/...`, `feature/fix/...` 같은 형태는 사용하지 않는다. `update/...`, `fix/...` 처럼 하나만 쓴다.
+  - `{type}` is a single token from the commit type vocabulary: `feature`, `fix`, `update`, `refactor`, `add`, `chore`, `docs`, `test`, `code`, `ci/cd`
+  - `{description}` is a short kebab-case identifier
+  - **No double type tokens** — never `feature/update/...` or `feature/fix/...`. Use only one, e.g. `update/...`, `fix/...`.
 - `hotfix/{description}` — cut from `main`, merged to both `main` and `develop`
 
-### 예시
+### Examples
 - ✅ `update/write-pr-convention`
 - ✅ `fix/null-achievement-validation`
 - ✅ `add/oneseo-status-filter`
-- ❌ `feature/update/write-pr-convention` — `feature` + `update` 이중 토큰
-- ❌ `feature/fix/null-achievement-validation` — `feature` + `fix` 이중 토큰
+- ❌ `feature/update/write-pr-convention` — double tokens `feature` + `update`
+- ❌ `feature/fix/null-achievement-validation` — double tokens `feature` + `fix`
 
 ## Pull Request
 - Target branch: `develop` (not `main`)
-- PR title mirrors the commit subject: `{type}({scope}): {description}`
+- **PR title does NOT mirror the commit subject.** Use the PR convention in `.claude/rules/pr-convention.md`: `[{scope}] {Korean description}`
 - PR body: Korean description of what changed and why
 
 ## Prohibited Patterns
