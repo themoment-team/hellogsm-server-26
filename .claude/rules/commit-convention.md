@@ -18,6 +18,7 @@
 | `fix`     | Bug fix                                             | `fix(member): 중복 회원 삭제 조건 수정`      |
 | `update`  | Enhancement or change to existing feature           | `update(global): Gradle 버전을 변경`         |
 | `refactor`| Code restructuring without behavior change          | `refactor(oneseo): 서비스 레이어 분리`       |
+| `add`     | Add a sub-element (option, query method, config) to an existing feature | `add(oneseo): 원서 검색에 수정 요청/승인 필터 파라미터 추가` |
 | `test`    | Test additions or fixes                             | `test(member): CreateMemberService 테스트 추가` |
 | `ci/cd`   | CI/CD pipeline, Docker, deployment config           | `ci/cd(global): Docker에서 Java 버전 변경`   |
 | `code`    | Code quality cleanup, dead code removal             | `code(refactor): 미사용 코드 정리`           |
@@ -43,7 +44,7 @@
 - `main` — production releases only
 - `develop` — integration branch
 - `{type}/{description}` — work branches cut from `develop`
-  - `{type}` is a single token from the commit type vocabulary: `feature`, `fix`, `update`, `refactor`, `add`, `chore`, `docs`, `test`, `code`, `ci/cd`
+  - `{type}` is a single token from the commit type vocabulary: `feat`, `fix`, `update`, `refactor`, `add`, `chore`, `docs`, `test`, `code`, `ci/cd`
   - `{description}` is a short kebab-case identifier
   - **No double type tokens** — never `feature/update/...` or `feature/fix/...`. Use only one, e.g. `update/...`, `fix/...`.
 - `hotfix/{description}` — cut from `main`, merged to both `main` and `develop`

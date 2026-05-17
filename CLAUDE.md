@@ -48,7 +48,7 @@ Full rule specifications live in `.claude/rules/` — read the files there for d
 | `{type}/{desc}`   | Work branch — single type token (cut from `develop`)    |
 | `hotfix/{desc}`   | Hotfix — cut from and targets `main`                    |
 
-`{type}` is a single token from the commit type vocabulary: `feature`, `fix`, `update`, `refactor`, `add`, `chore`, `docs`, `test`, `code`, `ci/cd`.
+`{type}` is a single token from the commit type vocabulary: `feat`, `fix`, `update`, `refactor`, `add`, `chore`, `docs`, `test`, `code`, `ci/cd`.
 
 - ✅ `update/write-pr-convention`, `fix/null-achievement-validation`, `refactor/approved-oneseo-temp-storage`
 - ❌ `feature/update/write-pr-convention`, `feature/fix/null-achievement-validation` — double type tokens forbidden
