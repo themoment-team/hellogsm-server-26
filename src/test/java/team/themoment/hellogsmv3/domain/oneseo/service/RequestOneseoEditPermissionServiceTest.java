@@ -58,6 +58,7 @@ class RequestOneseoEditPermissionServiceTest {
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
                 assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+                assertEquals("원서 수정 권한 요청은 09:00 ~ 16:00 사이에만 가능합니다.", ex.getMessage());
             }
         }
 
@@ -107,6 +108,7 @@ class RequestOneseoEditPermissionServiceTest {
 
                     ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
                     assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+                    assertEquals("이미 원서 수정 권한이 부여된 상태입니다.", ex.getMessage());
                 }
             }
 
@@ -122,6 +124,7 @@ class RequestOneseoEditPermissionServiceTest {
 
                     ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
                     assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+                    assertEquals("이미 원서 수정 권한 요청이 진행 중입니다.", ex.getMessage());
                 }
             }
 

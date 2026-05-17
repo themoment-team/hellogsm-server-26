@@ -61,6 +61,7 @@ class ModifyOneseoByApplicantServiceTest {
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(reqDto, memberId));
                 assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+                assertEquals("원서 수정 권한이 없습니다.", ex.getMessage());
             }
 
             @Test
@@ -70,6 +71,7 @@ class ModifyOneseoByApplicantServiceTest {
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(reqDto, memberId));
                 assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+                assertEquals("원서 수정 권한이 없습니다.", ex.getMessage());
             }
         }
 
