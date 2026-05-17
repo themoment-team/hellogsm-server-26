@@ -31,19 +31,28 @@ Read the full diff to understand:
 - Whether tests were added
 - Whether documentation was updated
 
-## Step 3 — Load Commit Convention
+## Step 3 — Load PR Convention
 
-Read `.claude/rules/commit-convention.md` to determine correct PR title format.
+Read `.claude/rules/pr-convention.md` to determine correct PR title format.
+
+**Important:** PR titles do **not** follow commit convention. Do not read `commit-convention.md` for the title format.
 
 ## Step 4 — Compose PR Title
 
-Format: `{type}({scope}): {Korean description}`
+Format: `[{scope}] {Korean description}`
 
 Rules:
-- If all commits share the same type → use that type
-- If commits span multiple types → use the most significant one (`feat` > `fix` > `update` > `refactor`)
-- Scope = primary domain affected
-- Title ≤ 72 characters
+- `scope` is one of: `global`, `member`, `oneseo`, `operation`, `common` (lowercase)
+- If changes span multiple domains → always use `[global]` (do not pick the "biggest" domain)
+- Single-domain change → use that domain
+- Infrastructure / config / CI / cross-cutting → `[global]`
+- Title ≤ 72 characters, Korean, no trailing period
+- **Never** use commit-style `{type}({scope}):` for PR titles (e.g. `test(oneseo): ...` is wrong)
+
+Examples (real merged PRs from this repo):
+- `[oneseo] 인적사항 수정 API 추가`
+- `[global] 테스트 코드 스타일 및 명칭 표준화`
+- `[oneseo] 성취점수 리스트 내 null 요소로 인한 NPE 수정`
 
 ## Step 5 — Compose PR Body
 
@@ -55,23 +64,26 @@ Rules for body composition:
 - If only additions exist, omit `### 변경` and vice versa
 - Write in Korean
 
-## Step 6 — Check Remote & Create PR
+## Step 6 — Create PR via Script
+
+**Do not call `gh pr create` directly.** Use the bundled script — it handles pushing, validates the title against the PR convention, and centralizes the `gh` invocation:
 
 ```bash
-# Push if not yet pushed
-git push -u origin $(git branch --show-current)
+bash .claude/skills/write-pr/scripts/create-pr.sh "<title>" "<base>" "<body>"
 ```
 
-Create PR with gh CLI:
-```bash
-gh pr create \
-  --base develop \
-  --title "{title}" \
-  --body "$(cat <<'EOF'
-{body content here}
-EOF
-)"
-```
+- `<base>` is `develop` (or `main` for hotfix branches)
+- `<title>` must match `^\[(global|member|oneseo|operation|common)\] .+` — script will reject otherwise
+- `<body>` can also be piped via stdin if it contains shell-troublesome characters:
+  ```bash
+  printf '%s' "$BODY" | bash .claude/skills/write-pr/scripts/create-pr.sh "<title>" "<base>"
+  ```
+
+The script will:
+1. Push the current branch to origin if not yet pushed
+2. Validate the title format (exit 1 with guidance on mismatch)
+3. Run `gh pr create` with the validated inputs
+4. Print the created PR URL
 
 ## Step 7 — Output
 
@@ -89,3 +101,5 @@ URL:   {pr-url}
 - Do not merge the PR
 - Do not force-push to prepare for PR
 - Do not create PR against `main` unless it's a hotfix branch
+- Do not use commit-style `{type}({scope}): ...` for PR titles — use `[{scope}] ...`
+- Do not call `gh pr create` directly — always go through `scripts/create-pr.sh`
