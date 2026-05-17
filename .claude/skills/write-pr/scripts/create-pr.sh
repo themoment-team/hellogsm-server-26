@@ -5,7 +5,9 @@
 #   echo "<body>" | bash create-pr.sh "<title>" "<base>"
 #
 # Title convention: [{scope}] {Korean description}
-#   scope ∈ {global, member, oneseo, operation, common}
+#   scope is a single lowercase token. Examples observed in this repo:
+#     global, oneseo, member, operation, common, auth, ci/cd
+#   New scopes are allowed — discover them from the domain directory.
 # See .claude/rules/pr-convention.md for the full ruleset.
 
 set -euo pipefail
@@ -14,13 +16,15 @@ TITLE="${1:?PR title is required}"
 BASE="${2:-develop}"
 BODY="${3:-}"
 
-TITLE_REGEX='^\[(global|member|oneseo|operation|common)\] .+'
+# Format check only: [<lowercase-token>] <description>
+# Token allows letters, digits, '/' and '-' (e.g. ci/cd, sub-domain).
+TITLE_REGEX='^\[[a-z][a-z0-9/-]*\] .+'
 
 if [[ ! "$TITLE" =~ $TITLE_REGEX ]]; then
   echo "Error: PR title does not match project convention." >&2
   echo "  Got:      $TITLE" >&2
   echo "  Expected: [<scope>] <Korean description>" >&2
-  echo "  Scopes:   global | member | oneseo | operation | common" >&2
+  echo "  Common scopes: global | oneseo | member | operation | common | auth | ci/cd" >&2
   echo "  Example:  [oneseo] 인적사항 수정 API 추가" >&2
   echo "" >&2
   echo "Note: commit-style titles like 'test(oneseo): ...' are NOT allowed for PRs." >&2

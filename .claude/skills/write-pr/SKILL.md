@@ -42,10 +42,10 @@ Read `.claude/rules/pr-convention.md` to determine correct PR title format.
 Format: `[{scope}] {Korean description}`
 
 Rules:
-- `scope` is one of: `global`, `member`, `oneseo`, `operation`, `common` (lowercase)
+- `scope` is a single lowercase token (`/` and `-` allowed, e.g. `ci/cd`)
+- Discover domain scopes dynamically from `src/main/java/team/themoment/hellogsmv3/domain/` — do not rely on a hardcoded list
+- Fixed scopes: `global` (cross-cutting/infra/security), `ci/cd` (pipelines/Docker/Actions)
 - If changes span multiple domains → always use `[global]` (do not pick the "biggest" domain)
-- Single-domain change → use that domain
-- Infrastructure / config / CI / cross-cutting → `[global]`
 - Title ≤ 72 characters, Korean, no trailing period
 - **Never** use commit-style `{type}({scope}):` for PR titles (e.g. `test(oneseo): ...` is wrong)
 
@@ -73,7 +73,7 @@ bash .claude/skills/write-pr/scripts/create-pr.sh "<title>" "<base>" "<body>"
 ```
 
 - `<base>` is `develop` (or `main` for hotfix branches)
-- `<title>` must match `^\[(global|member|oneseo|operation|common)\] .+` — script will reject otherwise
+- `<title>` must match `^\[[a-z][a-z0-9/-]*\] .+` — script will reject otherwise
 - `<body>` can also be piped via stdin if it contains shell-troublesome characters:
   ```bash
   printf '%s' "$BODY" | bash .claude/skills/write-pr/scripts/create-pr.sh "<title>" "<base>"
