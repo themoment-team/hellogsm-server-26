@@ -42,8 +42,18 @@
 ## Branch Strategy (Git Flow)
 - `main` — production releases only
 - `develop` — integration branch
-- `feature/{description}` — feature branches cut from `develop`
+- `{type}/{description}` — work branches cut from `develop`
+  - `{type}`은 commit type과 동일한 단일 토큰: `feature`, `fix`, `update`, `refactor`, `add`, `chore`, `docs`, `test`, `code`, `ci/cd`
+  - `{description}` 은 kebab-case 영문 또는 짧은 식별자
+  - **이중 type 토큰 금지** — `feature/update/...`, `feature/fix/...` 같은 형태는 사용하지 않는다. `update/...`, `fix/...` 처럼 하나만 쓴다.
 - `hotfix/{description}` — cut from `main`, merged to both `main` and `develop`
+
+### 예시
+- ✅ `update/write-pr-convention`
+- ✅ `fix/null-achievement-validation`
+- ✅ `add/oneseo-status-filter`
+- ❌ `feature/update/write-pr-convention` — `feature` + `update` 이중 토큰
+- ❌ `feature/fix/null-achievement-validation` — `feature` + `fix` 이중 토큰
 
 ## Pull Request
 - Target branch: `develop` (not `main`)

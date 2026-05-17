@@ -26,13 +26,25 @@ git diff HEAD --stat
 
 | Current branch | Action                                                                                                                                           |
 |----------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| `develop`      | Warn the user that committing directly to `develop` is unusual. Suggest creating a feature branch first. Ask for confirmation before proceeding. |
+| `develop`      | Warn the user that committing directly to `develop` is unusual. Suggest creating a work branch first. Ask for confirmation before proceeding.    |
 | `main`         | STOP. Do not commit to main. Tell the user to create a branch.                                                                                   |
-| `feature/*`    | Proceed normally                                                                                                                                 |
+| `{type}/*`     | Proceed normally (`type` ∈ feature, fix, update, refactor, add, chore, docs, test, code, ci/cd)                                                  |
 | `hotfix/*`     | Proceed normally                                                                                                                                 |
 | Any other      | Proceed normally                                                                                                                                 |
 
 If on `develop` and user confirms they want to commit directly, proceed.
+
+### Branch Naming Convention Check
+
+If the current branch matches **double-type pattern** like `feature/{type}/{desc}` (e.g. `feature/update/...`, `feature/fix/...`):
+- **Warn** the user — this violates the single-token rule in `.claude/rules/commit-convention.md`.
+- Recommend renaming via:
+  ```bash
+  git branch -m feature/{type}/{desc} {type}/{desc}
+  ```
+- Proceed with commit only after user confirmation; do not auto-rename.
+
+When **suggesting a new branch name** (e.g. when user is on `develop`), always use single-token form: `{type}/{description}`, never `feature/{type}/{description}`.
 
 ## Step 3 — Analyze Changes
 
