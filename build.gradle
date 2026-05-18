@@ -107,8 +107,8 @@ dependencies {
 	/* sdk */
 	implementation("com.github.themoment-team:the-sdk:1.5")
 
-    /* disender */
-    implementation 'io.github.zaman0806:disender-spring-boot-4-starter:0.1.0'
+	/* disender */
+	implementation 'io.github.zaman0806:disender-spring-boot-4-starter:0.1.0'
 }
 
 ext {
