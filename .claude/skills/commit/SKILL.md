@@ -24,13 +24,13 @@ git diff HEAD --stat
 
 ### Git Flow Branch Rules
 
-| Current branch | Action |
-|----------------|--------|
+| Current branch | Action                                                                                                                                           |
+|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
 | `develop`      | Warn the user that committing directly to `develop` is unusual. Suggest creating a feature branch first. Ask for confirmation before proceeding. |
-| `main`         | STOP. Do not commit to main. Tell the user to create a branch. |
-| `feature/*`    | Proceed normally |
-| `hotfix/*`     | Proceed normally |
-| Any other      | Proceed normally |
+| `main`         | STOP. Do not commit to main. Tell the user to create a branch.                                                                                   |
+| `feature/*`    | Proceed normally                                                                                                                                 |
+| `hotfix/*`     | Proceed normally                                                                                                                                 |
+| Any other      | Proceed normally                                                                                                                                 |
 
 If on `develop` and user confirms they want to commit directly, proceed.
 

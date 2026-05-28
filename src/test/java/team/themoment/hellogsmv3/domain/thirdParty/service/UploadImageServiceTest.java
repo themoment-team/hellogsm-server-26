@@ -5,16 +5,17 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,8 +28,9 @@ import team.themoment.hellogsmv3.global.thirdParty.aws.s3.dto.response.UploadIma
 import team.themoment.hellogsmv3.global.thirdParty.aws.s3.service.UploadImageService;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("UploadImageService 클래스의")
-public class UploadImageServiceTest {
+class UploadImageServiceTest {
 
     @Mock
     private S3Template s3Template;
@@ -39,28 +41,13 @@ public class UploadImageServiceTest {
     @InjectMocks
     private UploadImageService uploadImageService;
 
-    private AutoCloseable closeable;
-
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
-
-        s3Template = mock(S3Template.class);
-        s3Environment = mock(S3Environment.class);
         uploadImageService = new UploadImageService(s3Template, s3Environment);
-
-        when(s3Environment.bucketName()).thenReturn("bucket-name");
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        if (closeable != null) {
-            closeable.close();
-        }
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
         String s3Key = "some-key";
 
@@ -70,7 +57,7 @@ public class UploadImageServiceTest {
             MultipartFile emptyFile = new MockMultipartFile("file", "", "text/plain", new byte[0]);
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> uploadImageService.execute(emptyFile));
@@ -86,7 +73,7 @@ public class UploadImageServiceTest {
             MultipartFile file = new MockMultipartFile("file", "test.txt", "text/plain", "data".getBytes());
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> uploadImageService.execute(file));
@@ -104,15 +91,16 @@ public class UploadImageServiceTest {
 
             @BeforeEach
             void setUp() throws Exception {
-                URL mockUrl = new URL("https://bucket-name.s3.amazonaws.com/" + s3Key);
-                when(mockS3Resource.getURL()).thenReturn(mockUrl);
+                URL mockUrl = URI.create("https://bucket-name.s3.amazonaws.com/" + s3Key).toURL();
+                given(s3Environment.bucketName()).willReturn("bucket-name");
+                given(mockS3Resource.getURL()).willReturn(mockUrl);
 
                 given(s3Template.upload(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class)))
                         .willReturn(mockS3Resource);
             }
 
             @Test
-            @DisplayName("S3에 업로드된 파일의 URL을 반환한다.")
+            @DisplayName("S3에 업로드된 파일의 URL을 반환한다")
             void it_returns_uploaded_file_url() {
                 UploadImageResDto result = uploadImageService.execute(file);
 
@@ -128,12 +116,13 @@ public class UploadImageServiceTest {
 
             @BeforeEach
             void setUp() {
+                given(s3Environment.bucketName()).willReturn("bucket-name");
                 given(s3Template.upload(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class)))
                         .willThrow(new RuntimeException("AWS S3 upload error"));
             }
 
             @Test
-            @DisplayName("RuntimeException을 던진다.")
+            @DisplayName("RuntimeException을 던진다")
             void it_throws_runtime_exception() {
                 assertThrows(RuntimeException.class, () -> uploadImageService.execute(file));
             }

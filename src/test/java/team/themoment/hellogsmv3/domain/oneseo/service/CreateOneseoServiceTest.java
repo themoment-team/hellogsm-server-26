@@ -1,8 +1,8 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType.*;
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.Major.*;
@@ -16,10 +16,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 
@@ -39,6 +40,7 @@ import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.Lamb
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("CreateOneseoService 클래스의")
 class CreateOneseoServiceTest {
 
@@ -55,19 +57,14 @@ class CreateOneseoServiceTest {
     @Mock
     private MemberService memberService;
     @Mock
+    private LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
+    @Mock
     private OneseoService oneseoService;
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
-    @Mock
-    private LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
 
     @InjectMocks
     private CreateOneseoService createOneseoService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")
@@ -78,7 +75,7 @@ class CreateOneseoServiceTest {
 
         List<Integer> achievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> generalSubjects = Arrays.asList("국어", "도덕", "사회", "역사", "수학", "과학", "기술가정", "영어");
-        List<String> newSubjects = Arrays.asList("프로그래밍");
+        List<String> newSubjects = List.of("프로그래밍");
         List<Integer> artsPhysicalAchievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> artsPhysicalSubjects = Arrays.asList("체육", "미술", "음악");
         List<Integer> absentDays = Arrays.asList(0, 0, 0);
@@ -198,7 +195,7 @@ class CreateOneseoServiceTest {
                 assertEquals(volunteerTime, capturedAchievement.getVolunteerTime());
                 assertEquals(liberalSystem, capturedAchievement.getLiberalSystem());
                 assertEquals(freeSemester, capturedAchievement.getFreeSemester());
-                assertEquals(null, capturedAchievement.getGedAvgScore());
+                assertNull(capturedAchievement.getGedAvgScore());
             }
         }
 
@@ -210,8 +207,8 @@ class CreateOneseoServiceTest {
             void setUp() {
                 given(reqDto.graduationType()).willReturn(GRADUATE);
 
-                doThrow(new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND))
-                        .when(memberService).findByIdForUpdateOrThrow(memberId);
+                willThrow(new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND))
+                        .given(memberService).findByIdForUpdateOrThrow(memberId);
             }
 
             @Test
@@ -261,7 +258,7 @@ class CreateOneseoServiceTest {
                 Member existingMember = mock(Member.class);
 
                 given(reqDto.graduationType()).willReturn(GRADUATE);
-                given(memberService.findByIdOrThrow(memberId)).willReturn(existingMember);
+                given(memberService.findByIdForUpdateOrThrow(memberId)).willReturn(existingMember);
                 given(oneseoRepository.existsByMember(existingMember)).willReturn(false);
                 given(reqDto.middleSchoolAchievement()).willReturn(invalidMiddleSchoolAchievementReqDto);
             }

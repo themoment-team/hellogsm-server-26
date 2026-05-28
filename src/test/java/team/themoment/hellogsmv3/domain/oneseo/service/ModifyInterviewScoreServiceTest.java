@@ -11,25 +11,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.InterviewScoreReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("ModifyInterviewScoreService 클래스의")
-public class ModifyInterviewScoreServiceTest {
-
-    @Mock
-    private MemberService memberService;
+class ModifyInterviewScoreServiceTest {
     @Mock
     private OneseoService oneseoService;
     @Mock
@@ -38,13 +36,8 @@ public class ModifyInterviewScoreServiceTest {
     @InjectMocks
     private ModifyInterviewScoreService modifyInterviewScoreService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -69,7 +62,7 @@ public class ModifyInterviewScoreServiceTest {
             }
 
             @Test
-            @DisplayName("심층면접 점수를 저장한다.")
+            @DisplayName("심층면접 점수를 저장한다")
             void it_saves_interview_score() {
                 InterviewScoreReqDto interviewScoreReqDto = new InterviewScoreReqDto(updatedInterviewScore);
                 modifyInterviewScoreService.execute(memberId, interviewScoreReqDto);

@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -14,9 +15,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
@@ -25,6 +27,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("RequestOneseoEditPermissionService 클래스의")
 class RequestOneseoEditPermissionServiceTest {
 
@@ -35,7 +38,6 @@ class RequestOneseoEditPermissionServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         service = spy(new RequestOneseoEditPermissionService(oneseoService));
     }
 
@@ -55,7 +57,8 @@ class RequestOneseoEditPermissionServiceTest {
                 given(service.getCurrentTime()).willReturn(LocalTime.of(8, 59));
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                assert ex.getStatusCode() == HttpStatus.FORBIDDEN;
+                assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+                assertEquals("원서 수정 권한 요청은 09:00 ~ 16:00 사이에만 가능합니다.", ex.getMessage());
             }
         }
 
@@ -104,7 +107,8 @@ class RequestOneseoEditPermissionServiceTest {
                     given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.APPROVED);
 
                     ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                    assert ex.getStatusCode() == HttpStatus.CONFLICT;
+                    assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+                    assertEquals("이미 원서 수정 권한이 부여된 상태입니다.", ex.getMessage());
                 }
             }
 
@@ -119,7 +123,8 @@ class RequestOneseoEditPermissionServiceTest {
                     given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.REQUESTED);
 
                     ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                    assert ex.getStatusCode() == HttpStatus.CONFLICT;
+                    assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+                    assertEquals("이미 원서 수정 권한 요청이 진행 중입니다.", ex.getMessage());
                 }
             }
 

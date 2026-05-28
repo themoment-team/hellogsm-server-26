@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -10,9 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoReqDto;
@@ -20,6 +22,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("ModifyOneseoByApplicantService 클래스의")
 class ModifyOneseoByApplicantServiceTest {
 
@@ -31,11 +34,6 @@ class ModifyOneseoByApplicantServiceTest {
 
     @InjectMocks
     private ModifyOneseoByApplicantService service;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")
@@ -62,7 +60,8 @@ class ModifyOneseoByApplicantServiceTest {
                 given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.NONE);
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(reqDto, memberId));
-                assert ex.getStatusCode() == HttpStatus.FORBIDDEN;
+                assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+                assertEquals("원서 수정 권한이 없습니다.", ex.getMessage());
             }
 
             @Test
@@ -71,7 +70,8 @@ class ModifyOneseoByApplicantServiceTest {
                 given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.REQUESTED);
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(reqDto, memberId));
-                assert ex.getStatusCode() == HttpStatus.FORBIDDEN;
+                assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+                assertEquals("원서 수정 권한이 없습니다.", ex.getMessage());
             }
         }
 

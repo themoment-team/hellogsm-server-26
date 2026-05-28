@@ -9,6 +9,7 @@
 Use the **Describe / Context / It** nested pattern:
 
 ```java
+@ExtendWith(MockitoExtension.class)
 @DisplayName("{Feature} {Subject} 테스트")
 class ActionFeatureServiceTest {
 
@@ -17,11 +18,6 @@ class ActionFeatureServiceTest {
 
     @InjectMocks
     private ActionFeatureService service;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")
@@ -66,6 +62,11 @@ class ActionFeatureServiceTest {
 | Nested Describe | `Describe_{methodName}`               |
 | Nested Context  | `Context_{condition}`                 |
 | Test method   | `it_{expected_behavior}()`               |
+
+## Mockito Initialization
+- Prefer `@ExtendWith(MockitoExtension.class)` for JUnit 5 unit tests
+- Do not call `MockitoAnnotations.openMocks(this)` in new tests
+- Keep a top-level `@BeforeEach` only when the test needs additional setup beyond mock initialization
 
 ## Stubbing Style — BDD (Preferred)
 ```java

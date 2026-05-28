@@ -118,6 +118,8 @@ management:
 discord-alarm:
   url: ${DISCORD_RELAY_SERVER_URL}
   api-key: ${DISCORD_RELAY_SERVER_API_KEY}
+disender:
+  webhook-url: ${DISENDER_WEBHOOK_URL}
 lambda-score-calculator:
   url: ${SCORE_CALCULATOR_SERVICE_URL}
   api-key: ${SCORE_CALCULATOR_API_KEY}

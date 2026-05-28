@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -15,14 +14,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.*;
 import team.themoment.hellogsmv3.domain.oneseo.entity.*;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.DesiredMajors;
@@ -33,14 +32,12 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.MiddleSchoolAchievemen
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoPrivacyDetailRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("QueryOneseoByIdService 클래스의")
 class QueryOneseoByIdServiceTest {
 
     @Mock
     private OneseoService oneseoService;
-
-    @Mock
-    private MemberService memberService;
 
     @Mock
     private OneseoPrivacyDetailRepository oneseoPrivacyDetailRepository;
@@ -51,13 +48,8 @@ class QueryOneseoByIdServiceTest {
     @InjectMocks
     private QueryOneseoByIdService queryOneseoByIdService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -151,7 +143,7 @@ class QueryOneseoByIdServiceTest {
             void setUp_it_throws_expected_exception() {
                 member = buildMember(memberId);
 
-                when(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).thenThrow(
+                given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willThrow(
                         new ExpectedException("원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
             }
 
@@ -160,9 +152,8 @@ class QueryOneseoByIdServiceTest {
             void it_throws_expected_exception() {
                 setUp_it_throws_expected_exception();
 
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    queryOneseoByIdService.execute(memberId);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> queryOneseoByIdService.execute(memberId));
 
                 assertEquals("원서를 찾을 수 없습니다. member ID: " + memberId, exception.getMessage());
                 assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -175,16 +166,15 @@ class QueryOneseoByIdServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).thenThrow(
+                given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willThrow(
                         new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
             }
 
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    queryOneseoByIdService.execute(memberId);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> queryOneseoByIdService.execute(memberId));
 
                 assertEquals("존재하지 않는 지원자입니다. member ID: " + memberId, exception.getMessage());
                 assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());

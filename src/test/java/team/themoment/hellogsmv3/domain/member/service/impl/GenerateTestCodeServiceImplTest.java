@@ -11,12 +11,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import team.themoment.hellogsmv3.domain.member.dto.request.GenerateCodeReqDto;
 import team.themoment.hellogsmv3.domain.member.entity.AuthenticationCode;
 import team.themoment.hellogsmv3.domain.member.repository.CodeRepository;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("GenerateTestCodeServiceImpl 클래스의")
 class GenerateTestCodeServiceImplTest {
 
@@ -25,11 +28,6 @@ class GenerateTestCodeServiceImplTest {
 
     @InjectMocks
     private GenerateTestCodeServiceImpl generateTestCodeServiceImpl;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Nested
     @DisplayName("execute 메서드는")

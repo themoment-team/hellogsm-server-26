@@ -15,15 +15,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.AuthenticationCode;
 import team.themoment.hellogsmv3.domain.member.repository.CodeRepository;
 import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("CommonCodeService 클래스의")
 class CommonCodeServiceTest {
 
@@ -33,13 +35,8 @@ class CommonCodeServiceTest {
     @InjectMocks
     private CommonCodeService commonCodeService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("validateAndDelete 메소드는")
+    @DisplayName("validateAndDelete 메서드는")
     class Describe_validateAndDelete {
 
         private final Long memberId = 1L;
@@ -91,9 +88,8 @@ class CommonCodeServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    commonCodeService.validateAndDelete(memberId, validCode, validPhoneNumber, SIGNUP);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> commonCodeService.validateAndDelete(memberId, validCode, validPhoneNumber, SIGNUP));
 
                 assertEquals("사용자의 code가 존재하지 않습니다. 사용자의 ID : " + memberId, exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -113,9 +109,8 @@ class CommonCodeServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception_when_code_is_not_authenticated() {
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    commonCodeService.validateAndDelete(memberId, validCode, validPhoneNumber, SIGNUP);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> commonCodeService.validateAndDelete(memberId, validCode, validPhoneNumber, SIGNUP));
 
                 assertEquals("유효하지 않은 요청입니다. 인증받지 않은 code입니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -136,9 +131,8 @@ class CommonCodeServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception_when_code_is_invalid() {
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    commonCodeService.validateAndDelete(memberId, invalidCode, validPhoneNumber, SIGNUP);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> commonCodeService.validateAndDelete(memberId, invalidCode, validPhoneNumber, SIGNUP));
 
                 assertEquals("유효하지 않은 요청입니다. 이전 혹은 잘못된 형식의 code입니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -159,9 +153,8 @@ class CommonCodeServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    commonCodeService.validateAndDelete(memberId, validCode, invalidPhoneNumber, SIGNUP);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> commonCodeService.validateAndDelete(memberId, validCode, invalidPhoneNumber, SIGNUP));
 
                 assertEquals("유효하지 않은 요청입니다. code인증에 사용되었던 전화번호와 요청에 사용한 전화번호가 일치하지 않습니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
