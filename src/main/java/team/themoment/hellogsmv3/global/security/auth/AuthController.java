@@ -35,7 +35,7 @@ public class AuthController {
     public CommonApiResponse authenticateWithOAuth(@PathVariable String provider,
             @RequestBody @Valid OAuthCodeReqDto reqDto,
             HttpServletRequest request) {
-        oAuthAuthenticationService.execute(provider, reqDto.code(), request);
+        oAuthAuthenticationService.execute(provider, reqDto.code(), reqDto.redirectUri(), request);
         return CommonApiResponse.success("인증이 완료되었습니다.");
     }
 

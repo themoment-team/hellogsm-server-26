@@ -43,12 +43,11 @@ public class OAuthAuthenticationService {
     @Value("${spring.session.timeout:${server.servlet.session.timeout}}")
     private Duration sessionTimeout;
 
-    public void execute(String provider, String code, HttpServletRequest request) {
-
+    public void execute(String provider, String code, String redirectUri, HttpServletRequest request) {
         String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
         OAuthProvider oAuthProvider = oAuthProviderFactory.getProvider(provider);
 
-        UserAuthInfo userAuthInfo = oAuthProvider.authenticate(decodedCode);
+        UserAuthInfo userAuthInfo = oAuthProvider.authenticate(decodedCode, redirectUri);
 
         completeAuthentication(userAuthInfo, request);
     }
