@@ -8,7 +8,6 @@ server:
         http-only: true
         path: /
         max-age: 10800
-        domain: ${COOKIE_DOMAIN:}
         secure: ${COOKIE_SECURE:false}
         same-site: ${COOKIE_SAME_SITE:lax}
 logging:
