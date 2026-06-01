@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.server.Cookie;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,8 +33,7 @@ public class SessionCookieValidationConfig {
             .anyMatch(p -> p.equals("dev") || p.equals("prod"));
         if (!isDeployedEnv) return;
 
-        Cookie.SameSitePolicy sameSitePolicy = Cookie.SameSitePolicy.valueOf(sameSite.toUpperCase());
-        if (Cookie.SameSitePolicy.NONE == sameSitePolicy && !secure) {
+        if ("none".equalsIgnoreCase(sameSite) && !secure) {
             throw new IllegalStateException(
                 "SameSite=None 설정 시 Secure=true 가 필요합니다. COOKIE_SECURE 환경 변수를 true 로 설정하세요."
             );
