@@ -2,7 +2,6 @@ package team.themoment.hellogsmv3.global.security;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.server.Cookie;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -12,12 +11,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
+@RequiredArgsConstructor
 public class SessionCookieValidationConfig {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     @Value("${COOKIE_DOMAIN:}")
     private String cookieDomain;
