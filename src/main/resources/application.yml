@@ -83,8 +83,7 @@ spring:
     converters:
       preferred-json-mapper: jackson
 auth:
-  allowed-origins:
-      - '*'
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
 schedule:
   oneseoSubmissionStart: ${ONESEO_SUBMISSION_START}
   oneseoSubmissionEnd: ${ONESEO_SUBMISSION_END}
