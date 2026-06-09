@@ -23,7 +23,7 @@ spotless {
 }
 
 group = 'team.themoment'
-version = 'v20251103.0'
+version = 'v20260609.0'
 java.toolchain { languageVersion = JavaLanguageVersion.of(25) }
 
 java {
