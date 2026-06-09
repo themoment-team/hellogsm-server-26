@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -53,7 +54,8 @@ class ApproveOneseoEditPermissionServiceTest {
                 given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.NONE);
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                assert ex.getStatusCode() == HttpStatus.BAD_REQUEST;
+                assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+                assertEquals("원서 수정 권한 요청이 존재하지 않습니다.", ex.getMessage());
             }
 
             @Test
@@ -62,7 +64,8 @@ class ApproveOneseoEditPermissionServiceTest {
                 given(oneseo.getOneseoEditStatus()).willReturn(OneseoEditStatus.APPROVED);
 
                 ExpectedException ex = assertThrows(ExpectedException.class, () -> service.execute(memberId));
-                assert ex.getStatusCode() == HttpStatus.BAD_REQUEST;
+                assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+                assertEquals("원서 수정 권한 요청이 존재하지 않습니다.", ex.getMessage());
             }
         }
 
