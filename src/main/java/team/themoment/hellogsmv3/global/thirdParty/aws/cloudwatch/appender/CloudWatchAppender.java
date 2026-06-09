@@ -15,6 +15,7 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import lombok.Setter;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
@@ -246,6 +247,11 @@ public class CloudWatchAppender extends UnsynchronizedAppenderBase<ILoggingEvent
                     addError("Log group or stream not found, attempting to recreate", e);
                     initializeLogGroup();
                     initializeLogStream();
+                    if (retryCount >= maxRetries - 1) {
+                        throw e;
+                    }
+                } catch (SdkException e) {
+                    addError("Transient error sending logs to CloudWatch, retrying...", e);
                     if (retryCount >= maxRetries - 1) {
                         throw e;
                     }
