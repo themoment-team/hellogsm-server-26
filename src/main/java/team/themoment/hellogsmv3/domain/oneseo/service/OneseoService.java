@@ -23,8 +23,8 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.ScreeningCategory;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -92,17 +92,23 @@ public class OneseoService {
                 .achievement2_2(validationGeneralAchievement(tmpAchievement2_2))
                 .achievement3_1(validationGeneralAchievement(tmpAchievement3_1))
                 .achievement3_2(validationGeneralAchievement(tmpAchievement3_2))
-                .artsPhysicalAchievement(validationArtsPhysicalAchievement(dto.artsPhysicalAchievement()))
+                .artsPhysicalAchievement(
+                        validationArtsPhysicalAchievement(dto.artsPhysicalAchievement(), dto.artsPhysicalSubjects()))
                 .absentDays(dto.absentDays()).attendanceDays(dto.attendanceDays()).volunteerTime(dto.volunteerTime())
                 .liberalSystem(dto.liberalSystem()).freeSemester(dto.freeSemester()).gedAvgScore(dto.gedAvgScore());
         return builder.build();
     }
 
-    private static List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements) {
+    private static List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements, List<String> subjects) {
+        if (subjects != null && !subjects.isEmpty() && (achievements == null || achievements.isEmpty()))
+            throw new ExpectedException("예체능 성취점수가 비어있습니다.", HttpStatus.BAD_REQUEST);
+
         if (achievements == null)
             return null;
 
         achievements.forEach(achievement -> {
+            if (achievement == null)
+                throw new ExpectedException("예체능 성취점수에 null 값이 포함되어 있습니다.", HttpStatus.BAD_REQUEST);
             if (achievement != 0 && (achievement > 5 || achievement < 3))
                 throw new ExpectedException("올바르지 않은 예체능 등급이 입력되었습니다.", HttpStatus.BAD_REQUEST);
         });
@@ -115,6 +121,8 @@ public class OneseoService {
             return null;
 
         achievements.forEach(achievement -> {
+            if (achievement == null)
+                throw new ExpectedException("일반교과 성취점수에 null 값이 포함되어 있습니다.", HttpStatus.BAD_REQUEST);
             if (achievement > 5 || achievement < 0)
                 throw new ExpectedException("올바르지 않은 일반교과 등급이 입력되었습니다.", HttpStatus.BAD_REQUEST);
         });

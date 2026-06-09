@@ -17,7 +17,7 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.internal.SecondTestResultDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +68,9 @@ public class UploadExcelService {
                 continue;
 
             String examinationNumber = readTextCell(row, CellIndex.EXAMINATION_NUMBER, i, evaluator);
-            BigDecimal competencyEvaluationScore = readScoreCell(row, CellIndex.COMPETENCY_EVALUATION_SCORE, i,
+            BigDecimal competencyEvaluationScore = readScoreCell(row,
+                    CellIndex.COMPETENCY_EVALUATION_SCORE,
+                    i,
                     evaluator);
             BigDecimal interviewScore = readScoreCell(row, CellIndex.INTERVIEW_SCORE, i, evaluator);
 

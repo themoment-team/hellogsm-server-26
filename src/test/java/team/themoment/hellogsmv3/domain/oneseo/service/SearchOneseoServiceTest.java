@@ -13,15 +13,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoPageInfoDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -33,6 +35,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.ScreeningCategory;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("SearchOneseoService 클래스의")
 class SearchOneseoServiceTest {
 
@@ -42,13 +45,8 @@ class SearchOneseoServiceTest {
     @InjectMocks
     private SearchOneseoService searchOneseoService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final int page = 0;
@@ -68,14 +66,18 @@ class SearchOneseoServiceTest {
                 Page<SearchOneseoResDto> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
                 given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
-                        screeningTag, isSubmitted, testResultTag, pageable)).willReturn(emptyPage);
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        null,
+                        pageable)).willReturn(emptyPage);
             }
 
             @Test
             @DisplayName("빈 결과를 반환한다")
             void it_returns_empty_result() {
-                SearchOneseosResDto result = searchOneseoService.execute(page, size, testResultTag, screeningTag,
-                        isSubmitted, keyword);
+                SearchOneseosResDto result = searchOneseoService
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
 
                 assertEquals(0, result.info().totalElements());
                 assertEquals(0, result.info().totalPages());
@@ -101,25 +103,31 @@ class SearchOneseoServiceTest {
                 oneseoPrivacyDetail = buildOneseoPrivacyDetail();
                 entranceTestResult = buildEntranceTestResult();
 
-                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member, oneseo, oneseoPrivacyDetail,
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
                         entranceTestResult);
                 Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
 
                 given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
-                        screeningTag, isSubmitted, testResultTag, pageable)).willReturn(oneseoPage);
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        null,
+                        pageable)).willReturn(oneseoPage);
             }
 
             @Test
             @DisplayName("적절한 데이터를 반환한다")
             void it_returns_filtered_results() {
-                SearchOneseosResDto result = searchOneseoService.execute(page, size, testResultTag, screeningTag,
-                        isSubmitted, keyword);
+                SearchOneseosResDto result = searchOneseoService
+                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
 
                 SearchOneseoPageInfoDto searchOneseoPageInfoDto = result.info();
                 assertEquals(1, searchOneseoPageInfoDto.totalElements());
                 assertEquals(1, searchOneseoPageInfoDto.totalPages());
 
-                SearchOneseoResDto searchOneseoResDto = result.oneseos().get(0);
+                SearchOneseoResDto searchOneseoResDto = result.oneseos().getFirst();
                 assertEquals(member.getId(), searchOneseoResDto.memberId());
                 assertEquals(oneseo.getOneseoSubmitCode(), searchOneseoResDto.submitCode());
                 assertEquals(oneseo.getRealOneseoArrivedYn(), searchOneseoResDto.realOneseoArrivedYn());
@@ -135,6 +143,147 @@ class SearchOneseoServiceTest {
                         searchOneseoResDto.competencyEvaluationScore());
                 assertEquals(entranceTestResult.getInterviewScore(), searchOneseoResDto.interviewScore());
                 assertEquals(entranceTestResult.getSecondTestPassYn(), searchOneseoResDto.secondTestPassYn());
+            }
+        }
+
+        @Nested
+        @DisplayName("status=ANY_EDIT이 주어진 경우")
+        class Context_with_status_any_edit {
+
+            private Member member;
+            private Oneseo oneseo;
+
+            @BeforeEach
+            void setUp() {
+                Pageable pageable = PageRequest.of(page, size);
+                member = buildMember();
+                oneseo = buildOneseo();
+                OneseoPrivacyDetail oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                EntranceTestResult entranceTestResult = buildEntranceTestResult();
+
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
+                        entranceTestResult);
+                Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
+
+                given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        OneseoEditStatusTag.ANY_EDIT,
+                        pageable)).willReturn(oneseoPage);
+            }
+
+            @Test
+            @DisplayName("ANY_EDIT 필터가 repository로 올바르게 전달된다")
+            void it_passes_any_edit_status_filter_to_repository() {
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        OneseoEditStatusTag.ANY_EDIT);
+
+                assertEquals(1, result.info().totalElements());
+                assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().getFirst().memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().getFirst().submitCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("status=REQUESTED가 주어진 경우")
+        class Context_with_status_requested {
+
+            private Member member;
+            private Oneseo oneseo;
+
+            @BeforeEach
+            void setUp() {
+                Pageable pageable = PageRequest.of(page, size);
+                member = buildMember();
+                oneseo = buildOneseo();
+                OneseoPrivacyDetail oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                EntranceTestResult entranceTestResult = buildEntranceTestResult();
+
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
+                        entranceTestResult);
+                Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
+
+                given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        OneseoEditStatusTag.REQUESTED,
+                        pageable)).willReturn(oneseoPage);
+            }
+
+            @Test
+            @DisplayName("REQUESTED 필터가 repository로 올바르게 전달된다")
+            void it_passes_requested_status_filter_to_repository() {
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        OneseoEditStatusTag.REQUESTED);
+
+                assertEquals(1, result.info().totalElements());
+                assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().getFirst().memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().getFirst().submitCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("status=APPROVED가 주어진 경우")
+        class Context_with_status_approved {
+
+            private Member member;
+            private Oneseo oneseo;
+
+            @BeforeEach
+            void setUp() {
+                Pageable pageable = PageRequest.of(page, size);
+                member = buildMember();
+                oneseo = buildOneseo();
+                OneseoPrivacyDetail oneseoPrivacyDetail = buildOneseoPrivacyDetail();
+                EntranceTestResult entranceTestResult = buildEntranceTestResult();
+
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        oneseo,
+                        oneseoPrivacyDetail,
+                        entranceTestResult);
+                Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
+
+                given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        OneseoEditStatusTag.APPROVED,
+                        pageable)).willReturn(oneseoPage);
+            }
+
+            @Test
+            @DisplayName("APPROVED 필터가 repository로 올바르게 전달된다")
+            void it_passes_approved_status_filter_to_repository() {
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        OneseoEditStatusTag.APPROVED);
+
+                assertEquals(1, result.info().totalElements());
+                assertEquals(1, result.oneseos().size());
+                assertEquals(member.getId(), result.oneseos().getFirst().memberId());
+                assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().getFirst().submitCode());
             }
         }
     }
@@ -153,8 +302,10 @@ class SearchOneseoServiceTest {
                 .build();
     }
 
-    private SearchOneseoResDto buildSearchOneseoDto(Member member, Oneseo oneseo,
-            OneseoPrivacyDetail oneseoPrivacyDetail, EntranceTestResult entranceTestResult) {
+    private SearchOneseoResDto buildSearchOneseoDto(Member member,
+            Oneseo oneseo,
+            OneseoPrivacyDetail oneseoPrivacyDetail,
+            EntranceTestResult entranceTestResult) {
         return SearchOneseoResDto.builder().memberId(member.getId()).submitCode(oneseo.getOneseoSubmitCode())
                 .realOneseoArrivedYn(oneseo.getRealOneseoArrivedYn()).name(member.getName())
                 .screening(oneseo.getWantedScreening()).schoolName(oneseoPrivacyDetail.getSchoolName())

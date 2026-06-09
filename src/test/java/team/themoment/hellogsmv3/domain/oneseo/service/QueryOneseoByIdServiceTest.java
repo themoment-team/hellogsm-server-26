@@ -1,9 +1,9 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,14 +14,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.*;
 import team.themoment.hellogsmv3.domain.oneseo.entity.*;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.DesiredMajors;
@@ -30,16 +30,14 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.repository.MiddleSchoolAchievementRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoPrivacyDetailRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("QueryOneseoByIdService 클래스의")
 class QueryOneseoByIdServiceTest {
 
     @Mock
     private OneseoService oneseoService;
-
-    @Mock
-    private MemberService memberService;
 
     @Mock
     private OneseoPrivacyDetailRepository oneseoPrivacyDetailRepository;
@@ -50,13 +48,8 @@ class QueryOneseoByIdServiceTest {
     @InjectMocks
     private QueryOneseoByIdService queryOneseoByIdService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -150,7 +143,7 @@ class QueryOneseoByIdServiceTest {
             void setUp_it_throws_expected_exception() {
                 member = buildMember(memberId);
 
-                when(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).thenThrow(
+                given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willThrow(
                         new ExpectedException("원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
             }
 
@@ -159,9 +152,8 @@ class QueryOneseoByIdServiceTest {
             void it_throws_expected_exception() {
                 setUp_it_throws_expected_exception();
 
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    queryOneseoByIdService.execute(memberId);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> queryOneseoByIdService.execute(memberId));
 
                 assertEquals("원서를 찾을 수 없습니다. member ID: " + memberId, exception.getMessage());
                 assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -174,18 +166,15 @@ class QueryOneseoByIdServiceTest {
 
             @BeforeEach
             void setUp() {
-                when(oneseoService.findWithMemberByMemberIdOrThrow(memberId))
-                    .thenThrow(
-                        new ExpectedException(
-                            "존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
+                given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willThrow(
+                        new ExpectedException("존재하지 않는 지원자입니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
             }
 
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
-                ExpectedException exception = assertThrows(ExpectedException.class, () -> {
-                    queryOneseoByIdService.execute(memberId);
-                });
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> queryOneseoByIdService.execute(memberId));
 
                 assertEquals("존재하지 않는 지원자입니다. member ID: " + memberId, exception.getMessage());
                 assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -206,7 +195,8 @@ class QueryOneseoByIdServiceTest {
         return EntranceTestResult.builder().entranceTestFactorsDetail(buildEntranceTestFactorsDetail()).build();
     }
 
-    private Oneseo buildOneseo(Member member, MiddleSchoolAchievement middleSchoolAchievement,
+    private Oneseo buildOneseo(Member member,
+            MiddleSchoolAchievement middleSchoolAchievement,
             OneseoPrivacyDetail oneseoPrivacyDetail) {
         return Oneseo.builder().member(member).id(1L).oneseoSubmitCode("submitCode").wantedScreening(Screening.GENERAL)
                 .desiredMajors(new DesiredMajors(Major.SW, Major.IOT, Major.AI))
@@ -230,7 +220,98 @@ class QueryOneseoByIdServiceTest {
                 .achievement2_2(integerList).achievement3_1(integerList).achievement3_2(integerList)
                 .generalSubjects(stringList).newSubjects(stringList)
                 .artsPhysicalAchievement(List.of(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)).artsPhysicalSubjects(stringList)
-                .absentDays(integerList).attendanceDays(integerList).volunteerTime(integerList).liberalSystem("자유학년제")
+                .absentDays(integerList).attendanceDays(integerList).volunteerTime(integerList).liberalSystem("자유학기제")
                 .freeSemester(null).gedAvgScore(bigDecimal).build();
+    }
+
+    private MiddleSchoolAchievement buildMiddleSchoolAchievementWithFreeSemester(String liberalSystem,
+            String freeSemester) {
+        List<Integer> integerList = List.of(1, 2, 3, 4, 5);
+        List<String> stringList = List.of("과목1", "과목2", "과목3");
+
+        return MiddleSchoolAchievement.builder().achievement1_2(integerList).achievement2_1(integerList)
+                .achievement2_2(integerList).achievement3_1(integerList).achievement3_2(integerList)
+                .generalSubjects(stringList).newSubjects(stringList)
+                .artsPhysicalAchievement(List.of(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)).artsPhysicalSubjects(stringList)
+                .absentDays(integerList).attendanceDays(integerList).volunteerTime(integerList)
+                .liberalSystem(liberalSystem).freeSemester(freeSemester).gedAvgScore(null).build();
+    }
+
+    @Nested
+    @DisplayName("자유학기 성적 null 복원 기능은")
+    class Describe_freeSemesterNullRestore {
+
+        private final Long memberId = 1L;
+
+        private void setUpWithFreeSemester(String liberalSystem, String freeSemester) {
+            Member member = buildMember(memberId);
+            MiddleSchoolAchievement msa = buildMiddleSchoolAchievementWithFreeSemester(liberalSystem, freeSemester);
+            OneseoPrivacyDetail privacyDetail = buildOneseoPrivacyDetail();
+            Oneseo oneseo = buildOneseo(member, msa, privacyDetail);
+
+            given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willReturn(oneseo);
+            given(oneseoPrivacyDetailRepository.findByOneseo(oneseo)).willReturn(privacyDetail);
+            given(middleSchoolAchievementRepository.findByOneseo(oneseo)).willReturn(msa);
+        }
+
+        @Test
+        @DisplayName("자유학년제인 경우 응답의 achievement1_2가 null이다")
+        void it_nulls_achievement1_2_for_liberal_year() {
+            setUpWithFreeSemester("자유학년제", null);
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+            assertNull(result.achievement1_2());
+        }
+
+        @Test
+        @DisplayName("freeSemester가 1-2인 경우 응답의 achievement1_2가 null이다")
+        void it_nulls_achievement1_2_for_free_semester_1_2() {
+            setUpWithFreeSemester("자유학기제", "1-2");
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+            assertNull(result.achievement1_2());
+        }
+
+        @Test
+        @DisplayName("freeSemester가 2-1인 경우 응답의 achievement2_1이 null이다")
+        void it_nulls_achievement2_1_for_free_semester_2_1() {
+            setUpWithFreeSemester("자유학기제", "2-1");
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+            assertNull(result.achievement2_1());
+        }
+
+        @Test
+        @DisplayName("freeSemester가 2-2인 경우 응답의 achievement2_2가 null이다")
+        void it_nulls_achievement2_2_for_free_semester_2_2() {
+            setUpWithFreeSemester("자유학기제", "2-2");
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+            assertNull(result.achievement2_2());
+        }
+
+        @Test
+        @DisplayName("freeSemester가 3-1인 경우 응답의 achievement3_1이 null이다")
+        void it_nulls_achievement3_1_for_free_semester_3_1() {
+            setUpWithFreeSemester("자유학기제", "3-1");
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+            assertNull(result.achievement3_1());
+        }
+
+        @Test
+        @DisplayName("freeSemester가 3-2인 경우 응답의 achievement3_2가 null이다")
+        void it_nulls_achievement3_2_for_free_semester_3_2() {
+            setUpWithFreeSemester("자유학기제", "3-2");
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+            assertNull(result.achievement3_2());
+        }
+
+        @Test
+        @DisplayName("freeSemester가 2-2인 경우 나머지 성적은 그대로 반환된다")
+        void it_keeps_other_achievements_for_free_semester_2_2() {
+            setUpWithFreeSemester("자유학기제", "2-2");
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+            assertEquals(List.of(1, 2, 3, 4, 5), result.achievement1_2());
+            assertEquals(List.of(1, 2, 3, 4, 5), result.achievement2_1());
+            assertNull(result.achievement2_2());
+            assertEquals(List.of(1, 2, 3, 4, 5), result.achievement3_1());
+            assertEquals(List.of(1, 2, 3, 4, 5), result.achievement3_2());
+        }
     }
 }

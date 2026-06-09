@@ -4,16 +4,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -34,6 +36,7 @@ import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticatio
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthProviderFactory;
 import team.themoment.hellogsmv3.global.security.auth.service.provider.OAuthProvider;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("OAuthAuthenticationService 클래스의")
 class OAuthAuthenticationServiceTest {
 
@@ -57,15 +60,16 @@ class OAuthAuthenticationServiceTest {
 
     private OAuthAuthenticationService oAuthAuthenticationService;
 
+    private static final String REDIRECT_URI = "http://localhost:3000/oauth/callback";
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         oAuthAuthenticationService = new OAuthAuthenticationService(oAuthProviderFactory, memberRepository);
         ReflectionTestUtils.setField(oAuthAuthenticationService, "sessionTimeout", Duration.ofSeconds(10800));
     }
 
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested
@@ -74,22 +78,20 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
+            private final String redirectUri = REDIRECT_URI;
             private final String email = "s24058@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
             private final Long memberId = 1L;
 
-            private Member existingMember;
-            private UserAuthInfo userAuthInfo;
-
             @BeforeEach
             void setUp() {
-                existingMember = Member.builder().id(memberId).email(email).role(Role.APPLICANT)
+                Member existingMember = Member.builder().id(memberId).email(email).role(Role.APPLICANT)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
-                given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);
+                given(oAuthProvider.authenticate(code, redirectUri)).willReturn(userAuthInfo);
                 given(memberRepository.findByAuthReferrerTypeAndEmail(authReferrerType, email))
                         .willReturn(Optional.of(existingMember));
                 given(request.getSession(false)).willReturn(session);
@@ -107,10 +109,10 @@ class OAuthAuthenticationServiceTest {
                     mockSecurityContextHolder.when(SecurityContextHolder::createEmptyContext)
                             .thenReturn(securityContext);
 
-                    oAuthAuthenticationService.execute(provider, code, request);
+                    oAuthAuthenticationService.execute(provider, code, redirectUri, request);
 
                     verify(oAuthProviderFactory).getProvider(provider);
-                    verify(oAuthProvider).authenticate(code);
+                    verify(oAuthProvider).authenticate(code, redirectUri);
                     verify(memberRepository).findByAuthReferrerTypeAndEmail(authReferrerType, email);
                     verify(memberRepository, never()).save(any(Member.class));
 
@@ -127,7 +129,7 @@ class OAuthAuthenticationServiceTest {
                     assertTrue(oAuthToken.getAuthorities().contains(new SimpleGrantedAuthority(Role.APPLICANT.name())));
 
                     DefaultOAuth2User oAuth2User = (DefaultOAuth2User) oAuthToken.getPrincipal();
-                    assertEquals(memberId, oAuth2User.getAttribute("id"));
+                    assertEquals(memberId, Objects.requireNonNull(oAuth2User).getAttribute("id"));
                     assertEquals(Role.APPLICANT, oAuth2User.getAttribute("role"));
                     assertEquals(provider, oAuth2User.getAttribute("provider"));
                     assertEquals(email, oAuth2User.getAttribute("email"));
@@ -147,22 +149,20 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
+            private final String redirectUri = REDIRECT_URI;
             private final String email = "s24059@gsm.hs.kr";
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
-            private final Long newMemberId = 2L;
-
-            private Member newMember;
-            private UserAuthInfo userAuthInfo;
 
             @BeforeEach
             void setUp() {
-                newMember = Member.builder().id(newMemberId).email(email).role(Role.UNAUTHENTICATED)
+                Long newMemberId = 2L;
+                Member newMember = Member.builder().id(newMemberId).email(email).role(Role.UNAUTHENTICATED)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
-                given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);
+                given(oAuthProvider.authenticate(code, redirectUri)).willReturn(userAuthInfo);
                 given(memberRepository.findByAuthReferrerTypeAndEmail(authReferrerType, email))
                         .willReturn(Optional.empty());
                 given(memberRepository.save(any(Member.class))).willReturn(newMember);
@@ -181,10 +181,10 @@ class OAuthAuthenticationServiceTest {
                     mockSecurityContextHolder.when(SecurityContextHolder::createEmptyContext)
                             .thenReturn(securityContext);
 
-                    oAuthAuthenticationService.execute(provider, code, request);
+                    oAuthAuthenticationService.execute(provider, code, redirectUri, request);
 
                     verify(oAuthProviderFactory).getProvider(provider);
-                    verify(oAuthProvider).authenticate(code);
+                    verify(oAuthProvider).authenticate(code, redirectUri);
                     verify(memberRepository).findByAuthReferrerTypeAndEmail(authReferrerType, email);
 
                     ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
@@ -214,31 +214,28 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String email = "s23020@gsm.hs.kr";
+            private final String redirectUri = REDIRECT_URI;
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
 
-            private Member existingMember;
-            private UserAuthInfo userAuthInfo;
             private HttpSession newSession;
 
             @BeforeEach
             void setUp() {
-                existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
+                String email = "s23020@gsm.hs.kr";
+                Member existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
                 newSession = mock(HttpSession.class);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
-                given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);
+                given(oAuthProvider.authenticate(code, redirectUri)).willReturn(userAuthInfo);
                 given(memberRepository.findByAuthReferrerTypeAndEmail(authReferrerType, email))
                         .willReturn(Optional.of(existingMember));
                 given(request.getSession(false)).willReturn(session);
 
                 given(session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY))
                         .willThrow(new IllegalStateException("Session invalidated"));
-                given(session.getCreationTime()).willThrow(new IllegalStateException("Session invalidated"));
-                given(session.getLastAccessedTime()).willThrow(new IllegalStateException("Session invalidated"));
 
                 given(request.getSession(true)).willReturn(newSession);
             }
@@ -251,7 +248,7 @@ class OAuthAuthenticationServiceTest {
                     mockSecurityContextHolder.when(SecurityContextHolder::createEmptyContext)
                             .thenReturn(securityContext);
 
-                    oAuthAuthenticationService.execute(provider, code, request);
+                    oAuthAuthenticationService.execute(provider, code, redirectUri, request);
 
                     verify(session).getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
                     verify(session).invalidate();
@@ -272,23 +269,22 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String email = "s24059@gsm.hs.kr";
+            private final String redirectUri = REDIRECT_URI;
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
 
-            private Member existingMember;
-            private UserAuthInfo userAuthInfo;
             private HttpSession newSession;
 
             @BeforeEach
             void setUp() {
-                existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
+                String email = "s24059@gsm.hs.kr";
+                Member existingMember = Member.builder().id(1L).email(email).role(Role.APPLICANT)
                         .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
                 newSession = mock(HttpSession.class);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
-                given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);
+                given(oAuthProvider.authenticate(code, redirectUri)).willReturn(userAuthInfo);
                 given(memberRepository.findByAuthReferrerTypeAndEmail(authReferrerType, email))
                         .willReturn(Optional.of(existingMember));
                 given(request.getSession(false)).willReturn(null);
@@ -303,7 +299,7 @@ class OAuthAuthenticationServiceTest {
                     mockSecurityContextHolder.when(SecurityContextHolder::createEmptyContext)
                             .thenReturn(securityContext);
 
-                    oAuthAuthenticationService.execute(provider, code, request);
+                    oAuthAuthenticationService.execute(provider, code, redirectUri, request);
 
                     verify(request).getSession(false);
                     verify(request).getSession(true);
@@ -322,21 +318,19 @@ class OAuthAuthenticationServiceTest {
 
             private final String provider = "google";
             private final String code = "auth_code_123";
-            private final String email = "s23009@gsm.hs.kr";
+            private final String redirectUri = REDIRECT_URI;
             private final AuthReferrerType authReferrerType = AuthReferrerType.GOOGLE;
-
-            private Member memberWithNullRole;
-            private UserAuthInfo userAuthInfo;
 
             @BeforeEach
             void setUp() {
-                memberWithNullRole = Member.builder().id(1L).email(email).role(null).authReferrerType(authReferrerType)
-                        .build();
+                String email = "s23009@gsm.hs.kr";
+                Member memberWithNullRole = Member.builder().id(1L).email(email).role(null)
+                        .authReferrerType(authReferrerType).build();
 
-                userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
+                UserAuthInfo userAuthInfo = new UserAuthInfo(email, provider, authReferrerType);
 
                 given(oAuthProviderFactory.getProvider(provider)).willReturn(oAuthProvider);
-                given(oAuthProvider.authenticate(code)).willReturn(userAuthInfo);
+                given(oAuthProvider.authenticate(code, redirectUri)).willReturn(userAuthInfo);
                 given(memberRepository.findByAuthReferrerTypeAndEmail(authReferrerType, email))
                         .willReturn(Optional.of(memberWithNullRole));
                 given(request.getSession(false)).willReturn(session);
@@ -354,7 +348,7 @@ class OAuthAuthenticationServiceTest {
                     mockSecurityContextHolder.when(SecurityContextHolder::createEmptyContext)
                             .thenReturn(securityContext);
 
-                    oAuthAuthenticationService.execute(provider, code, request);
+                    oAuthAuthenticationService.execute(provider, code, redirectUri, request);
 
                     ArgumentCaptor<Authentication> authCaptor = ArgumentCaptor.forClass(Authentication.class);
                     verify(securityContext).setAuthentication(authCaptor.capture());
@@ -371,5 +365,6 @@ class OAuthAuthenticationServiceTest {
                 }
             }
         }
+
     }
 }

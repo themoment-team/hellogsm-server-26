@@ -13,6 +13,7 @@ import lombok.*;
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.DesiredMajors;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
+import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 
@@ -83,6 +84,11 @@ public class Oneseo {
     @Column(name = "decided_major")
     private Major decidedMajor;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "oneseo_edit_status", nullable = false)
+    private OneseoEditStatus oneseoEditStatus = OneseoEditStatus.NONE;
+
     public void addWantedScreeningChangeHistory(WantedScreeningChangeHistory wantedScreeningChangeHistory) {
         this.wantedScreeningChangeHistory.add(wantedScreeningChangeHistory);
     }
@@ -111,5 +117,17 @@ public class Oneseo {
 
     public void switchRealOneseoArrivedYn() {
         this.realOneseoArrivedYn = this.realOneseoArrivedYn == YES ? NO : YES;
+    }
+
+    public void requestEditPermit() {
+        this.oneseoEditStatus = OneseoEditStatus.REQUESTED;
+    }
+
+    public void approveEditPermit() {
+        this.oneseoEditStatus = OneseoEditStatus.APPROVED;
+    }
+
+    public void revokeEditPermit() {
+        this.oneseoEditStatus = OneseoEditStatus.NONE;
     }
 }

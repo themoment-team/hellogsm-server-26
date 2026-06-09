@@ -9,9 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.dto.response.FoundMemberAuthInfoResDto;
@@ -19,10 +20,11 @@ import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.entity.type.AuthReferrerType;
 import team.themoment.hellogsmv3.domain.member.entity.type.Role;
 import team.themoment.hellogsmv3.domain.member.repository.MemberRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("QueryMemberAuthInfoByIdService 클래스의")
-public class QueryMemberAuthInfoByIdServiceTest {
+class QueryMemberAuthInfoByIdServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
@@ -30,13 +32,8 @@ public class QueryMemberAuthInfoByIdServiceTest {
     @InjectMocks
     private QueryMemberAuthInfoByIdService queryMemberAuthInfoByIdService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -53,7 +50,7 @@ public class QueryMemberAuthInfoByIdServiceTest {
             }
 
             @Test
-            @DisplayName("회원 인증 정보를 반환한다.")
+            @DisplayName("회원 인증 정보를 반환한다")
             void it_return_member_auth_info() {
                 FoundMemberAuthInfoResDto result = queryMemberAuthInfoByIdService.execute(memberId);
 

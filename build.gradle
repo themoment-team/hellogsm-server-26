@@ -1,16 +1,16 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.6'
-	id 'io.spring.dependency-management' version '1.1.4'
-	id 'com.diffplug.spotless' version '6.25.0'
+	id 'org.springframework.boot' version '4.0.5'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '8.4.0'
 }
 
 
 spotless {
 	java {
 		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-		eclipse()
-		indentWithSpaces(4)
+		eclipse().configFile("src/main/resources/eclipse-java-formatter.xml")
+		leadingTabsToSpaces(4)
 		importOrder('java', 'javax', 'org', 'com', '')
 		removeUnusedImports()
 		endWithNewline()
@@ -23,10 +23,11 @@ spotless {
 }
 
 group = 'team.themoment'
-version = 'v20241011.0'
+version = 'v20260609.0'
+java.toolchain { languageVersion = JavaLanguageVersion.of(25) }
 
 java {
-	sourceCompatibility = '17'
+	sourceCompatibility = '25'
 }
 
 jar {
@@ -41,6 +42,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -60,14 +62,14 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
 	/** queryDsl **/
-	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
-	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.1'
+	annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.1:jakarta'
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
 	/** test **/
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.mockito:mockito-inline:4.9.0'
+	testImplementation 'org.mockito:mockito-inline:5.2.0'
 
 	/** validation **/
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -77,18 +79,17 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
 	/** aws **/
-	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.4.0'
-	implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:3.4.0'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:4.0.0'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:4.0.0'
 
 	/** excel **/
-	implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.4.1'
+	implementation 'org.apache.poi:poi-ooxml:5.5.1'
 
 	/** json **/
-	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-	implementation("net.minidev:json-smart:2.6.0")
+	implementation 'net.minidev:json-smart:2.6.0'
 
 	/** swagger **/
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 
 	/** actuator **/
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -97,14 +98,21 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 	/** logging **/
-	implementation group: 'ca.pjer', name: 'logback-awslogs-appender', version: '1.6.0'
+	implementation platform('software.amazon.awssdk:bom:2.42.30')
+	implementation 'software.amazon.awssdk:cloudwatchlogs'
 
 	/** open feign **/
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+	/* sdk */
+	implementation("com.github.themoment-team:the-sdk:1.5")
+
+	/* disender */
+	implementation 'io.github.zaman0806:disender-spring-boot-4-starter:0.1.1'
 }
 
 ext {
-	set('springCloudVersion', "2025.0.0")
+	set('springCloudVersion', "2025.1.1")
 }
 
 dependencyManagement {
@@ -129,6 +137,10 @@ tasks.named('bootBuildImage') {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+configurations.configureEach {
+	exclude group: 'org.bouncycastle'
 }
 
 compileJava.dependsOn spotlessApply

@@ -24,9 +24,9 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.DesiredMajors;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.event.OneseoApplyEvent;
 import team.themoment.hellogsmv3.domain.oneseo.repository.*;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +61,8 @@ public class CreateOneseoService {
         saveEntities(oneseo, oneseoPrivacyDetail, middleSchoolAchievement);
 
         CalculatedScoreResDto calculatedScoreResDto = calculateMiddleSchoolAchievement(reqDto.graduationType(),
-                reqDto.middleSchoolAchievement(), oneseo);
+                reqDto.middleSchoolAchievement(),
+                oneseo);
 
         OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto = buildOneseoPrivacyDetailResDto(currentMember,
                 oneseoPrivacyDetail);
@@ -70,7 +71,9 @@ public class CreateOneseoService {
 
         sendOneseoApplyEvent(currentMember, oneseo, oneseoPrivacyDetail);
 
-        return buildOneseoResDto(oneseo, oneseoPrivacyDetailResDto, middleSchoolAchievementResDto,
+        return buildOneseoResDto(oneseo,
+                oneseoPrivacyDetailResDto,
+                middleSchoolAchievementResDto,
                 calculatedScoreResDto);
     }
 
@@ -121,8 +124,10 @@ public class CreateOneseoService {
                 .gedAvgScore(middleSchoolAchievement.getGedAvgScore()).build();
     }
 
-    private FoundOneseoResDto buildOneseoResDto(Oneseo oneseo, OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto,
-            MiddleSchoolAchievementResDto middleSchoolAchievementResDto, CalculatedScoreResDto calculatedScoreResDto) {
+    private FoundOneseoResDto buildOneseoResDto(Oneseo oneseo,
+            OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto,
+            MiddleSchoolAchievementResDto middleSchoolAchievementResDto,
+            CalculatedScoreResDto calculatedScoreResDto) {
         DesiredMajors desiredMajors = oneseo.getDesiredMajors();
 
         return FoundOneseoResDto.builder().oneseoId(oneseo.getId()).submitCode(oneseo.getOneseoSubmitCode())
@@ -135,7 +140,8 @@ public class CreateOneseoService {
     }
 
     private CalculatedScoreResDto calculateMiddleSchoolAchievement(GraduationType graduationType,
-            MiddleSchoolAchievementReqDto middleSchoolAchievement, Oneseo oneseo) {
+            MiddleSchoolAchievementReqDto middleSchoolAchievement,
+            Oneseo oneseo) {
         LambdaScoreCalculatorReqDto lambdaRequest = LambdaScoreCalculatorReqDto.from(middleSchoolAchievement,
                 graduationType);
         CalculatedScoreResDto calculatedScore = lambdaScoreCalculatorClient.calculateScore(lambdaRequest);
@@ -181,7 +187,8 @@ public class CreateOneseoService {
                             : null)
                     .build();
 
-            EntranceTestResult entranceTestResult = new EntranceTestResult(oneseo, entranceTestFactorsDetail,
+            EntranceTestResult entranceTestResult = new EntranceTestResult(oneseo,
+                    entranceTestFactorsDetail,
                     calculatedScore.totalScore());
 
             entranceTestFactorsDetailRepository.save(entranceTestFactorsDetail);
@@ -192,12 +199,14 @@ public class CreateOneseoService {
 
             if (calculatedScore.generalSubjectsScore() != null) {
                 findEntranceTestFactorsDetail.updateGradeEntranceTestFactorsDetail(
-                        calculatedScore.generalSubjectsScore(), calculatedScore.artsPhysicalSubjectsScore(),
+                        calculatedScore.generalSubjectsScore(),
+                        calculatedScore.artsPhysicalSubjectsScore(),
                         calculatedScore.totalSubjectsScore() != null
                                 ? calculatedScore.totalSubjectsScore()
                                 : calculatedScore.generalSubjectsScore()
                                         .add(calculatedScore.artsPhysicalSubjectsScore()),
-                        calculatedScore.attendanceScore(), calculatedScore.volunteerScore(),
+                        calculatedScore.attendanceScore(),
+                        calculatedScore.volunteerScore(),
                         calculatedScore.attendanceScore().add(calculatedScore.volunteerScore()),
                         calculatedScore.generalSubjectsScoreDetail() != null
                                 ? calculatedScore.generalSubjectsScoreDetail().score1_2()
@@ -216,7 +225,8 @@ public class CreateOneseoService {
                                 : null);
             } else {
                 findEntranceTestFactorsDetail.updateGedEntranceTestFactorsDetail(calculatedScore.attendanceScore(),
-                        calculatedScore.volunteerScore(), calculatedScore.totalSubjectsScore(),
+                        calculatedScore.volunteerScore(),
+                        calculatedScore.totalSubjectsScore(),
                         calculatedScore.attendanceScore().add(calculatedScore.volunteerScore()));
             }
 
@@ -228,7 +238,8 @@ public class CreateOneseoService {
         }
     }
 
-    private void saveEntities(Oneseo oneseo, OneseoPrivacyDetail oneseoPrivacyDetail,
+    private void saveEntities(Oneseo oneseo,
+            OneseoPrivacyDetail oneseoPrivacyDetail,
             MiddleSchoolAchievement middleSchoolAchievement) {
         oneseoRepository.save(oneseo);
         oneseoPrivacyDetailRepository.save(oneseoPrivacyDetail);

@@ -8,28 +8,29 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.sdk.response.CommonApiResponse;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ExpectedException.class)
-    private CommonApiResponse expectedException(ExpectedException ex) {
-        log.warn("ExpectedException : {} ", ex.getMessage());
-        log.trace("ExpectedException Details : ", ex);
+    public CommonApiResponse expectedException(ExpectedException ex) {
+        log.warn("Expected exception: {}", ex.getMessage());
+        log.trace("Expected exception details: ", ex);
         return CommonApiResponse.error(ex.getMessage(), ex.getStatusCode());
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class,
-            ConstraintViolationException.class})
+            ConstraintViolationException.class, MethodArgumentTypeMismatchException.class})
     public CommonApiResponse validationException(Exception ex) {
         log.warn("Validation Failed : {}", ex.getMessage());
         log.trace("Validation Failed Details : ", ex);
@@ -48,7 +49,7 @@ public class GlobalExceptionHandler {
             log.warn("Corrupted session detected, treating as invalid session: {}", ex.getMessage());
             return CommonApiResponse.error("Session is invalid or expired", HttpStatus.UNAUTHORIZED);
         }
-        return unExpectedException(ex); // 다른 IllegalStateException은 RuntimeException 핸들러로 위임
+        return unExpectedException(ex);
     }
 
     @ExceptionHandler(RuntimeException.class)

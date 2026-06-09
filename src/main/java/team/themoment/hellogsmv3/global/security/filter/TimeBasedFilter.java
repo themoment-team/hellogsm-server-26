@@ -17,7 +17,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
+import team.themoment.sdk.response.CommonApiResponse;
 
 @Slf4j
 public class TimeBasedFilter extends OncePerRequestFilter {
@@ -31,7 +31,9 @@ public class TimeBasedFilter extends OncePerRequestFilter {
         }
     }
 
-    public TimeBasedFilter addFilter(HttpMethod httpMethod, String uri, LocalDateTime startTime,
+    public TimeBasedFilter addFilter(HttpMethod httpMethod,
+            String uri,
+            LocalDateTime startTime,
             LocalDateTime endTime) {
         urlRequestPeriods.put(uri + ":" + httpMethod, new RequestPeriod(startTime, endTime));
         return this;
@@ -60,7 +62,10 @@ public class TimeBasedFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
             } else {
                 String message = String.format("%s 요청이 거부되었습니다. " + "현재 시간: %s, 해당 요청은 %s ~ %s 이내에만 처리 가능합니다.",
-                        requestPeriodKey, currentTime, requestPeriod.startTime, requestPeriod.endTime);
+                        requestPeriodKey,
+                        currentTime,
+                        requestPeriod.startTime,
+                        requestPeriod.endTime);
                 log.warn(message);
                 sendErrorResponse(response, message);
             }

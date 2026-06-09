@@ -20,7 +20,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import lombok.SneakyThrows;
 import team.themoment.hellogsmv3.global.common.handler.annotation.AuthRequest;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
+import team.themoment.sdk.response.CommonApiResponse;
 
 @OpenAPIDefinition(info = @Info(title = "Hello, GSM 2025", description = "광주소프트웨어마이스터고등학교 입학지원 시스템", version = "v1"))
 @Configuration
@@ -28,9 +28,14 @@ public class SwaggerConfig {
 
     @Bean
     public GroupedOpenApi api(OperationCustomizer operationCustomizer) {
-        return GroupedOpenApi
-                .builder().group("Hello, GSM 2025 API").pathsToMatch("/utility/**", "/member/**", "/oneseo/**",
-                        "/auth/**", "/date", "/operation/**", "/test-result/**")
+        return GroupedOpenApi.builder().group("Hello, GSM 2025 API")
+                .pathsToMatch("/utility/**",
+                        "/member/**",
+                        "/oneseo/**",
+                        "/auth/**",
+                        "/date",
+                        "/operation/**",
+                        "/test-result/**")
                 .addOperationCustomizer(operationCustomizer).build();
     }
 

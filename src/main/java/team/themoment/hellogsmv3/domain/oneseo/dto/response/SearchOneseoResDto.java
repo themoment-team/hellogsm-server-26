@@ -3,6 +3,7 @@ package team.themoment.hellogsmv3.domain.oneseo.dto.response;
 import java.math.BigDecimal;
 
 import lombok.Builder;
+import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 
@@ -11,5 +12,5 @@ public record SearchOneseoResDto(Long memberId, String submitCode, YesNo realOne
         Screening screening, String schoolName, String phoneNumber, String guardianPhoneNumber,
         String schoolTeacherPhoneNumber, String examinationNumber, YesNo firstTestPassYn,
         BigDecimal competencyEvaluationScore, BigDecimal interviewScore, YesNo secondTestPassYn,
-        YesNo entranceIntentionYn) {
+        YesNo entranceIntentionYn, OneseoEditStatus oneseoEditStatus) {
 }

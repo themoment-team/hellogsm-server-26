@@ -10,12 +10,12 @@ import org.springframework.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.member.entity.type.AuthReferrerType;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.auth.dto.UserAuthInfo;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.response.GoogleTokenResDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.response.GoogleUserInfoResDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.oauth.google.GoogleOAuth2Client;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.oauth.google.GoogleUserInfoClient;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Component
 @RequiredArgsConstructor
@@ -38,11 +38,11 @@ public class GoogleOAuthProvider implements OAuthProvider {
     }
 
     @Override
-    public UserAuthInfo authenticate(String authorizationCode) {
+    public UserAuthInfo authenticate(String authorizationCode, String redirectUri) {
         validateAuthorizationCode(authorizationCode);
 
         ClientRegistration clientRegistration = getClientRegistration();
-        GoogleTokenResDto tokenResponse = exchangeCodeForToken(authorizationCode, clientRegistration);
+        GoogleTokenResDto tokenResponse = exchangeCodeForToken(authorizationCode, clientRegistration, redirectUri);
         GoogleUserInfoResDto userInfo = getUserInfo(tokenResponse.accessToken());
 
         validateUserEmail(userInfo.email());
@@ -64,12 +64,20 @@ public class GoogleOAuthProvider implements OAuthProvider {
         return clientRegistration;
     }
 
-    private GoogleTokenResDto exchangeCodeForToken(String code, ClientRegistration clientRegistration) {
+    private GoogleTokenResDto exchangeCodeForToken(String code,
+            ClientRegistration clientRegistration,
+            String redirectUri) {
         try {
-            Map<String, String> params = Map.of("grant_type", clientRegistration.getAuthorizationGrantType().getValue(),
-                    "client_id", clientRegistration.getClientId(), "client_secret",
-                    clientRegistration.getClientSecret(), "code", code, "redirect_uri",
-                    clientRegistration.getRedirectUri());
+            Map<String, String> params = Map.of("grant_type",
+                    clientRegistration.getAuthorizationGrantType().getValue(),
+                    "client_id",
+                    clientRegistration.getClientId(),
+                    "client_secret",
+                    clientRegistration.getClientSecret(),
+                    "code",
+                    code,
+                    "redirect_uri",
+                    redirectUri);
             return googleOAuth2Client.exchangeCodeForToken(params);
         } catch (Exception e) {
             throw new ExpectedException("Google OAuth 토큰 교환에 실패했습니다: " + e.getMessage(), HttpStatus.UNAUTHORIZED);

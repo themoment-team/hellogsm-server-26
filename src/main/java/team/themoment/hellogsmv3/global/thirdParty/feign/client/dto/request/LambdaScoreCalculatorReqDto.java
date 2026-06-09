@@ -13,10 +13,22 @@ public record LambdaScoreCalculatorReqDto(List<Integer> achievement1_1, List<Int
         List<Integer> attendanceDays, List<Integer> volunteerTime, String liberalSystem, String freeSemester,
         BigDecimal gedAvgScore, GraduationType graduationType) {
     public static LambdaScoreCalculatorReqDto from(MiddleSchoolAchievementReqDto dto, GraduationType graduationType) {
-        return new LambdaScoreCalculatorReqDto(dto.achievement1_1(), dto.achievement1_2(), dto.achievement2_1(),
-                dto.achievement2_2(), dto.achievement3_1(), dto.achievement3_2(), dto.generalSubjects(),
-                dto.newSubjects(), dto.artsPhysicalAchievement(), dto.artsPhysicalSubjects(), dto.absentDays(),
-                dto.attendanceDays(), dto.volunteerTime(), dto.liberalSystem(), dto.freeSemester(), dto.gedAvgScore(),
+        return new LambdaScoreCalculatorReqDto(dto.achievement1_1(),
+                dto.achievement1_2(),
+                dto.achievement2_1(),
+                dto.achievement2_2(),
+                dto.achievement3_1(),
+                dto.achievement3_2(),
+                dto.generalSubjects(),
+                dto.newSubjects(),
+                dto.artsPhysicalAchievement(),
+                dto.artsPhysicalSubjects(),
+                dto.absentDays(),
+                dto.attendanceDays(),
+                dto.volunteerTime(),
+                dto.liberalSystem(),
+                dto.freeSemester(),
+                dto.gedAvgScore(),
                 graduationType);
     }
 }

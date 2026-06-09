@@ -3,6 +3,7 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 import static team.themoment.hellogsmv3.domain.oneseo.service.OneseoService.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
@@ -14,12 +15,16 @@ import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.MiddleSchoolAchievementReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoTempReqDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.response.CalculatedScoreResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.DesiredMajorsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.MiddleSchoolAchievementResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.OneseoPrivacyDetailResDto;
+import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.request.LambdaScoreCalculatorReqDto;
+import team.themoment.hellogsmv3.global.thirdParty.feign.client.lambda.LambdaScoreCalculatorClient;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -27,23 +32,32 @@ public class OneseoTempStorageService {
 
     private final MemberService memberService;
     private final OneseoRepository oneseoRepository;
+    private final LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
 
     @CachePut(value = ONESEO_CACHE_VALUE, key = "#memberId")
     @Transactional(readOnly = true)
     public FoundOneseoResDto execute(OneseoTempReqDto reqDto, Integer step, Long memberId) {
         Member member = memberService.findByIdOrThrow(memberId);
 
-        isNotExistOneseo(member);
+        validateOneseoEditable(member);
 
         OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto = buildOneseoPrivacyDetailResDto(member, reqDto);
         MiddleSchoolAchievementResDto middleSchoolAchievementResDto = buildMiddleSchoolAchievementResDto(reqDto);
+        CalculatedScoreResDto calculatedScoreResDto = calculateScore(reqDto);
 
-        return buildFoundOneseoResDto(reqDto, oneseoPrivacyDetailResDto, middleSchoolAchievementResDto, step);
+        return buildFoundOneseoResDto(reqDto,
+                oneseoPrivacyDetailResDto,
+                middleSchoolAchievementResDto,
+                step,
+                calculatedScoreResDto);
     }
 
-    private void isNotExistOneseo(Member member) {
-        if (oneseoRepository.existsByMember(member))
-            throw new ExpectedException("이미 원서 제출을 하였습니다.", HttpStatus.BAD_REQUEST);
+    private void validateOneseoEditable(Member member) {
+        oneseoRepository.findByMember(member).ifPresent(oneseo -> {
+            if (oneseo.getOneseoEditStatus() != OneseoEditStatus.APPROVED) {
+                throw new ExpectedException("이미 원서 제출을 하였습니다.", HttpStatus.BAD_REQUEST);
+            }
+        });
     }
 
     private OneseoPrivacyDetailResDto buildOneseoPrivacyDetailResDto(Member member, OneseoTempReqDto reqDto) {
@@ -64,7 +78,8 @@ public class OneseoTempStorageService {
         List<Integer> absentDays = middleSchoolAchievement.absentDays();
         List<Integer> attendanceDays = middleSchoolAchievement.attendanceDays();
 
-        return MiddleSchoolAchievementResDto.builder().achievement1_2(middleSchoolAchievement.achievement1_2())
+        return MiddleSchoolAchievementResDto.builder().achievement1_1(middleSchoolAchievement.achievement1_1())
+                .achievement1_2(middleSchoolAchievement.achievement1_2())
                 .achievement2_1(middleSchoolAchievement.achievement2_1())
                 .achievement2_2(middleSchoolAchievement.achievement2_2())
                 .achievement3_1(middleSchoolAchievement.achievement3_1())
@@ -73,22 +88,51 @@ public class OneseoTempStorageService {
                 .newSubjects(middleSchoolAchievement.newSubjects())
                 .artsPhysicalAchievement(middleSchoolAchievement.artsPhysicalAchievement())
                 .artsPhysicalSubjects(middleSchoolAchievement.artsPhysicalSubjects()).absentDays(absentDays)
-                .absentDaysCount(null).attendanceDays(attendanceDays)
+                .absentDaysCount(calcAbsentDaysCountSafely(absentDays, attendanceDays)).attendanceDays(attendanceDays)
                 .volunteerTime(middleSchoolAchievement.volunteerTime())
                 .liberalSystem(middleSchoolAchievement.liberalSystem())
                 .freeSemester(middleSchoolAchievement.freeSemester()).gedAvgScore(middleSchoolAchievement.gedAvgScore())
                 .build();
     }
 
+    private CalculatedScoreResDto calculateScore(OneseoTempReqDto reqDto) {
+        MiddleSchoolAchievementReqDto achievement = reqDto.middleSchoolAchievement();
+        if (achievement == null) {
+            return null;
+        }
+
+        List<String> subjects = achievement.artsPhysicalSubjects();
+        List<Integer> achievements = achievement.artsPhysicalAchievement();
+        if (subjects != null && !subjects.isEmpty() && (achievements == null || achievements.isEmpty())) {
+            return null;
+        }
+
+        LambdaScoreCalculatorReqDto lambdaRequest = LambdaScoreCalculatorReqDto.from(achievement,
+                reqDto.graduationType());
+        return lambdaScoreCalculatorClient.calculateScore(lambdaRequest);
+    }
+
+    private Integer calcAbsentDaysCountSafely(List<Integer> absentDays, List<Integer> attendanceDays) {
+        if (absentDays == null || attendanceDays == null) {
+            return null;
+        }
+        if (absentDays.stream().anyMatch(Objects::isNull) || attendanceDays.stream().anyMatch(Objects::isNull)) {
+            return null;
+        }
+        return OneseoService.calcAbsentDaysCount(absentDays, attendanceDays);
+    }
+
     private FoundOneseoResDto buildFoundOneseoResDto(OneseoTempReqDto reqDto,
             OneseoPrivacyDetailResDto oneseoPrivacyDetailResDto,
-            MiddleSchoolAchievementResDto middleSchoolAchievementResDto, Integer step) {
+            MiddleSchoolAchievementResDto middleSchoolAchievementResDto,
+            Integer step,
+            CalculatedScoreResDto calculatedScoreResDto) {
 
         return FoundOneseoResDto.builder().oneseoId(null).submitCode(null).wantedScreening(reqDto.screening())
                 .desiredMajors(DesiredMajorsResDto.builder().firstDesiredMajor(reqDto.firstDesiredMajor())
                         .secondDesiredMajor(reqDto.secondDesiredMajor()).thirdDesiredMajor(reqDto.thirdDesiredMajor())
                         .build())
                 .privacyDetail(oneseoPrivacyDetailResDto).middleSchoolAchievement(middleSchoolAchievementResDto)
-                .step(step).build();
+                .calculatedScore(calculatedScoreResDto).step(step).build();
     }
 }

@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.annotation;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -13,9 +14,9 @@ import jakarta.validation.ConstraintValidatorContext;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.MiddleSchoolAchievementReqDto;
 
 @DisplayName("SubjectNameValidator 클래스의")
-public class SubjectNameValidatorTest {
+class SubjectNameValidatorTest {
 
-    @DisplayName("isValid 메소드는")
+    @DisplayName("isValid 메서드는")
     @Nested
     class Describe_isValid {
 
@@ -35,8 +36,8 @@ public class SubjectNameValidatorTest {
             context = Mockito.mock(ConstraintValidatorContext.class);
             ConstraintValidatorContext.ConstraintViolationBuilder builder = Mockito
                     .mock(ConstraintValidatorContext.ConstraintViolationBuilder.class);
-            when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(builder);
-            when(builder.addConstraintViolation()).thenReturn(context);
+            given(context.buildConstraintViolationWithTemplate(anyString())).willReturn(builder);
+            given(builder.addConstraintViolation()).willReturn(context);
         }
 
         @DisplayName("모든 과목이 중복되지 않으면")
@@ -53,7 +54,7 @@ public class SubjectNameValidatorTest {
                         .newSubjects(newSubjects).artsPhysicalSubjects(artsPhysicalSubjects).build();
             }
 
-            @DisplayName("ConstraintViolation을 발생시키지 않는다.")
+            @DisplayName("ConstraintViolation을 발생시키지 않는다")
             @Test
             void it_doesnt_make_constraint_violation() {
                 boolean result = validator.isValid(middleSchoolAchievementReqDto, context);
@@ -75,7 +76,7 @@ public class SubjectNameValidatorTest {
                         .newSubjects(newSubjects).artsPhysicalSubjects(artsPhysicalSubjects).build();
             }
 
-            @DisplayName("ConstraintViolation을 발생시킨다.")
+            @DisplayName("ConstraintViolation을 발생시킨다")
             @Test
             void it_makes_constraint_violation() {
                 boolean result = validator.isValid(middleSchoolAchievementReqDto, context);
@@ -95,7 +96,7 @@ public class SubjectNameValidatorTest {
                         .newSubjects(null).artsPhysicalSubjects(Arrays.asList("체육", "미술", "음악")).build();
             }
 
-            @DisplayName("ConstraintViolation을 발생시키지 않는다.")
+            @DisplayName("ConstraintViolation을 발생시키지 않는다")
             @Test
             void it_doesnt_make_constraint_violation() {
                 boolean result = validator.isValid(middleSchoolAchievementReqDto, context);

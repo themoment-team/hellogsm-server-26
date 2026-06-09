@@ -65,7 +65,8 @@ with Diagram("HelloGSM-2025 Cloud Architecture",
                 prod_bastion_nat = EC2("Bastion + NAT\nInstance")
 
             with Cluster("Private", graph_attr={"bgcolor": "#ffcdd2", "style": "rounded", "margin": "8"}):
-                prod_app = EC2("Spring Boot\n+ Redis")
+                prod_app = EC2("Spring Boot")
+                prod_redis = EC2("Redis")
                 prod_db = RDS("MySQL")
 
         with Cluster("Stage", graph_attr={"bgcolor": "#e3f2fd", "style": "rounded", "margin": "10"}):
@@ -73,7 +74,7 @@ with Diagram("HelloGSM-2025 Cloud Architecture",
                 dev_bastion_nat = EC2("Bastion + NAT\nInstance")
 
             with Cluster("Private", graph_attr={"bgcolor": "#ffcdd2", "style": "rounded", "margin": "8"}):
-                dev_app = EC2("All-in-One")
+                dev_app = EC2("Spring Boot\n+ Redis\n+ MySQL")
 
     user >> Edge(label="https", color="#4caf50") >> internet_gateway
     internet_gateway >> Edge(color="#4caf50") >> alb
@@ -81,6 +82,7 @@ with Diagram("HelloGSM-2025 Cloud Architecture",
     alb >> Edge(label="prod", color="#2196f3") >> prod_app
     alb >> Edge(label="stage", color="#03a9f4") >> dev_app
 
+    prod_app >> Edge(label="cache", color="#e91e63") >> prod_redis
     prod_app >> Edge(label="db", color="#4caf50") >> prod_db
 
     codedeploy >> Edge(label="deploy", color="#ff5722") >> prod_app
@@ -90,6 +92,7 @@ with Diagram("HelloGSM-2025 Cloud Architecture",
     dev_app >> Edge(label="out", color="#795548") >> dev_bastion_nat
 
     prod_bastion_nat >> Edge(label="ssh", color="#9c27b0") >> prod_app
+    prod_bastion_nat >> Edge(label="ssh", color="#9c27b0") >> prod_redis
     prod_bastion_nat >> Edge(label="db", color="#9c27b0") >> prod_db
     dev_bastion_nat >> Edge(label="ssh", color="#9c27b0") >> dev_app
 

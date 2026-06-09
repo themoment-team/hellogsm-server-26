@@ -2,6 +2,7 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayOutputStream;
@@ -14,10 +15,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,8 +27,9 @@ import org.springframework.web.multipart.MultipartFile;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("UploadExcelService 클래스의")
 class UploadExcelServiceTest {
 
@@ -38,20 +41,8 @@ class UploadExcelServiceTest {
     @InjectMocks
     private UploadExcelService uploadExcelService;
 
-    private AutoCloseable mocks;
-
-    @BeforeEach
-    void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        mocks.close();
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested
@@ -69,8 +60,8 @@ class UploadExcelServiceTest {
                 Map<String, EntranceTestResult> map = new HashMap<>();
                 map.put(exam1, r1);
                 map.put(exam2, r2);
-                when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).thenReturn(map);
-                when(entranceTestResultRepository.saveAll(any())).thenAnswer(inv -> {
+                given(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).willReturn(map);
+                given(entranceTestResultRepository.saveAll(any())).willAnswer(inv -> {
                     Iterable<EntranceTestResult> it = inv.getArgument(0);
                     List<EntranceTestResult> list = new ArrayList<>();
                     it.forEach(list::add);
@@ -142,7 +133,6 @@ class UploadExcelServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_out_of_range_exception() throws Exception {
-                mockFindEntranceResults("1001");
                 MultipartFile file = buildWorkbook(wb -> {
                     Sheet sheet = wb.createSheet();
                     Row header = sheet.createRow(0);
@@ -166,7 +156,6 @@ class UploadExcelServiceTest {
             @Test
             @DisplayName("ExpectedException을 던진다")
             void it_throws_number_format_exception() throws Exception {
-                mockFindEntranceResults("1001");
                 MultipartFile file = buildWorkbook(wb -> {
                     Sheet sheet = wb.createSheet();
                     Row header = sheet.createRow(0);
@@ -210,29 +199,26 @@ class UploadExcelServiceTest {
         @Nested
         @DisplayName("DB에 존재하지 않는 수험번호만 포함되면")
         class Context_with_not_found_examination_number {
-        @Test
-      @DisplayName("ExpectedException을 던진다")
-      void it_throws_not_found_exception() throws Exception {
-        when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any()))
-            .thenReturn(Collections.emptyMap());
-        MultipartFile file =
-            buildWorkbook(
-                wb -> {
-                  Sheet sheet = wb.createSheet();
-                  Row header = sheet.createRow(0);
-                  header.createCell(0).setCellValue("수험번호");
-                  header.createCell(3).setCellValue("역검점수");
-                  header.createCell(4).setCellValue("면접점수");
-                  Row r1 = sheet.createRow(1);
-                  r1.createCell(0).setCellValue("9999");
-                  r1.createCell(3).setCellValue(10);
-                  r1.createCell(4).setCellValue(20);
+            @Test
+            @DisplayName("ExpectedException을 던진다")
+            void it_throws_not_found_exception() throws Exception {
+                given(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any()))
+                        .willReturn(Collections.emptyMap());
+                MultipartFile file = buildWorkbook(wb -> {
+                    Sheet sheet = wb.createSheet();
+                    Row header = sheet.createRow(0);
+                    header.createCell(0).setCellValue("수험번호");
+                    header.createCell(3).setCellValue("역검점수");
+                    header.createCell(4).setCellValue("면접점수");
+                    Row r1 = sheet.createRow(1);
+                    r1.createCell(0).setCellValue("9999");
+                    r1.createCell(3).setCellValue(10);
+                    r1.createCell(4).setCellValue(20);
                 });
-        ExpectedException ex =
-            assertThrows(ExpectedException.class, () -> uploadExcelService.execute(file));
-        assertTrue(ex.getMessage().contains("존재하지 않습니다"));
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-      }
+                ExpectedException ex = assertThrows(ExpectedException.class, () -> uploadExcelService.execute(file));
+                assertTrue(ex.getMessage().contains("존재하지 않습니다"));
+                assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+            }
         }
     }
 
@@ -240,8 +226,10 @@ class UploadExcelServiceTest {
         try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             consumer.accept(wb);
             wb.write(bos);
-            return new MockMultipartFile("file", "test.xlsx",
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bos.toByteArray());
+            return new MockMultipartFile("file",
+                    "test.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    bos.toByteArray());
         }
     }
 
@@ -249,8 +237,8 @@ class UploadExcelServiceTest {
         EntranceTestResult result = mock(EntranceTestResult.class);
         final BigDecimal[] compHolder = {competency};
         final BigDecimal[] interHolder = {interview};
-        when(result.getCompetencyEvaluationScore()).thenAnswer(a -> compHolder[0]);
-        when(result.getInterviewScore()).thenAnswer(a -> interHolder[0]);
+        given(result.getCompetencyEvaluationScore()).willAnswer(invocation -> compHolder[0]);
+        given(result.getInterviewScore()).willAnswer(invocation -> interHolder[0]);
         doAnswer(a -> {
             compHolder[0] = a.getArgument(0);
             return null;
@@ -260,19 +248,6 @@ class UploadExcelServiceTest {
             return null;
         }).when(result).modifyInterviewScore(any(BigDecimal.class));
         return result;
-    }
-
-    private void mockFindEntranceResults(String exam) {
-        EntranceTestResult r = mockEntranceResult(BigDecimal.ZERO, BigDecimal.ZERO);
-        Map<String, EntranceTestResult> map = new HashMap<>();
-        map.put(exam, r);
-        when(oneseoRepository.findEntranceTestResultByExaminationNumbersIn(any())).thenReturn(map);
-        when(entranceTestResultRepository.saveAll(any())).thenAnswer(inv -> {
-            Iterable<EntranceTestResult> it = inv.getArgument(0);
-            List<EntranceTestResult> list = new ArrayList<>();
-            it.forEach(list::add);
-            return list;
-        });
     }
 
     @FunctionalInterface

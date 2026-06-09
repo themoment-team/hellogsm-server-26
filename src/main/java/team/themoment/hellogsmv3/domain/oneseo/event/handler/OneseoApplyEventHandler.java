@@ -70,12 +70,15 @@ public class OneseoApplyEventHandler {
             case EXTRA_ADMISSION, EXTRA_VETERANS -> "정원 외 특별전형";
         };
 
-        return String.format("### 이름 \n%s%s \n### 졸업상태 \n%s \n### 전형 \n%s \n### 현재 작성된 원서 수 \n%s개", name, masking,
-                graduationType, screening, count);
+        return String.format("### 이름 \n%s%s \n### 졸업상태 \n%s \n### 전형 \n%s \n### 현재 작성된 원서 수 \n%s개",
+                name,
+                masking,
+                graduationType,
+                screening,
+                count);
     }
 
     private Env getEnv() {
-        Env env = activeProfile.equals("prod") ? prod : dev;
-        return env;
+        return activeProfile.equals("prod") ? prod : dev;
     }
 }

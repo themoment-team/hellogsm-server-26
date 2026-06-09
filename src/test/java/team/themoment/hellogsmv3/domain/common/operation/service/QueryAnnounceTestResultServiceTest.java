@@ -11,18 +11,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.common.operation.dto.response.AnnounceTestResultResDto;
 import team.themoment.hellogsmv3.domain.common.operation.entity.OperationTestResult;
 import team.themoment.hellogsmv3.domain.common.operation.repository.OperationTestResultRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("QueryAnnounceTestResultService 클래스의")
-public class QueryAnnounceTestResultServiceTest {
+class QueryAnnounceTestResultServiceTest {
 
     @Mock
     private OperationTestResultRepository operationTestResultRepository;
@@ -30,13 +32,8 @@ public class QueryAnnounceTestResultServiceTest {
     @InjectMocks
     private QueryAnnounceTestResultService queryAnnounceTestResultService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         @Nested
@@ -66,7 +63,7 @@ public class QueryAnnounceTestResultServiceTest {
             OperationTestResult testResult;
 
             @BeforeEach
-            void setup() {
+            void setUp() {
                 testResult = OperationTestResult.builder().firstTestResultAnnouncementYn(NO)
                         .secondTestResultAnnouncementYn(NO).build();
 

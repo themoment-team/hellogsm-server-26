@@ -2,12 +2,12 @@ package team.themoment.hellogsmv3.domain.oneseo.repository.custom;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.FoundMemberAndOneseoDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.AdmissionTicketsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -26,14 +26,13 @@ public interface CustomOneseoRepository {
     Integer findMaxSubmitCodeByScreening(ScreeningCategory screeningCategory);
 
     Page<SearchOneseoResDto> findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(String keyword,
-            ScreeningCategory screening, YesNo isSubmitted, TestResultTag testResultTag, Pageable pageable);
+            ScreeningCategory screening,
+            YesNo isSubmitted,
+            TestResultTag testResultTag,
+            OneseoEditStatusTag status,
+            Pageable pageable);
 
     List<AdmissionTicketsResDto> findAdmissionTickets();
-
-    Optional<Oneseo> findByGuardianOrTeacherPhoneNumberAndSubmitCode(String phoneNumber, String submitCode);
-
-    Optional<Oneseo> findByGuardianOrTeacherPhoneNumberAndExaminationNumber(String phoneNumber,
-            String examinationNumber);
 
     List<Oneseo> findAllByScreeningWithAllDetails(Screening screening);
 

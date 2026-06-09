@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoPageInfoDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -22,12 +23,21 @@ public class SearchOneseoService {
     private final OneseoRepository oneseoRepository;
 
     @Transactional(readOnly = true)
-    public SearchOneseosResDto execute(Integer page, Integer size, TestResultTag testResultTag,
-            ScreeningCategory screeningTag, YesNo isSubmitted, String keyword) {
+    public SearchOneseosResDto execute(Integer page,
+            Integer size,
+            TestResultTag testResultTag,
+            ScreeningCategory screeningTag,
+            YesNo isSubmitted,
+            String keyword,
+            OneseoEditStatusTag status) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<SearchOneseoResDto> oneseoPage = findOneseoByTagsAndKeyword(testResultTag, screeningTag, isSubmitted,
-                keyword, pageable);
+        Page<SearchOneseoResDto> oneseoPage = findOneseoByTagsAndKeyword(testResultTag,
+                screeningTag,
+                isSubmitted,
+                keyword,
+                status,
+                pageable);
 
         SearchOneseoPageInfoDto infoDto = SearchOneseoPageInfoDto.builder().totalPages(oneseoPage.getTotalPages())
                 .totalElements(oneseoPage.getTotalElements()).build();
@@ -36,8 +46,16 @@ public class SearchOneseoService {
     }
 
     private Page<SearchOneseoResDto> findOneseoByTagsAndKeyword(TestResultTag testResultTag,
-            ScreeningCategory screeningTag, YesNo isSubmitted, String keyword, Pageable pageable) {
-        return oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword, screeningTag,
-                isSubmitted, testResultTag, pageable);
+            ScreeningCategory screeningTag,
+            YesNo isSubmitted,
+            String keyword,
+            OneseoEditStatusTag status,
+            Pageable pageable) {
+        return oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                screeningTag,
+                isSubmitted,
+                testResultTag,
+                status,
+                pageable);
     }
 }

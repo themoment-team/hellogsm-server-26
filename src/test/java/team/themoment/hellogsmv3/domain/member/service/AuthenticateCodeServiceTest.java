@@ -13,19 +13,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.dto.request.AuthenticateCodeReqDto;
 import team.themoment.hellogsmv3.domain.member.entity.AuthenticationCode;
 import team.themoment.hellogsmv3.domain.member.repository.CodeRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AuthenticateCodeService 클래스의")
-public class AuthenticateCodeServiceTest {
+class AuthenticateCodeServiceTest {
 
     @Mock
     private CodeRepository codeRepository;
@@ -33,18 +35,12 @@ public class AuthenticateCodeServiceTest {
     @InjectMocks
     private AuthenticateCodeService authenticateCodeService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
         private final String validCode = "000000";
-        private final String invalidCode = "111111";
         private final AuthenticateCodeReqDto reqDto = new AuthenticateCodeReqDto(validCode);
         private AuthenticationCode authenticationCode;
 
@@ -54,14 +50,18 @@ public class AuthenticateCodeServiceTest {
 
             @BeforeEach
             void setUp() {
-                authenticationCode = new AuthenticationCode(memberId, validCode, "01000000000", LocalDateTime.now(),
-                        SIGNUP, false);
+                authenticationCode = new AuthenticationCode(memberId,
+                        validCode,
+                        "01000000000",
+                        LocalDateTime.now(),
+                        SIGNUP,
+                        false);
                 given(codeRepository.findByMemberIdAndAuthCodeType(memberId, SIGNUP))
                         .willReturn(Optional.of(authenticationCode));
             }
 
             @Test
-            @DisplayName("인증 코드를 인증 상태로 변경하고 저장한다.")
+            @DisplayName("인증 코드를 인증 상태로 변경하고 저장한다")
             void it_authenticates_code_and_saves() {
                 authenticateCodeService.execute(memberId, reqDto, SIGNUP);
 
@@ -83,7 +83,7 @@ public class AuthenticateCodeServiceTest {
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> authenticateCodeService.execute(memberId, reqDto, SIGNUP));
@@ -99,15 +99,20 @@ public class AuthenticateCodeServiceTest {
 
             @BeforeEach
             void setUp() {
-                authenticationCode = new AuthenticationCode(memberId, validCode, "01000000000", LocalDateTime.now(),
-                        SIGNUP, false);
+                authenticationCode = new AuthenticationCode(memberId,
+                        validCode,
+                        "01000000000",
+                        LocalDateTime.now(),
+                        SIGNUP,
+                        false);
                 given(codeRepository.findByMemberIdAndAuthCodeType(memberId, SIGNUP))
                         .willReturn(Optional.of(authenticationCode));
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
+                String invalidCode = "111111";
                 AuthenticateCodeReqDto invalidReqDto = new AuthenticateCodeReqDto(invalidCode);
 
                 ExpectedException exception = assertThrows(ExpectedException.class,

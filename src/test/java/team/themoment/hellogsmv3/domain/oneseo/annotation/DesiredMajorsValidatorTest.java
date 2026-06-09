@@ -2,6 +2,7 @@ package team.themoment.hellogsmv3.domain.oneseo.annotation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType.*;
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.Major.*;
@@ -19,11 +20,10 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 
 @DisplayName("DesiredMajorsValidator 클래스의")
-public class DesiredMajorsValidatorTest {
+class DesiredMajorsValidatorTest {
 
     private DesiredMajorsValidator validator;
     private ConstraintValidatorContext context;
-    private ValidDesiredMajors annotation;
 
     @BeforeEach
     void setUp() {
@@ -32,18 +32,18 @@ public class DesiredMajorsValidatorTest {
         @ValidDesiredMajors
         class Dummy {
         }
-        annotation = Dummy.class.getAnnotation(ValidDesiredMajors.class);
+        ValidDesiredMajors annotation = Dummy.class.getAnnotation(ValidDesiredMajors.class);
         validator.initialize(annotation);
 
         context = Mockito.mock(ConstraintValidatorContext.class);
         ConstraintValidatorContext.ConstraintViolationBuilder builder = Mockito
                 .mock(ConstraintValidatorContext.ConstraintViolationBuilder.class);
-        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(builder);
-        when(builder.addConstraintViolation()).thenReturn(context);
+        given(context.buildConstraintViolationWithTemplate(anyString())).willReturn(builder);
+        given(builder.addConstraintViolation()).willReturn(context);
     }
 
     @Nested
-    @DisplayName("isValid 메소드는")
+    @DisplayName("isValid 메서드는")
     class Describe_isValid {
 
         private OneseoReqDto createValidOneseoReqDto(Major first, Major second, Major third) {

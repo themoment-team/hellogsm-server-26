@@ -9,18 +9,17 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import team.themoment.hellogsmv3.global.common.response.CommonApiResponse;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.auth.dto.request.OAuthCodeReqDto;
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticationService;
+import team.themoment.sdk.exception.ExpectedException;
+import team.themoment.sdk.response.CommonApiResponse;
+import tools.jackson.databind.ObjectMapper;
 
 @Tag(name = "Auth API", description = "인증 관련 API입니다.")
 @RestController
@@ -34,8 +33,9 @@ public class AuthController {
     @Operation(summary = "OAuth 인증", description = "프론트엔드에서 받은 Authorization Code로 인증을 처리합니다.")
     @PostMapping("/auth/{provider}")
     public CommonApiResponse authenticateWithOAuth(@PathVariable String provider,
-            @RequestBody @Valid OAuthCodeReqDto reqDto, HttpServletRequest request) {
-        oAuthAuthenticationService.execute(provider, reqDto.code(), request);
+            @RequestBody @Valid OAuthCodeReqDto reqDto,
+            HttpServletRequest request) {
+        oAuthAuthenticationService.execute(provider, reqDto.code(), reqDto.redirectUri(), request);
         return CommonApiResponse.success("인증이 완료되었습니다.");
     }
 

@@ -17,9 +17,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
@@ -30,10 +31,11 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("OneseoService 클래스의")
-public class OneseoServiceTest {
+class OneseoServiceTest {
 
     @Mock
     private OneseoRepository oneseoRepository;
@@ -41,13 +43,8 @@ public class OneseoServiceTest {
     @InjectMocks
     private OneseoService oneseoService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("findWithMemberByMemberIdOrThrow 메소드는")
+    @DisplayName("findWithMemberByMemberIdOrThrow 메서드는")
     class Describe_findWithMemberByMemberIdOrThrow {
 
         private final Long memberId = 1L;
@@ -65,7 +62,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("Oneseo 객체를 반환한다.")
+            @DisplayName("Oneseo 객체를 반환한다")
             void it_returns_oneseo() {
                 Oneseo foundOneseo = oneseoService.findWithMemberByMemberIdOrThrow(memberId);
                 assertEquals(oneseo, foundOneseo);
@@ -83,7 +80,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception_for_non_existing_member() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> oneseoService.findWithMemberByMemberIdOrThrow(memberId));
@@ -104,7 +101,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception_for_non_existing_oneseo() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> oneseoService.findWithMemberByMemberIdOrThrow(memberId));
@@ -116,7 +113,7 @@ public class OneseoServiceTest {
     }
 
     @Nested
-    @DisplayName("calcAbsentDaysCount 메소드는")
+    @DisplayName("calcAbsentDaysCount 메서드는")
     class Describe_calcAbsentDaysCount {
 
         @Nested
@@ -127,7 +124,7 @@ public class OneseoServiceTest {
             List<Integer> attendanceDays = List.of(0, 0, 0, 1, 0, 1, 0, 2, 2);
 
             @Test
-            @DisplayName("환산일수를 반환한다.")
+            @DisplayName("환산일수를 반환한다")
             void it_returns_oneseo() {
                 Integer absentDaysCount = OneseoService.calcAbsentDaysCount(absentDays, attendanceDays);
                 assertEquals(5, absentDaysCount);
@@ -142,7 +139,7 @@ public class OneseoServiceTest {
             List<Integer> nullAttendanceDays = null;
 
             @Test
-            @DisplayName("null 값을 반환한다.")
+            @DisplayName("null 값을 반환한다")
             void it_returns_oneseo() {
                 Integer absentDaysCount = OneseoService.calcAbsentDaysCount(nullAbsentDays, nullAttendanceDays);
                 assertNull(absentDaysCount);
@@ -157,7 +154,7 @@ public class OneseoServiceTest {
             List<Integer> nullInAttendanceDays = Arrays.asList(0, 0, 0, 1, 0, 1, null, 2, 2);
 
             @Test
-            @DisplayName("예외를 던진다.")
+            @DisplayName("예외를 던진다")
             void it_returns_oneseo() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> OneseoService.calcAbsentDaysCount(nullInAbsentDays, nullInAttendanceDays));
@@ -169,7 +166,7 @@ public class OneseoServiceTest {
     }
 
     @Nested
-    @DisplayName("isValidMiddleSchoolInfo 메소드는")
+    @DisplayName("isValidMiddleSchoolInfo 메서드는")
     class Describe_isValidMiddleSchoolInfo {
 
         private final OneseoReqDto validCandidateReqDto = OneseoReqDto.builder().schoolName("금호중앙중학교")
@@ -187,7 +184,7 @@ public class OneseoServiceTest {
         class Context_with_valid_candidate {
 
             @Test
-            @DisplayName("예외를 던지지 않는다.")
+            @DisplayName("예외를 던지지 않는다")
             void it_does_not_throw_exception() {
                 OneseoService.isValidMiddleSchoolInfo(validCandidateReqDto);
             }
@@ -198,7 +195,7 @@ public class OneseoServiceTest {
         class Context_with_valid_ged {
 
             @Test
-            @DisplayName("예외를 던지지 않는다.")
+            @DisplayName("예외를 던지지 않는다")
             void it_does_not_throw_exception() {
                 OneseoService.isValidMiddleSchoolInfo(validGedReqDto);
             }
@@ -209,7 +206,7 @@ public class OneseoServiceTest {
         class Context_with_invalid_candidate {
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> OneseoService.isValidMiddleSchoolInfo(invalidCandidateReqDto));
@@ -221,7 +218,7 @@ public class OneseoServiceTest {
     }
 
     @Nested
-    @DisplayName("assignSubmitCode 메소드는")
+    @DisplayName("assignSubmitCode 메서드는")
     class Describe_assignSubmitCode {
 
         private final int maxSubmitCodeNumber = 10;
@@ -239,7 +236,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("A-N 번대의 접수번호가 생성된다.")
+            @DisplayName("A-N 번대의 접수번호가 생성된다")
             void it_returns_oneseo() {
                 oneseoService.assignSubmitCode(oneseo, null);
                 verify(oneseo).setOneseoSubmitCode("A-" + (maxSubmitCodeNumber + 1));
@@ -248,7 +245,7 @@ public class OneseoServiceTest {
     }
 
     @Nested
-    @DisplayName("buildCalcDtoWithFillEmpty 메소드는")
+    @DisplayName("buildCalcDtoWithFillEmpty 메서드는")
     class Describe_buildCalcDtoWithFillEmpty {
         private MiddleSchoolAchievementReqDto middleSchoolAchievementReqDto;
 
@@ -269,7 +266,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("검정고시 평균 점수만 포함된 DTO를 반환한다.")
+            @DisplayName("검정고시 평균 점수만 포함된 DTO를 반환한다")
             void it_returns_dto_with_ged_avg_score() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
@@ -295,7 +292,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("3학년 2학기 성적을 3학년 1학기 성적으로 채운 DTO를 반환한다.")
+            @DisplayName("3학년 2학기 성적을 3학년 1학기 성적으로 채운 DTO를 반환한다")
             void it_fills_3_2_with_3_1() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
@@ -320,7 +317,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("3학년 1학기 성적을 3학년 2학기 성적으로 채운 DTO를 반환한다.")
+            @DisplayName("3학년 1학기 성적을 3학년 2학기 성적으로 채운 DTO를 반환한다")
             void it_fills_3_1_with_3_2() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
@@ -345,7 +342,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("2학년 1학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다.")
+            @DisplayName("2학년 1학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다")
             void it_fills_2_1_with_2_2() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
@@ -370,7 +367,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("2학년 2학기 성적을 2학년 1학기 성적으로 채운 DTO를 반환한다.")
+            @DisplayName("2학년 2학기 성적을 2학년 1학기 성적으로 채운 DTO를 반환한다")
             void it_fills_2_2_with_2_1() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
@@ -395,7 +392,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("1학년 2학기 성적을 1학년 1학기 성적으로 채운 DTO를 반환한다.")
+            @DisplayName("1학년 2학기 성적을 1학년 1학기 성적으로 채운 DTO를 반환한다")
             void it_fills_1_2_with_1_1() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
@@ -421,7 +418,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("1학년 2학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다.")
+            @DisplayName("1학년 2학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다")
             void it_fills_1_2_with_2_2() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
@@ -448,7 +445,7 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> OneseoService.buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType));
@@ -472,12 +469,36 @@ public class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("ExpectedException을 던진다.")
+            @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
                         () -> OneseoService.buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType));
 
                 assertEquals("올바르지 않은 예체능 등급이 입력되었습니다.", exception.getMessage());
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("예체능 과목이 있는데 예체능 성취점수가 빈 배열이면")
+        class Context_with_arts_physical_subjects_but_empty_achievement {
+            private GraduationType graduationType;
+
+            @BeforeEach
+            void setUp() {
+                middleSchoolAchievementReqDto = createDefaultDtoBuilder()
+                        .artsPhysicalSubjects(List.of("체육", "음악", "미술")).artsPhysicalAchievement(new ArrayList<>())
+                        .build();
+                graduationType = CANDIDATE;
+            }
+
+            @Test
+            @DisplayName("ExpectedException을 던진다")
+            void it_throws_expected_exception() {
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> OneseoService.buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType));
+
+                assertEquals("예체능 성취점수가 비어있습니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
             }
         }

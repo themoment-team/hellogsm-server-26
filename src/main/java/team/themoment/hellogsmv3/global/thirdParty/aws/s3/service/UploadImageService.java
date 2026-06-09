@@ -18,9 +18,9 @@ import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.thirdParty.aws.s3.data.S3Environment;
 import team.themoment.hellogsmv3.global.thirdParty.aws.s3.dto.response.UploadImageResDto;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,8 @@ public class UploadImageService {
         String fileName = generateFileName(fileExtension);
 
         try {
-            S3Resource s3Resource = s3Template.upload(s3Environment.bucketName(), fileName,
+            S3Resource s3Resource = s3Template.upload(s3Environment.bucketName(),
+                    fileName,
                     multipartFile.getInputStream(),
                     ObjectMetadata.builder().contentType(multipartFile.getContentType()).build());
 

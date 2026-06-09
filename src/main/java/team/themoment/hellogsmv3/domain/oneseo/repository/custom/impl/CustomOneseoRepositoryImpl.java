@@ -12,7 +12,6 @@ import static team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo.YES;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -27,11 +26,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.FoundMemberAndOneseoDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.AdmissionTicketsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
+import team.themoment.hellogsmv3.domain.oneseo.entity.type.OneseoEditStatus;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.ScreeningCategory;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
@@ -46,31 +47,16 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
     @Override
     public List<AdmissionTicketsResDto> findAdmissionTickets() {
         return queryFactory
-                .select(Projections.constructor(AdmissionTicketsResDto.class, oneseo.member.name, oneseo.member.birth,
-                        oneseoPrivacyDetail.profileImg, oneseoPrivacyDetail.schoolName, oneseo.examinationNumber,
+                .select(Projections.constructor(AdmissionTicketsResDto.class,
+                        oneseo.member.name,
+                        oneseo.member.birth,
+                        oneseoPrivacyDetail.profileImg,
+                        oneseoPrivacyDetail.schoolName,
+                        oneseo.examinationNumber,
                         oneseo.oneseoSubmitCode))
                 .from(oneseo).join(oneseo.member, member).join(oneseo.oneseoPrivacyDetail, oneseoPrivacyDetail)
                 .join(oneseo.entranceTestResult, entranceTestResult).where(entranceTestResult.firstTestPassYn.eq(YES))
                 .fetch();
-    }
-
-    @Override
-    public Optional<Oneseo> findByGuardianOrTeacherPhoneNumberAndSubmitCode(String phoneNumber, String submitCode) {
-        return Optional.ofNullable(queryFactory.selectFrom(oneseo).join(oneseo.oneseoPrivacyDetail, oneseoPrivacyDetail)
-                .where(oneseoPrivacyDetail.guardianPhoneNumber.eq(phoneNumber)
-                        .or(oneseoPrivacyDetail.schoolTeacherPhoneNumber.eq(phoneNumber))
-                        .and(oneseo.oneseoSubmitCode.eq(submitCode)))
-                .fetchOne());
-    }
-
-    @Override
-    public Optional<Oneseo> findByGuardianOrTeacherPhoneNumberAndExaminationNumber(String phoneNumber,
-            String examinationNumber) {
-        return Optional.ofNullable(queryFactory.selectFrom(oneseo).join(oneseo.oneseoPrivacyDetail, oneseoPrivacyDetail)
-                .where(oneseoPrivacyDetail.guardianPhoneNumber.eq(phoneNumber)
-                        .or(oneseoPrivacyDetail.schoolTeacherPhoneNumber.eq(phoneNumber))
-                        .and(oneseo.examinationNumber.eq(examinationNumber)))
-                .fetchOne());
     }
 
     @Override
@@ -82,19 +68,32 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
 
     @Override
     public Page<SearchOneseoResDto> findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(String keyword,
-            ScreeningCategory screeningTag, YesNo isSubmitted, TestResultTag testResultTag, Pageable pageable) {
+            ScreeningCategory screeningTag,
+            YesNo isSubmitted,
+            TestResultTag testResultTag,
+            OneseoEditStatusTag status,
+            Pageable pageable) {
 
-        BooleanBuilder builder = createBooleanBuilder(keyword, screeningTag, isSubmitted, testResultTag);
+        BooleanBuilder builder = createBooleanBuilder(keyword, screeningTag, isSubmitted, testResultTag, status);
 
         List<SearchOneseoResDto> oneseos = queryFactory
-                .select(Projections.constructor(SearchOneseoResDto.class, oneseo.member.id, oneseo.oneseoSubmitCode,
-                        oneseo.realOneseoArrivedYn, oneseo.member.name, oneseo.wantedScreening,
-                        oneseo.oneseoPrivacyDetail.schoolName, oneseo.member.phoneNumber,
+                .select(Projections.constructor(SearchOneseoResDto.class,
+                        oneseo.member.id,
+                        oneseo.oneseoSubmitCode,
+                        oneseo.realOneseoArrivedYn,
+                        oneseo.member.name,
+                        oneseo.wantedScreening,
+                        oneseo.oneseoPrivacyDetail.schoolName,
+                        oneseo.member.phoneNumber,
                         oneseo.oneseoPrivacyDetail.guardianPhoneNumber,
-                        oneseo.oneseoPrivacyDetail.schoolTeacherPhoneNumber, oneseo.examinationNumber,
-                        oneseo.entranceTestResult.firstTestPassYn, oneseo.entranceTestResult.competencyEvaluationScore,
-                        oneseo.entranceTestResult.interviewScore, oneseo.entranceTestResult.secondTestPassYn,
-                        oneseo.entranceIntentionYn))
+                        oneseo.oneseoPrivacyDetail.schoolTeacherPhoneNumber,
+                        oneseo.examinationNumber,
+                        oneseo.entranceTestResult.firstTestPassYn,
+                        oneseo.entranceTestResult.competencyEvaluationScore,
+                        oneseo.entranceTestResult.interviewScore,
+                        oneseo.entranceTestResult.secondTestPassYn,
+                        oneseo.entranceIntentionYn,
+                        oneseo.oneseoEditStatus))
                 .from(oneseo).join(oneseo.member, member).join(oneseo.oneseoPrivacyDetail, oneseoPrivacyDetail)
                 .join(oneseo.entranceTestResult, entranceTestResult).where(builder)
                 .orderBy(oneseo.oneseoSubmitCode.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize())
@@ -141,16 +140,32 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
         return queryFactory.select(oneseo.count()).from(oneseo).where(builder).fetchFirst();
     }
 
-    private BooleanBuilder createBooleanBuilder(String keyword, ScreeningCategory screeningTag, YesNo isSubmitted,
-            TestResultTag testResultTag) {
+    private BooleanBuilder createBooleanBuilder(String keyword,
+            ScreeningCategory screeningTag,
+            YesNo isSubmitted,
+            TestResultTag testResultTag,
+            OneseoEditStatusTag status) {
 
         BooleanBuilder builder = new BooleanBuilder();
         applyKeyword(builder, keyword);
         applyScreeningTag(builder, screeningTag);
         applyIsSubmittedTag(builder, isSubmitted);
         applyTestResultTag(builder, testResultTag);
+        applyEditStatusTag(builder, status);
 
         return builder;
+    }
+
+    private void applyEditStatusTag(BooleanBuilder builder, OneseoEditStatusTag status) {
+        if (status == null)
+            return;
+
+        switch (status) {
+            case ANY_EDIT ->
+                builder.and(oneseo.oneseoEditStatus.in(OneseoEditStatus.REQUESTED, OneseoEditStatus.APPROVED));
+            case REQUESTED -> builder.and(oneseo.oneseoEditStatus.eq(OneseoEditStatus.REQUESTED));
+            case APPROVED -> builder.and(oneseo.oneseoEditStatus.eq(OneseoEditStatus.APPROVED));
+        }
     }
 
     private void applyKeyword(BooleanBuilder builder, String keyword) {
@@ -212,4 +227,5 @@ public class CustomOneseoRepositoryImpl implements CustomOneseoRepository {
 
         return new FoundMemberAndOneseoDto(result.get(member), result.get(oneseo));
     }
+
 }

@@ -43,12 +43,11 @@ public class OAuthAuthenticationService {
     @Value("${spring.session.timeout:${server.servlet.session.timeout}}")
     private Duration sessionTimeout;
 
-    public void execute(String provider, String code, HttpServletRequest request) {
-
+    public void execute(String provider, String code, String redirectUri, HttpServletRequest request) {
         String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
         OAuthProvider oAuthProvider = oAuthProviderFactory.getProvider(provider);
 
-        UserAuthInfo userAuthInfo = oAuthProvider.authenticate(decodedCode);
+        UserAuthInfo userAuthInfo = oAuthProvider.authenticate(decodedCode, redirectUri);
 
         completeAuthentication(userAuthInfo, request);
     }
@@ -56,7 +55,8 @@ public class OAuthAuthenticationService {
     private void completeAuthentication(UserAuthInfo userAuthInfo, HttpServletRequest request) {
         Member member = getOrCreateMember(userAuthInfo.email(), userAuthInfo.authReferrerType());
         OAuth2User oauth2User = createOAuth2User(member, userAuthInfo.provider(), userAuthInfo.email());
-        Authentication authentication = new OAuth2AuthenticationToken(oauth2User, oauth2User.getAuthorities(),
+        Authentication authentication = new OAuth2AuthenticationToken(oauth2User,
+                oauth2User.getAuthorities(),
                 userAuthInfo.provider());
         setSecurityContext(request, authentication);
     }
@@ -74,13 +74,22 @@ public class OAuthAuthenticationService {
 
     private Map<String, Object> createUserAttributes(Member member, String provider, String email) {
         Role memberRole = Optional.ofNullable(member.getRole()).orElse(Role.UNAUTHENTICATED);
-        return Map.of("id", member.getId(), "role", memberRole, "provider", provider, "email", email, "last_login_time",
+        return Map.of("id",
+                member.getId(),
+                "role",
+                memberRole,
+                "provider",
+                provider,
+                "email",
+                email,
+                "last_login_time",
                 LocalDateTime.now());
     }
 
     private Collection<GrantedAuthority> createAuthorities(Role role) {
         Role userRole = Optional.ofNullable(role).orElse(Role.UNAUTHENTICATED);
-        return List.of(new SimpleGrantedAuthority("OAUTH2_USER"), new SimpleGrantedAuthority("SCOPE_email"),
+        return List.of(new SimpleGrantedAuthority("OAUTH2_USER"),
+                new SimpleGrantedAuthority("SCOPE_email"),
                 new SimpleGrantedAuthority(userRole.name()));
     }
 

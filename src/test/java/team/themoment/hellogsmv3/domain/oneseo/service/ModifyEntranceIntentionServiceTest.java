@@ -9,26 +9,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
-import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.EntranceIntentionReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.Major;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
+import team.themoment.sdk.exception.ExpectedException;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("ModifyEntranceIntentionService 클래스의")
-public class ModifyEntranceIntentionServiceTest {
-
-    @Mock
-    private MemberService memberService;
+class ModifyEntranceIntentionServiceTest {
     @Mock
     private OneseoService oneseoService;
     @Mock
@@ -37,13 +35,8 @@ public class ModifyEntranceIntentionServiceTest {
     @InjectMocks
     private ModifyEntranceIntentionService modifyEntranceIntentionService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Nested
-    @DisplayName("execute 메소드는")
+    @DisplayName("execute 메서드는")
     class Describe_execute {
 
         private final Long memberId = 1L;
@@ -80,7 +73,7 @@ public class ModifyEntranceIntentionServiceTest {
                     }
 
                     @Test
-                    @DisplayName("입학 의사 여부를 수정하고 저장한다.")
+                    @DisplayName("입학 의사 여부를 수정하고 저장한다")
                     void it_saves_entrance_intention() {
                         EntranceIntentionReqDto reqDto = new EntranceIntentionReqDto(targetYn);
                         modifyEntranceIntentionService.execute(memberId, reqDto);
@@ -127,8 +120,9 @@ public class ModifyEntranceIntentionServiceTest {
 
                 @BeforeEach
                 void setUp() {
-                    given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willThrow(new ExpectedException(
-                            "해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId, HttpStatus.NOT_FOUND));
+                    given(oneseoService.findWithMemberByMemberIdOrThrow(memberId))
+                            .willThrow(new ExpectedException("해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId,
+                                    HttpStatus.NOT_FOUND));
                 }
 
                 @Test

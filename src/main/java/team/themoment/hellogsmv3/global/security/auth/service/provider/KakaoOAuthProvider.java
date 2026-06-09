@@ -10,12 +10,12 @@ import org.springframework.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.member.entity.type.AuthReferrerType;
-import team.themoment.hellogsmv3.global.exception.error.ExpectedException;
 import team.themoment.hellogsmv3.global.security.auth.dto.UserAuthInfo;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.response.KakaoTokenResDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.dto.response.KakaoUserInfoResDto;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.oauth.kakao.KakaoOAuth2Client;
 import team.themoment.hellogsmv3.global.thirdParty.feign.client.oauth.kakao.KakaoUserInfoClient;
+import team.themoment.sdk.exception.ExpectedException;
 
 @Component
 @RequiredArgsConstructor
@@ -38,11 +38,11 @@ public class KakaoOAuthProvider implements OAuthProvider {
     }
 
     @Override
-    public UserAuthInfo authenticate(String authorizationCode) {
+    public UserAuthInfo authenticate(String authorizationCode, String redirectUri) {
         validateAuthorizationCode(authorizationCode);
 
         ClientRegistration clientRegistration = getClientRegistration();
-        KakaoTokenResDto tokenResponse = exchangeCodeForToken(authorizationCode, clientRegistration);
+        KakaoTokenResDto tokenResponse = exchangeCodeForToken(authorizationCode, clientRegistration, redirectUri);
         KakaoUserInfoResDto userInfo = getUserInfo(tokenResponse.accessToken());
 
         String providerId = extractUserEmail(userInfo);
@@ -66,12 +66,20 @@ public class KakaoOAuthProvider implements OAuthProvider {
         return clientRegistration;
     }
 
-    private KakaoTokenResDto exchangeCodeForToken(String code, ClientRegistration clientRegistration) {
+    private KakaoTokenResDto exchangeCodeForToken(String code,
+            ClientRegistration clientRegistration,
+            String redirectUri) {
         try {
-            Map<String, String> params = Map.of("grant_type", clientRegistration.getAuthorizationGrantType().getValue(),
-                    "client_id", clientRegistration.getClientId(), "client_secret",
-                    clientRegistration.getClientSecret(), "code", code, "redirect_uri",
-                    clientRegistration.getRedirectUri());
+            Map<String, String> params = Map.of("grant_type",
+                    clientRegistration.getAuthorizationGrantType().getValue(),
+                    "client_id",
+                    clientRegistration.getClientId(),
+                    "client_secret",
+                    clientRegistration.getClientSecret(),
+                    "code",
+                    code,
+                    "redirect_uri",
+                    redirectUri);
             return kakaoOAuth2Client.exchangeCodeForToken(params);
         } catch (Exception e) {
             throw new ExpectedException("Kakao OAuth 토큰 교환에 실패했습니다: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
