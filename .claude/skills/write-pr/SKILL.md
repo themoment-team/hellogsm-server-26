@@ -21,21 +21,21 @@ cat .github/PULL_REQUEST_TEMPLATE.md
 
 ## Step 2 — Determine Labels
 
-Read `references/labels.md` and select 1–2 appropriate labels based on the nature of the changes.
-Read `references/commit-conventions.md` for commit type and scope naming rules.
+Read `${CLAUDE_SKILL_DIR}/references/labels.md` and select 1–2 appropriate labels based on the nature of the changes.
+Read `${CLAUDE_SKILL_DIR}/references/commit-conventions.md` for commit type and scope naming rules.
 
 ## Step 3 — Generate PR Content
 
 **Title** — Generate 3 options in the format `[scope] description`:
 - Scope: determine from changed file paths and directory structure — infer the domain from path segments. Use `[global]` / `[ci/cd]` for cross-cutting changes only. Wrap in brackets: `[auth]`, `[user]`, etc.
 - Description: Korean, concise, no emojis, max 50 characters total
-- Wrap class names, method names, annotations, and technical terms in backticks (e.g., `@Transactional`, `StudentServiceImpl`)
+- Wrap class names, method names, annotations, file names, and technical terms in backticks (e.g., `@Transactional`, `QueryProjectServiceImpl`, `SKILL.md`)
 
 **Body** — Follow the `.github/PULL_REQUEST_TEMPLATE.md` structure:
 - Korean 합쇼체: `~하였습니다`, `~되었습니다`, `~추가하였습니다`
 - No emojis
 - Max 2500 characters
-- Wrap all proper nouns and technical identifiers in backticks: class names, method names, annotations, file names, field names, config keys, module names
+- Wrap all proper nouns and technical identifiers in backticks: class names, method names, annotations, file names, field names, config keys, module names, and agent names.
 
 ## Step 4 — Write Body & Show Preview
 
@@ -54,14 +54,14 @@ Write the body to `PR_BODY.md`, then display:
 [body content]
 ```
 
-Ask the user which title to use (present options 1/2/3). Wait for the answer before proceeding.
+Use AskUserQuestion to ask the user which title to use (present options 1/2/3). Wait for the answer before proceeding.
 
 ## Step 5 — Create PR
 
 Run the creation script with the confirmed title and labels:
 
 ```bash
-bash scripts/create-pr.sh "<confirmed-title>" "PR_BODY.md" "<label1>,<label2>"
+bash "${CLAUDE_SKILL_DIR}/scripts/create-pr.sh" "<confirmed-title>" "PR_BODY.md" "<label1>,<label2>"
 ```
 
 After creation, display the PR URL.
