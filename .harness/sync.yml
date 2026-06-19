@@ -24,3 +24,4 @@ overrides:
 base_branch: develop
 branch_prefix: harness-sync/
 language: ko
+pr_label: false
