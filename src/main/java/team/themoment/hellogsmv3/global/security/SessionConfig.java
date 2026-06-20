@@ -2,8 +2,8 @@ package team.themoment.hellogsmv3.global.security;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.server.Cookie;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -28,19 +28,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SessionConfig {
 
-    private static final String COOKIE_NAME = "SESSION";
-    private static final String COOKIE_PATH = "/";
+    private static final String DEFAULT_COOKIE_NAME = "SESSION";
+    private static final String DEFAULT_COOKIE_PATH = "/";
 
+    private final ServerProperties serverProperties;
     private final Environment environment;
-
-    @Value("${server.servlet.session.cookie.domain:}")
-    private String cookieDomain;
-
-    @Value("${server.servlet.session.cookie.same-site:lax}")
-    private String sameSite;
-
-    @Value("${server.servlet.session.cookie.secure:false}")
-    private boolean secure;
 
     @PostConstruct
     public void validate() {
@@ -49,21 +41,27 @@ public class SessionConfig {
         if (!isDeployedEnv)
             return;
 
-        if (Cookie.SameSite.NONE == Cookie.SameSite.valueOf(sameSite.toUpperCase()) && !secure) {
+        Cookie cookie = serverProperties.getServlet().getSession().getCookie();
+        if (Cookie.SameSite.NONE == cookie.getSameSite() && !Boolean.TRUE.equals(cookie.getSecure())) {
             throw new IllegalStateException("SameSite=None 설정 시 Secure=true 가 필요합니다. 쿠키 Secure 설정을 true 로 변경하세요.");
         }
     }
 
     @Bean
     public CookieSerializer cookieSerializer() {
+        Cookie cookie = serverProperties.getServlet().getSession().getCookie();
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-        serializer.setCookieName(COOKIE_NAME);
-        serializer.setCookiePath(COOKIE_PATH);
-        serializer.setUseHttpOnlyCookie(true);
-        serializer.setSameSite(sameSite);
-        serializer.setUseSecureCookie(secure);
-        if (StringUtils.hasText(cookieDomain)) {
-            serializer.setDomainName(cookieDomain);
+        serializer.setCookieName(StringUtils.hasText(cookie.getName()) ? cookie.getName() : DEFAULT_COOKIE_NAME);
+        serializer.setCookiePath(StringUtils.hasText(cookie.getPath()) ? cookie.getPath() : DEFAULT_COOKIE_PATH);
+        serializer.setUseHttpOnlyCookie(Boolean.TRUE.equals(cookie.getHttpOnly()));
+        if (cookie.getSameSite() != null) {
+            serializer.setSameSite(cookie.getSameSite().attributeValue());
+        }
+        if (cookie.getSecure() != null) {
+            serializer.setUseSecureCookie(cookie.getSecure());
+        }
+        if (StringUtils.hasText(cookie.getDomain())) {
+            serializer.setDomainName(cookie.getDomain());
         }
         return serializer;
     }
