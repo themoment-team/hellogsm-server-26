@@ -8,8 +8,6 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.session.web.http.CookieSerializer;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.util.StringUtils;
 
 import jakarta.annotation.PostConstruct;
@@ -33,13 +31,13 @@ public class SessionCookieValidationConfig {
     @PostConstruct
     public void validate() {
         boolean isDeployedEnv = Arrays.stream(environment.getActiveProfiles())
-                .anyMatch(p -> p.equals("dev") || p.equals("prod"));
-        if (!isDeployedEnv)
-            return;
+            .anyMatch(p -> p.equals("dev") || p.equals("prod"));
+        if (!isDeployedEnv) return;
 
         if (Cookie.SameSite.NONE == Cookie.SameSite.valueOf(sameSite.toUpperCase()) && !secure) {
             throw new IllegalStateException(
-                    "SameSite=None 설정 시 Secure=true 가 필요합니다. COOKIE_SECURE 환경 변수를 true 로 설정하세요.");
+                "SameSite=None 설정 시 Secure=true 가 필요합니다. COOKIE_SECURE 환경 변수를 true 로 설정하세요."
+            );
         }
     }
 
@@ -50,20 +48,5 @@ public class SessionCookieValidationConfig {
                 servletContext.getSessionCookieConfig().setDomain(cookieDomain);
             }
         };
-    }
-
-    // [임시 확인용] @EnableRedisHttpSession 환경에서 세션 쿠키 도메인/속성을 강제 적용
-    @Bean
-    public CookieSerializer cookieSerializer() {
-        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-        serializer.setCookieName("SESSION");
-        serializer.setCookiePath("/");
-        serializer.setUseHttpOnlyCookie(true);
-        serializer.setSameSite(sameSite);
-        serializer.setUseSecureCookie(secure);
-        if (StringUtils.hasText(cookieDomain)) {
-            serializer.setDomainName(cookieDomain);
-        }
-        return serializer;
     }
 }
