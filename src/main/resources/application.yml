@@ -5,6 +5,7 @@ server:
       timeout: 10800
       cookie:
         name: SESSION
+        domain: ${COOKIE_DOMAIN:}
         http-only: true
         path: /
         max-age: 10800
@@ -133,16 +134,12 @@ sdk:
       - "/api-docs/**"
       - "/swagger-ui/**"
       - "/hello-management/prometheus/**"
-
   response:
     enabled: true
     not-wrapping-urls:
       - "/api-docs/**"
       - "/hello-management/prometheus/**"
-
   exception:
     enabled: false
-
-
   swagger:
     enabled: false
