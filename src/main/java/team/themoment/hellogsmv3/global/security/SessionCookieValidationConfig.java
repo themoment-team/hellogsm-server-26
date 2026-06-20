@@ -19,7 +19,7 @@ public class SessionCookieValidationConfig {
 
     private final Environment environment;
 
-    @Value("${server.servlet.session.cookie.domain:}")
+    @Value("${COOKIE_DOMAIN:}")
     private String cookieDomain;
 
     @Value("${server.servlet.session.cookie.same-site:lax}")
