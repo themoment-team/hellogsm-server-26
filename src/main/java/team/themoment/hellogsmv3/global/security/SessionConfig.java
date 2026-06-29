@@ -38,7 +38,7 @@ public class SessionConfig {
     private static final String SUBDOMAIN_COOKIE_PATTERN = "^(?:.+\\.)?(%s)$";
     private static final String ORIGIN_HEADER = "Origin";
     private static final String REFERER_HEADER = "Referer";
-    private static final List<String> LOCAL_HOSTS = List.of("localhost", "127.0.0.1", "::1");
+    private static final List<String> LOCAL_HOSTS = List.of("localhost", "127.0.0.1", "::1", "[::1]");
 
     private final ServerProperties serverProperties;
     private final Environment environment;
