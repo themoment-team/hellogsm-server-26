@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.global.security;
 
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import org.springframework.boot.web.server.Cookie;
 import org.springframework.boot.web.server.autoconfigure.ServerProperties;
@@ -30,6 +31,7 @@ public class SessionConfig {
 
     private static final String DEFAULT_COOKIE_NAME = "SESSION";
     private static final String DEFAULT_COOKIE_PATH = "/";
+    private static final String SUBDOMAIN_COOKIE_PATTERN = "^(?:.+\\.)?(%s)$";
 
     private final ServerProperties serverProperties;
     private final Environment environment;
@@ -61,7 +63,7 @@ public class SessionConfig {
             serializer.setUseSecureCookie(cookie.getSecure());
         }
         if (StringUtils.hasText(cookie.getDomain())) {
-            serializer.setDomainName(cookie.getDomain());
+            serializer.setDomainNamePattern(SUBDOMAIN_COOKIE_PATTERN.formatted(Pattern.quote(cookie.getDomain())));
         }
         return serializer;
     }
