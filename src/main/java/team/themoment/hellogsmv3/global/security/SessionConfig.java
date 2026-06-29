@@ -107,11 +107,27 @@ public class SessionConfig {
                 return false;
             }
             try {
-                String host = new URI(origin).getHost();
+                String host = new URI(extractOrigin(origin)).getHost();
                 return host != null && LOCAL_HOSTS.contains(host);
             } catch (URISyntaxException e) {
                 return false;
             }
+        }
+
+        private String extractOrigin(String origin) {
+            int authorityStart = origin.indexOf("://");
+            if (authorityStart < 0) {
+                return origin;
+            }
+            authorityStart += 3;
+            int authorityEnd = origin.length();
+            for (char delimiter : new char[]{'/', '?', '#'}) {
+                int delimiterIndex = origin.indexOf(delimiter, authorityStart);
+                if (delimiterIndex >= 0) {
+                    authorityEnd = Math.min(authorityEnd, delimiterIndex);
+                }
+            }
+            return origin.substring(0, authorityEnd);
         }
     }
 }
