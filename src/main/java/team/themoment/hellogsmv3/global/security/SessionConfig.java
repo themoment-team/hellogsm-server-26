@@ -1,6 +1,9 @@
 package team.themoment.hellogsmv3.global.security;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.boot.web.server.Cookie;
@@ -14,6 +17,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.util.StringUtils;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -32,6 +36,9 @@ public class SessionConfig {
     private static final String DEFAULT_COOKIE_NAME = "SESSION";
     private static final String DEFAULT_COOKIE_PATH = "/";
     private static final String SUBDOMAIN_COOKIE_PATTERN = "^(?:.+\\.)?(%s)$";
+    private static final String ORIGIN_HEADER = "Origin";
+    private static final String REFERER_HEADER = "Referer";
+    private static final List<String> LOCAL_HOSTS = List.of("localhost", "127.0.0.1", "::1", "[::1]");
 
     private final ServerProperties serverProperties;
     private final Environment environment;
@@ -52,6 +59,12 @@ public class SessionConfig {
     @Bean
     public CookieSerializer cookieSerializer() {
         Cookie cookie = serverProperties.getServlet().getSession().getCookie();
+        DefaultCookieSerializer sharedDomainSerializer = createCookieSerializer(cookie, true);
+        DefaultCookieSerializer hostOnlySerializer = createCookieSerializer(cookie, false);
+        return new LocalOriginCookieSerializer(sharedDomainSerializer, hostOnlySerializer);
+    }
+
+    private DefaultCookieSerializer createCookieSerializer(Cookie cookie, boolean useConfiguredDomain) {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName(StringUtils.hasText(cookie.getName()) ? cookie.getName() : DEFAULT_COOKIE_NAME);
         serializer.setCookiePath(StringUtils.hasText(cookie.getPath()) ? cookie.getPath() : DEFAULT_COOKIE_PATH);
@@ -62,9 +75,59 @@ public class SessionConfig {
         if (cookie.getSecure() != null) {
             serializer.setUseSecureCookie(cookie.getSecure());
         }
-        if (StringUtils.hasText(cookie.getDomain())) {
+        if (useConfiguredDomain && StringUtils.hasText(cookie.getDomain())) {
             serializer.setDomainNamePattern(SUBDOMAIN_COOKIE_PATTERN.formatted(Pattern.quote(cookie.getDomain())));
         }
         return serializer;
+    }
+
+    private record LocalOriginCookieSerializer(DefaultCookieSerializer sharedDomainSerializer,
+            DefaultCookieSerializer hostOnlySerializer) implements CookieSerializer {
+
+        @Override
+        public List<String> readCookieValues(HttpServletRequest request) {
+            return sharedDomainSerializer.readCookieValues(request);
+        }
+
+        @Override
+        public void writeCookieValue(CookieValue cookieValue) {
+            if (hasLocalOrigin(cookieValue.getRequest())) {
+                hostOnlySerializer.writeCookieValue(cookieValue);
+                return;
+            }
+            sharedDomainSerializer.writeCookieValue(cookieValue);
+        }
+
+        private boolean hasLocalOrigin(HttpServletRequest request) {
+            String origin = request.getHeader(ORIGIN_HEADER);
+            if (!StringUtils.hasText(origin)) {
+                origin = request.getHeader(REFERER_HEADER);
+            }
+            if (!StringUtils.hasText(origin)) {
+                return false;
+            }
+            try {
+                String host = new URI(extractOrigin(origin)).getHost();
+                return host != null && LOCAL_HOSTS.contains(host);
+            } catch (URISyntaxException e) {
+                return false;
+            }
+        }
+
+        private String extractOrigin(String origin) {
+            int authorityStart = origin.indexOf("://");
+            if (authorityStart < 0) {
+                return origin;
+            }
+            authorityStart += 3;
+            int authorityEnd = origin.length();
+            for (char delimiter : new char[]{'/', '?', '#'}) {
+                int delimiterIndex = origin.indexOf(delimiter, authorityStart);
+                if (delimiterIndex >= 0) {
+                    authorityEnd = Math.min(authorityEnd, delimiterIndex);
+                }
+            }
+            return origin.substring(0, authorityEnd);
+        }
     }
 }
