@@ -31,9 +31,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Make YML file
-        run: touch ./src/main/resources/application-dev.yml
+        run: touch ./src/main/resources/application-stage.yml
 
-          echo "${{ secrets.DEV_WEB_YML }}" > ./src/main/resources/application-dev.yml
+          echo "${{ secrets.STAGE_WEB_YML }}" > ./src/main/resources/application-stage.yml
 
         shell: bash
 

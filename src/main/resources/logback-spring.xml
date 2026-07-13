@@ -45,7 +45,7 @@
         </root>
     </springProfile>
 
-    <springProfile name="dev">
+    <springProfile name="stage">
         <root level="INFO">
             <appender-ref ref="stage_aws_cloud_watch_log"/>
         </root>
