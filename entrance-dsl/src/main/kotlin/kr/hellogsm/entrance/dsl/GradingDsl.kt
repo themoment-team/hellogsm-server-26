@@ -64,8 +64,8 @@ class TranscriptGradingBuilder internal constructor(private val type: Graduation
         artsSubjects = ArtsSubjectsBuilder(max).apply(block).build()
     }
 
-    fun attendance(max: Int, block: AttendanceBuilder.() -> Unit) {
-        attendance = AttendanceBuilder(max).apply(block).build()
+    fun attendance(max: Int, years: List<Int> = listOf(1, 2, 3), block: AttendanceBuilder.() -> Unit) {
+        attendance = AttendanceBuilder(max, years).apply(block).build()
     }
 
     fun volunteer(maxPerYear: Int, years: List<Int> = listOf(1, 2, 3), block: VolunteerBuilder.() -> Unit) {
@@ -121,7 +121,10 @@ class ArtsSubjectsBuilder internal constructor(private val max: Int) {
 }
 
 @AdmissionDsl
-class AttendanceBuilder internal constructor(private val max: Int) {
+class AttendanceBuilder internal constructor(
+    private val max: Int,
+    private val years: List<Int>,
+) {
     /** 미인정 지각·조퇴·결과 n회 = 결석 1일 */
     var latenessPerAbsenceDay: Int? = null
 
@@ -135,6 +138,7 @@ class AttendanceBuilder internal constructor(private val max: Int) {
     var missingYearDefault: Int? = null
 
     internal fun build(): AttendanceRule = AttendanceRule(
+        years = years,
         maxScore = max.toBigDecimal(),
         latenessPerAbsenceDay = requireNotNull(latenessPerAbsenceDay) { "attendance.latenessPerAbsenceDay 선언은 필수" },
         deductionPerAbsenceDay = requireNotNull(deductionPerAbsenceDay) { "attendance.deductionPerAbsenceDay 선언은 필수" }.toBigDecimal(),

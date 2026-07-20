@@ -97,6 +97,13 @@ internal object PlanValidator {
 
     private fun validateGrading(plan: AdmissionPlan, errors: MutableList<String>) {
         if (plan.grading.schemes.isEmpty()) errors += "성적 산출 스키마가 하나 이상 필요함"
+
+        val maxScores = plan.grading.schemes.mapValues { it.value.maxScore }
+        if (maxScores.values.map(BigDecimal::stripTrailingZeros).distinct().size > 1) {
+            errors += "졸업 구분별 성적 총점 만점이 서로 다름: " +
+                maxScores.entries.joinToString { "${it.key}=${it.value}" }
+        }
+
         for ((type, scheme) in plan.grading.schemes) {
             when (scheme) {
                 is TranscriptGrading -> validateTranscript(type, scheme, errors)
@@ -119,6 +126,8 @@ internal object PlanValidator {
         if (scheme.artsSubjects.achievementPoints.isEmpty()) errors += "[$type] 예체능 성취도 환산표가 필요함"
 
         val attendance = scheme.attendance
+        if (attendance.years.isEmpty()) errors += "[$type] 출석: 반영 학년이 하나 이상 필요함"
+        if (attendance.years.size != attendance.years.distinct().size) errors += "[$type] 출석: 반영 학년 중복"
         if (attendance.latenessPerAbsenceDay <= 0) {
             errors += "[$type] 출석: 지각·조퇴·결과의 결석 환산 기준은 양수여야 함"
         }

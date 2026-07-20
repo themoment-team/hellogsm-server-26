@@ -47,9 +47,19 @@ data class Grading(
 ) {
     fun scheme(type: GraduationType): GradingScheme =
         schemes[type] ?: error("성적 산출 스키마가 정의되지 않은 졸업 구분: $type")
+
+    /**
+     * 성적 총점 만점 (예: 2026 = 300). 모든 졸업 구분의 만점이 같아야 하며([PlanValidator] 검증),
+     * 차수 점수 정규화(예: 1차 300점 → 100점)의 분모로 쓰인다.
+     */
+    val totalMaxScore: BigDecimal
+        get() = schemes.values.first().maxScore
 }
 
-sealed interface GradingScheme
+sealed interface GradingScheme {
+    /** 이 스키마의 총점 만점 */
+    val maxScore: BigDecimal
+}
 
 /** 내신 기반 산출 (졸업예정자/졸업자) */
 data class TranscriptGrading(
@@ -58,7 +68,7 @@ data class TranscriptGrading(
     val attendance: AttendanceRule,
     val volunteer: VolunteerRule,
 ) : GradingScheme {
-    val maxScore: BigDecimal =
+    override val maxScore: BigDecimal =
         generalSubjects.maxScore + artsSubjects.maxScore + attendance.maxScore + volunteer.maxScore
 }
 
@@ -93,6 +103,8 @@ data class ArtsSubjectRule(
 
 /** 출석 산출 규칙 (전 학년 출결 합산) */
 data class AttendanceRule(
+    /** 반영 학년 */
+    val years: List<Int>,
     val maxScore: BigDecimal,
     /** 미인정 지각·조퇴·결과 n회 = 결석 1일 (소수점 버림) */
     val latenessPerAbsenceDay: Int,
@@ -142,4 +154,7 @@ data class FormulaGrading(
     val attendanceFixedScore: BigDecimal,
     /** 봉사활동 환산식 */
     val volunteerFormula: RangeScaleFormula,
-) : GradingScheme
+) : GradingScheme {
+    override val maxScore: BigDecimal =
+        subjectFormula.maxScore + attendanceFixedScore + volunteerFormula.maxScore
+}
