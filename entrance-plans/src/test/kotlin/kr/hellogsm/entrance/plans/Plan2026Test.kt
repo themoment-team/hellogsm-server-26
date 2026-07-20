@@ -103,13 +103,22 @@ class Plan2026Test {
     }
 
     @Test
-    fun `검정고시는 교과 240점 환산식과 출석 30점 고정을 사용한다`() {
+    fun `검정고시 교과는 (평균-50)÷50×240 환산식과 출석 30점 고정을 사용한다`() {
         val scheme = plan2026.grading.schemes.getValue(GED) as FormulaGrading
 
-        assertEquals(BigDecimal(60), scheme.subjectFormula.minInput)
+        assertEquals(BigDecimal(50), scheme.subjectFormula.minInput)
         assertEquals(BigDecimal(100), scheme.subjectFormula.maxInput)
         assertEquals(BigDecimal(240), scheme.subjectFormula.maxScore)
         assertEquals(BigDecimal(30), scheme.attendanceFixedScore)
+    }
+
+    @Test
+    fun `검정고시 봉사는 (평균-40)÷60×30 환산식을 사용한다`() {
+        val scheme = plan2026.grading.schemes.getValue(GED) as FormulaGrading
+
+        assertEquals(BigDecimal(40), scheme.volunteerFormula.minInput)
+        assertEquals(BigDecimal(100), scheme.volunteerFormula.maxInput)
+        assertEquals(BigDecimal(30), scheme.volunteerFormula.maxScore)
     }
 
     @Test

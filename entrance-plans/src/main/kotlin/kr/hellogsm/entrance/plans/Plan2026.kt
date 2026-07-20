@@ -114,13 +114,14 @@ val plan2026 = admissionPlan(year = 2026) {
             }
         }
 
+        // 검정고시 환산식 근거: 요강 p.26 (부록 3, 5-나항) 수식 원문 및
+        // go-hellogsm-score-calculator 2026 시즌 코드(커밋 4e8d668 이전)와 대조하여 확정.
         formula(GED) {
-            // 교과 = (검정고시 평균점수 − 60) ÷ 40 × 240
-            subjects(minInput = 60, maxInput = 100, maxScore = 240)
+            // 교과 = (검정고시 평균점수 − 50) ÷ 50 × 240
+            subjects(minInput = 50, maxInput = 100, maxScore = 240)
             attendanceFixed(30)
-            // TODO(Open Question #3): 봉사 환산식 계수는 PDF 텍스트 추출 시 수식이 손상되어 미확정.
-            //  기존 go-hellogsm-score-calculator 구현과 대조 후 확정할 것. 아래는 교과와 동형이라는 가정.
-            volunteer(minInput = 60, maxInput = 100, maxScore = 30)
+            // 봉사 = (검정고시 평균점수 − 40) ÷ 60 × 30
+            volunteer(minInput = 40, maxInput = 100, maxScore = 30)
         }
     }
 
