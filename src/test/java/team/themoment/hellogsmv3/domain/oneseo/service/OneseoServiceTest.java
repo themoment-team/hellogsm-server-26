@@ -322,11 +322,11 @@ class OneseoServiceTest {
             void it_fills_1_2_with_1_1() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement1_1());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement1_1(), resultDto.achievement1_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_1(), resultDto.achievement2_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_1(), resultDto.achievement3_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_2(), resultDto.achievement3_2());
                 assertNull(resultDto.gedAvgScore());
             }
         }
@@ -348,11 +348,11 @@ class OneseoServiceTest {
             void it_fills_1_2_with_2_2() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement1_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_1(), resultDto.achievement2_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_1(), resultDto.achievement3_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_2(), resultDto.achievement3_2());
                 assertNull(resultDto.gedAvgScore());
             }
         }
@@ -500,11 +500,11 @@ class OneseoServiceTest {
             void it_fills_both_semesters_independently() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement1_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement1_1(), resultDto.achievement1_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_1(), resultDto.achievement3_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_2(), resultDto.achievement3_2());
                 assertNull(resultDto.gedAvgScore());
             }
         }
