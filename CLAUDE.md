@@ -39,7 +39,12 @@ Kotlin 2.3.21, Gradle wrapper 9.6.1, **JVM target 21 고정** (server Java 25·A
 
 ## 현재 상태 / 주의사항
 
-- **Phase 0 완료** (DSL + Plan2026 + 검증). 다음은 Phase 1: `entrance-engine/scoring` — [PLAN.md](./PLAN.md) 8절 로드맵 참고.
-- ⚠️ **검정고시 봉사 환산식 미확정**: `Plan2026.kt`의 `formula(GED) { volunteer(...) }`는 교과와 동형이라는 *가정*이며 TODO 주석이 붙어 있다. `go-hellogsm-score-calculator` 구현과 대조 전까지 확정값으로 취급하지 말 것.
+- **Phase 0 완료** (DSL + Plan2026 + 검증). **Phase 1 완료** (2026-07-20): `entrance-engine/scoring` + Go 대비 golden test. **Phase 2 — 엔진 전 범위 완료** (2026-07-21): `evaluation`(1차/2차 선발·편입·동점자·추가모집) + `assignment`(학과 배정·예비합격·중도포기 재배정) + go-hellogsm 대비 golden test. 남은 것: `entrance-batch`(DB 러너), 실 배치 대비 재검증(Go 툴체인 필요), `entrance-lambda` 배포 — [PLAN.md](./PLAN.md) 8절 로드맵 참고.
+- ⚠️ **요강 vs Go 확인된 산출 차이**: 학기 몫 scale-5 중간 반올림(표본 ~13%에서 ±0.001), 검정고시 평균의 float64 이진 오차 — 엔진은 요강을 따른다. 상세는 [PLAN.md](./PLAN.md) 7절 2항.
+- **검정고시 환산식 확정 (2026-07-20)**: 교과 = (평균−50)÷50×240, 봉사 = (평균−40)÷60×30, 음수는 0 처리. 요강 PDF p.26 수식 원문(글리프 해독)과 2026 시즌 Go 코드가 일치함을 확인.
+- ⚠️ **Go 계산기 HEAD는 2027 시즌 코드**: `go-hellogsm-score-calculator`는 2026-07-13 커밋(4e8d668)부터 졸업자 배점이 18/36/36/45/45로 변경됨(2027학년도 대비 추정). **Plan2026 parity 기준은 4e8d668 이전 코드**(졸업자 36/36/54/54 — 2026 요강과 일치)다.
+- ⚠️ **go-hellogsm HEAD도 2027 시즌으로 추정되는 변경이 반영됨**: 2026-07-17 커밋(da09df4)부터 정원이 72→64명(SW 36→32, IOT/AI 18→16 등)으로 변경됨. **evaluation·assignment parity 기준은 da09df4 이전 코드**(72명 — 2026 요강·Plan2026과 일치)다. 최종 동점자 순서 버그 수정(f4b17bc, 2026-07-15)은 2026 시즌 실제 원서접수(2025-10)·평가(2025-11)보다 한참 뒤에 머지됐다 — 그 해 실제 배치는 버그(역순) 상태로 돌았을 가능성이 있다. 원칙(요강이 정답)에 따라 엔진은 수정된(spec) 순서를 따른다.
+- ⚠️ **중도포기 재배정의 정원 외 빈자리**: go-hellogsm은 정원 내 포기자만큼 정원 외 자리도 열어 학과당 2명 상한을 넘길 수 있다(버그로 판단). 엔진은 정원 내·정원 외 풀의 빈자리를 독립적으로 계산한다 — [PLAN.md](./PLAN.md) 7절 2항.
+- **추가모집(`RE_EVALUATE`)은 parity 검증 대상이 아님**: go-hellogsm에 대응 배치가 없어 요강 8-바만을 근거로 구현했다.
 - 참고 자료: `.reference/CLAUDE.md` (hellogsm 프로덕트 전체 개요), `.reference/2026_entrance.pdf` (2026 요강 원문 — plan 수치의 근거 문서).
 - 기존 Go 구현과의 parity 검증(golden test)이 Phase 1~2의 완료 기준이다. 요강과 기존 구현이 다르면 **요강이 정답**이며, 차이는 문서화한다.
