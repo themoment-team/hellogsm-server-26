@@ -1,1 +1,3 @@
 rootProject.name = 'hellogsm-server-26'
+
+include 'server'

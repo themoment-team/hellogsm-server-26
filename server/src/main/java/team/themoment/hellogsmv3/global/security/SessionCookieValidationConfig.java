@@ -31,13 +31,13 @@ public class SessionCookieValidationConfig {
     @PostConstruct
     public void validate() {
         boolean isDeployedEnv = Arrays.stream(environment.getActiveProfiles())
-            .anyMatch(p -> p.equals("dev") || p.equals("prod"));
-        if (!isDeployedEnv) return;
+                .anyMatch(p -> p.equals("dev") || p.equals("prod"));
+        if (!isDeployedEnv)
+            return;
 
         if (Cookie.SameSite.NONE == Cookie.SameSite.valueOf(sameSite.toUpperCase()) && !secure) {
             throw new IllegalStateException(
-                "SameSite=None 설정 시 Secure=true 가 필요합니다. COOKIE_SECURE 환경 변수를 true 로 설정하세요."
-            );
+                    "SameSite=None 설정 시 Secure=true 가 필요합니다. COOKIE_SECURE 환경 변수를 true 로 설정하세요.");
         }
     }
 

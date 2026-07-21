@@ -27,9 +27,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Make YML File
-        run: touch ./src/main/resources/application-dev.yml
+        run: touch ./server/src/main/resources/application-dev.yml
 
-          echo "${{ secrets.DEV_WEB_YML }}" > ./src/main/resources/application-dev.yml
+          echo "${{ secrets.DEV_WEB_YML }}" > ./server/src/main/resources/application-dev.yml
 
         shell: bash
 
@@ -46,7 +46,7 @@ jobs:
       - name: Make ZIP File
         run: |
           mkdir -p deploy/build/libs
-          cp build/libs/*.jar deploy/build/libs/
+          cp server/build/libs/*.jar deploy/build/libs/
           cp appspec.yml deploy/
           cp DockerfileStage deploy/
           cp -r scripts deploy/
