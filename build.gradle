@@ -6,7 +6,16 @@ plugins {
 	id 'org.springframework.boot' version '4.0.5' apply false
 	id 'io.spring.dependency-management' version '1.1.7' apply false
 	id 'com.diffplug.spotless' version '8.4.0' apply false
+	id 'org.jetbrains.kotlin.jvm' version '2.3.21' apply false
 }
 
+// 서버 좌표(team.themoment)와 엔진 좌표(kr.hellogsm.entrance)는 통합 후에도 통일하지
+// 않는다 — 서로 다른 산출물이다. 서버 모듈은 server/build.gradle 에서 자체 group/version
+// 을 유지하고, 엔진 3개 모듈만 여기서 공통 좌표를 부여한다.
 group = 'team.themoment'
 version = 'v20260609.0'
+
+configure([project(':entrance-dsl'), project(':entrance-plans'), project(':entrance-engine')]) {
+	group = 'kr.hellogsm.entrance'
+	version = '0.1.0-SNAPSHOT'
+}

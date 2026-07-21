@@ -37,6 +37,16 @@ out/
 ### VS Code ###
 .vscode/
 
+### Kotlin ###
+.kotlin/
+
+### entrance: 참조용으로 clone한 외부 레포 (이 레포의 일부가 아님) ###
+entrance/.reference/go-hellogsm/
+entrance/.reference/go-hellogsm-ops/
+entrance/.reference/go-hellogsm-score-calculator/
+entrance/.reference/hellogsm-client-26/
+entrance/.reference/hellogsm-server-26/
+
 ### macOS ###
 .DS_Store
 
