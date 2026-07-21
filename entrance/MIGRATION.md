@@ -52,7 +52,7 @@ hellogsm-server-26/
 
 1. **`entrance-engine`은 `server`·`persistence`를 의존성으로 선언하지 않는다.** 이것이 "엔진은 DB를 모른다"를 컴파일 타임에 강제하는 유일한 장치다. 레포 분리와 동일한 강도이며, 위반 시 컴파일이 깨진다.
 2. `entrance-plans`는 데이터만 — 로직 금지 (CLAUDE.md 원칙 1).
-3. 엔진 계열 모듈의 **JVM target은 21 고정**. 서버가 25라고 따라 올리지 않는다 — Lambda 겸용 제약이다.
+3. 엔진 계열 모듈의 **JVM target은 25** (2026-07-21, server와 통일). 과거엔 Lambda 매니지드 런타임이 21까지만 지원해 21 고정이었으나, Lambda의 Java 25 지원 확인으로 해제했다 — 서버·엔진·Lambda 모두 25.
 4. 패키지 루트는 그대로 둔다 — 서버 `team.themoment.hellogsmv3`, 엔진 `kr.hellogsm.entrance`. 통합했다고 통일할 이유가 없다.
 
 ---
@@ -148,19 +148,17 @@ git subtree add --prefix=entrance /Users/user/dev/every-entrance main
 
 `org.springframework.boot`·`io.spring.dependency-management`를 루트에 그대로 두면 모든 서브프로젝트에 전파돼 엔진 모듈의 의존성 해석까지 오염된다. 루트에서는 `apply false`로 선언만 하고 `server/build.gradle`에서만 적용한다.
 
-### 주의: 툴체인 분리
+### 툴체인: JDK 25 단일 (2026-07-21 통일)
+
+서버·엔진 모두 JVM target 25이므로 **빌드에 JDK 25 하나만** 있으면 된다. 과거의 21/25 이중 toolchain·foojay resolver 필요성은 사라졌다.
 
 ```groovy
-// 루트에 공통 toolchain을 두지 않는다
-// server/build.gradle
-java.toolchain { languageVersion = JavaLanguageVersion.of(25) }
-
 // entrance-*/build.gradle.kts
-kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_21) } }
-java { sourceCompatibility = JavaVersion.VERSION_21 }
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_25) } }
+java { sourceCompatibility = JavaVersion.VERSION_25 }
 ```
 
-CI가 JDK 25만 설치하므로 21 타깃 컴파일 경로를 확보해야 한다 — `setup-java`에 두 버전을 넣거나 foojay resolver로 자동 프로비저닝한다.
+서버는 `java.toolchain { languageVersion = 25 }`로 25를 못박고, 엔진 모듈은 toolchain을 걸지 않아 실행 JDK(25)를 그대로 쓴다. CI는 `setup-java`에 JDK 25 하나만 설치하면 된다.
 
 ---
 

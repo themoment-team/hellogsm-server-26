@@ -63,7 +63,7 @@ hellogsm(www.hellogsm.kr)은 광주소프트웨어마이스터고등학교 입�
   - 모델에 람다/함수 타입 금지 — 수식도 선형 환산 파라미터(`RangeScaleFormula`)로 데이터화
   - 점수는 전부 `BigDecimal`, 반올림 정책(`RoundingPolicy`)은 plan에 선언
   - 연도별 plan은 수정이 아니라 **파일 추가** (`Plan2026.kt`, `Plan2027.kt`, …) — 과거 재현성 보존
-  - 빌드 환경: Kotlin 2.3.21 / Gradle 9.6.1 (wrapper) / **JVM target 21** (server Java 25·AWS Lambda 겸용)
+  - 빌드 환경: Kotlin 2.3.21 / Gradle 9.6.1 (wrapper) / **JVM target 25** (server·엔진·Lambda 통일, 2026-07-21 — Lambda Java 25 지원 확인)
   - 패키지 루트: `kr.hellogsm.entrance`
 - **산출물 위치 확정 (2026-07-20)**: 독립 라이브러리 유지가 아니라 `hellogsm-server-26`에 **멀티모듈로 흡수**. 근거는 ① 공유 MySQL 스키마 매핑이 3중(go-hellogsm·서버 JPA·신규 배치)이 되는 것을 막고, ② 소비자가 서버 하나뿐이라 태그 릴리스 사이클이 값을 못 사며, 원서접수(10월)·평가(11월) 성수기에 마찰만 남기기 때문. 경계는 레포가 아니라 Gradle 모듈 그래프로 강제한다. 통합 방향과 절차는 [MIGRATION.md](./MIGRATION.md)
 

@@ -20,7 +20,7 @@ hellogsm(광주소프트웨어마이스터고 입학지원시스템)의 입학�
 ./gradlew :entrance-dsl:test --tests '*PlanValidatorTest*'   # 단건
 ```
 
-Kotlin 2.3.21, Gradle wrapper 9.6.1, **JVM target 21 고정** (server Java 25·AWS Lambda 겸용 — 올리지 말 것).
+Kotlin 2.3.21, Gradle wrapper 9.6.1, **JVM target 25** (server·엔진·`entrance-lambda` 모두 25로 통일 — 2026-07-21, AWS Lambda의 Java 25 매니지드 런타임 지원 확인으로 기존 21 고정 해제). 빌드는 JDK 25 하나면 된다.
 
 ## 핵심 설계 원칙 (위반 금지)
 
@@ -41,7 +41,7 @@ Kotlin 2.3.21, Gradle wrapper 9.6.1, **JVM target 21 고정** (server Java 25·A
 
 - **Phase 0 완료** (DSL + Plan2026 + 검증). **Phase 1 완료** (2026-07-20): `entrance-engine/scoring` + Go 대비 golden test. **Phase 2 — 엔진 전 범위 완료** (2026-07-21): `evaluation`(1차/2차 선발·편입·동점자·추가모집) + `assignment`(학과 배정·예비합격·중도포기 재배정) + go-hellogsm 대비 golden test. 남은 것: `entrance-batch`(DB 러너), 실 배치 대비 재검증(Go 툴체인 필요), `entrance-lambda` 배포 — [PLAN.md](./PLAN.md) 8절 로드맵 참고.
 - **저장소 통합 결정 (2026-07-20)**: 이 레포는 최종적으로 `hellogsm-server-26`에 **멀티모듈로 흡수**된다. 방향은 `every-entrance` → 서버 레포(`git subtree`, 히스토리 보존)이며, 반대 방향(서버를 새 레포로 이전)은 CI/CD·CodeDeploy·1,882커밋 히스토리 이전 비용 때문에 기각됐다. 통합 후에도 `entrance-engine`은 서버·persistence 모듈을 **의존성으로 선언하지 않는다** — 모듈 그래프가 "엔진은 DB를 모른다"를 컴파일 타임에 강제한다. 상세 계획은 [MIGRATION.md](./MIGRATION.md).
-- **`entrance-lambda` 유지 결정 (2026-07-20)**: 원래 MVP 범위는 아니었으나 이미 착수했고, 모의 성적 계산의 가용성 요건(server 다운 시에도 동작)도 유효하므로 별도 배포 아티팩트로 유지한다. JVM target 21 고정의 근거이기도 하다.
+- **`entrance-lambda` 유지 결정 (2026-07-20)**: 원래 MVP 범위는 아니었으나 이미 착수했고, 모의 성적 계산의 가용성 요건(server 다운 시에도 동작)도 유효하므로 별도 배포 아티팩트로 유지한다. (2026-07-21 업데이트: AWS Lambda가 Java 25 매니지드 런타임을 지원함을 확인해 엔진·Lambda JVM target을 21→25로 통일했다 — 더 이상 21 고정 근거가 아니다.)
 - **최종 동점자에 3-2 학기 미사용 확정 (2026-07-20)**: 졸업자도 3-2를 동점자 기준에 넣지 않는다 (요강 명시 범위 = 3-1·2-2·2-1·1-2). `Plan2026.kt`가 이미 그 상태이고 `Tiebreakers`는 plan에 선언된 학기만 읽으므로 코드 변경은 없다 — 향후 plan에서도 3-2를 추가하지 않는다.
 - ⚠️ **요강 vs Go 확인된 산출 차이**: 학기 몫 scale-5 중간 반올림(표본 ~13%에서 ±0.001), 검정고시 평균의 float64 이진 오차 — 엔진은 요강을 따른다. 상세는 [PLAN.md](./PLAN.md) 7절 2항.
 - **검정고시 환산식 확정 (2026-07-20)**: 교과 = (평균−50)÷50×240, 봉사 = (평균−40)÷60×30, 음수는 0 처리. 요강 PDF p.26 수식 원문(글리프 해독)과 2026 시즌 Go 코드가 일치함을 확인.
