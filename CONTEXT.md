@@ -65,20 +65,45 @@ hellogsm(www.hellogsm.kr)은 광주소프트웨어마이스터고등학교 입�
   - 연도별 plan은 수정이 아니라 **파일 추가** (`Plan2026.kt`, `Plan2027.kt`, …) — 과거 재현성 보존
   - 빌드 환경: Kotlin 2.3.21 / Gradle 9.6.1 (wrapper) / **JVM target 21** (server Java 25·AWS Lambda 겸용)
   - 패키지 루트: `kr.hellogsm.entrance`
+- **산출물 위치 확정 (2026-07-20)**: 독립 라이브러리 유지가 아니라 `hellogsm-server-26`에 **멀티모듈로 흡수**. 근거는 ① 공유 MySQL 스키마 매핑이 3중(go-hellogsm·서버 JPA·신규 배치)이 되는 것을 막고, ② 소비자가 서버 하나뿐이라 태그 릴리스 사이클이 값을 못 사며, 원서접수(10월)·평가(11월) 성수기에 마찰만 남기기 때문. 경계는 레포가 아니라 Gradle 모듈 그래프로 강제한다. 통합 방향과 절차는 [MIGRATION.md](./MIGRATION.md)
 
 ## 진행 상황
 
-**Phase 0 완료** (2026-07-19) — PLAN.md 8절 로드맵 기준.
+**Phase 0·1·2 완료** (2026-07-21) — PLAN.md 8절 로드맵 기준. 엔진은 전 범위 구현되었고, 남은 것은 배포·통합 계열이다.
 
-| 산출물 | 내용 |
+| 단계 | 상태 | 내용 |
+|---|---|---|
+| Phase 0 | ✅ 2026-07-19 | DSL + `Plan2026` + 검증 |
+| Phase 1 | ✅ 2026-07-20 | `scoring` + Go 계산기 대비 golden test — `entrance-lambda` 배포는 미착수 |
+| Phase 2 | 🔶 2026-07-21 | `evaluation`·`assignment` + go-hellogsm 대비 golden test — **엔진은 완료, `entrance-batch`(DB 러너) 미착수** |
+| Phase 3 | ⬜ | 서버가 엔진 소비 → Go 레포 퇴역 |
+
+### 모듈별 산출물
+
+| 모듈 | 내용 |
 |---|---|
 | `entrance-dsl` | 도메인 모델(`plan/`: AdmissionPlan, Screening, Grading, Round, Policies) + `@DslMarker` 기반 빌더(`dsl/`) + `PlanValidator` (오류를 모아 한 번에 보고) |
 | `entrance-plans` | `Plan2026.kt` — 2026 요강 전문 인코딩 (fallback 규칙, 동점자 체인, 결측 대체, 반올림 정책, 봉사 계단, 일정 포함) |
-| `entrance-engine` | 빈 모듈 (Phase 1에서 scoring부터 구현) |
-| 테스트 | 37개 전부 통과 — `Plan2026Test`(17, 요강 수치 고정), `PlanValidatorTest`(14), `AdmissionPlanDslTest`(6) |
-| 문서 | CLAUDE.md(개발 규칙), README.md(DSL 사용자 문서) |
+| `entrance-engine` | `scoring`(성적 계산 + breakdown), `evaluation`(1차/2차 선발·편입·동점자·추가모집), `assignment`(학과 배정·예비합격·중도포기 재배정) |
 
-다음 단계는 **Phase 1: `entrance-engine/scoring`** (성적 계산 엔진 + 기존 Go 계산기 대비 golden test). 엔진 구현 자체는 요강 스펙 기반으로 진행 가능하나, parity 검증은 아래 미해결 질문 2·3에 걸려 있음.
+### 테스트 — 108개 전부 통과
+
+| 모듈 | 테스트 |
+|---|---|
+| `entrance-dsl` | `PlanValidatorTest`(14), `AdmissionPlanDslTest`(6) |
+| `entrance-plans` | `Plan2026Test`(18) — 요강 수치 고정 |
+| `entrance-engine` | `ScoringEngineTest`(25), `EvaluationEngineTest`(20), `AssignmentEngineTest`(14), `AdditionalRecruitmentTest`(7), `GoParityGoldenTest`(2), `PostAdmissionFlowTest`(1), `BatchParityGoldenTest`(1) |
+
+golden fixture 규모 (테스트 개수와 별개):
+
+- scoring — `GoParityGoldenCases.kt`에 **108 케이스** (parity 96 + 요강·Go 산출이 갈리는 `specDivergenceCases` 12, 후자는 요강 기준 기대값으로 고정)
+- evaluation·assignment — `golden/batch_parity.txt`에 **3 시나리오 · 지원자 366명**
+
+두 fixture 모두 `tools/golden/*.py`(Go 로직 포팅)로 생성했다. 실제 Go 바이너리·DB 배치 대비 재검증은 Go 툴체인 확보 시 남은 과제.
+
+### 다음 단계
+
+**저장소 통합(MIGRATION.md M1·M2)이 `entrance-batch`보다 먼저다.** 배치는 서버의 영속성 레이어를 재사용해야 하는데, 통합 전에 만들면 자체 스키마 매핑을 짜게 되고 그것이 통합으로 없애려던 3중 매핑이다.
 
 ## 유지해야 할 기존 제약
 
@@ -88,11 +113,18 @@ hellogsm(www.hellogsm.kr)은 광주소프트웨어마이스터고등학교 입�
 
 ## 미해결 질문
 
-1. 산출물의 최종 위치: 이 레포 독립 유지 vs `hellogsm-server-26`으로 통합 (MVP 동안은 독립 유지로 진행 중)
-2. **검정고시 봉사활동 환산식의 정확한 계수** — PDF 텍스트 추출 시 수식 손상. `Plan2026.kt`에는 교과와 동형인 `(평균−60)÷40×30` **가정값**이 TODO로 들어가 있음. 기존 Go 구현과 대조 후 확정 필요
-3. **parity 검증용 Go 레포 접근** — Phase 1·2 완료 기준이 기존 Go 구현과의 결과 일치인데, 로컬에 `go-hellogsm*` 레포가 없음 (클론 필요)
-4. 졸업자의 최종 동점자 학기 순서 — 요강은 3-1, 2-2, 2-1, 1-2만 명시하는데 졸업자는 3-2 성적이 존재. 기존 구현의 처리 방식 확인 필요
-5. 모의 성적 계산의 가용성 요건(server 다운 시에도 동작) 유지 여부 → Lambda 별도 배포 유지 여부
-6. 공유 MySQL 마이그레이션 소유권 정책
+1. 공유 MySQL 마이그레이션 소유권 정책 — 통합 후 배치·서버가 한 레포가 되므로 범위는 좁아지지만, 스키마 변경 주체는 여전히 팀 확인 필요
+2. **`hellogsm-server-26`의 레포 수명** — 이름의 `-26`이 학년도별 신규 레포를 뜻한다면 누적 자산인 `PlanXXXX.kt`가 매년 이사를 다녀야 해 통합 판단이 뒤집힌다. 첫 커밋이 2024-02이고 패키지가 `hellogsmv3`라 실제로는 여러 시즌을 한 레포로 넘겨온 것으로 보이나, 통합 착수 전 팀 확인 권장 ([MIGRATION.md](./MIGRATION.md) 사전 조건)
+3. persistence 모듈 추출 범위 — `entrance-batch`가 서버 JPA 엔티티를 재사용하려면 Spring Boot 앱에서 영속성 레이어를 분리해야 함. 추출하지 않으면 통합의 이득 절반(스키마 단일 매핑)을 포기하게 됨
+
+(해결됨) 산출물의 최종 위치 → `hellogsm-server-26`에 멀티모듈로 흡수 (2026-07-20, 위 결정 사항 참고).
+
+(해결됨) 검정고시 봉사활동 환산식 → 교과 = (평균−50)÷50×240, 봉사 = (평균−40)÷60×30 (2026-07-20). 요강 PDF p.26 원문과 2026 시즌 Go 코드 일치 확인. 기존에 적혀 있던 `(평균−60)÷40` 계열은 PDF 추출 손상이었음.
+
+(해결됨) parity 검증용 Go 레포 접근 → `.reference/`에 `go-hellogsm`, `go-hellogsm-score-calculator`, `go-hellogsm-ops` 확보. 단 parity 기준 커밋 고정 필요 (CLAUDE.md 주의사항 참고).
+
+(해결됨) 졸업자의 최종 동점자 학기 순서 → **3-2를 쓰지 않는다**로 확정 (2026-07-20). 요강 명시 범위(3-1·2-2·2-1·1-2)를 그대로 따르며 현재 구현이 이미 그 상태.
+
+(해결됨) 모의 성적 계산 가용성 요건 → 유지. `entrance-lambda`를 별도 배포 아티팩트로 존속시킨다 (2026-07-20).
 
 (해결됨) DSL 로딩 방식: **컴파일 타임 포함**으로 확정 — plan이 코드로 컴파일되어 타입 체크·테스트·PR 리뷰를 그대로 거침.

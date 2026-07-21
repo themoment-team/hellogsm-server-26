@@ -50,11 +50,11 @@
 - **entrance-dsl / entrance-engine / entrance-plans**: 순수 Kotlin, DB·프레임워크 무관. 단위 테스트가 가장 쉬운 곳에 로직을 모은다.
 - **entrance-lambda**: 모의 성적 계산 API. server 다운 시에도 동작해야 하는 기존 가용성 요건을 계승하므로 **별도 배포물 유지** (JVM cold start는 SnapStart로 완화, 필요시 GraalVM native 검토).
 - **entrance-batch**: 현 `go-hellogsm` 역할. DB 읽기 → 엔진 호출 → 결과 기록. 배치는 지금처럼 DB에 사전 계산된 점수를 사용하며 Lambda를 호출하지 않는다.
-- **server 통합**: 엔진을 아티팩트(예: GitHub Packages)로 발행해 의존성으로 소비. 레포 통합 여부는 Open Question.
+- **server 통합**: **아티팩트 발행이 아니라 저장소 통합으로 확정** (2026-07-20). 위 모듈 전체가 `hellogsm-server-26`에 Gradle 멀티모듈로 흡수되며, 엔진은 서버·persistence 모듈을 의존성으로 선언하지 않는 것으로 "엔진은 DB를 모른다"를 컴파일 타임에 강제한다. 절차는 [MIGRATION.md](./MIGRATION.md).
 
-### DSL 로딩 방식 (결정 필요, 권장안 있음)
+### DSL 로딩 방식 (확정: 컴파일 타임 포함)
 
-**권장: 컴파일 타임 포함.** plan이 코드로 컴파일되므로 타입 체크·테스트·리뷰가 PR 흐름에 그대로 태워진다. 요강은 1년에 한 번 바뀌므로 런타임 리로딩(`.kts` 스크립팅)의 이점이 없고, 스크립트 로딩은 보안·버전 관리 문제만 더한다.
+**컴파일 타임 포함.** plan이 코드로 컴파일되므로 타입 체크·테스트·리뷰가 PR 흐름에 그대로 태워진다. 요강은 1년에 한 번 바뀌므로 런타임 리로딩(`.kts` 스크립팅)의 이점이 없고, 스크립트 로딩은 보안·버전 관리 문제만 더한다.
 
 ## 4. 도메인 모델 스펙
 
@@ -262,8 +262,10 @@ val plan2026 = admissionPlan(year = 2026) {
 | **Phase 0** | 레포 세팅(Gradle 멀티모듈, Kotlin 2.x), `entrance-dsl` 도메인 모델 + 빌더, `Plan2026.kt` 인코딩 | 2026 요강 전체가 DSL로 표현되고 plan 검증 테스트(정원 합계, 가중치 합 = 만점 등) 통과 |
 | **Phase 1** | `entrance-engine/scoring` 구현 + Go 계산기 대비 golden test, `entrance-lambda` 배포 | 모의 성적 계산 API가 기존 Lambda와 동일 응답 — **scoring·golden test 완료(2026-07-20), `entrance-lambda` 미착수** |
 | **Phase 2** | `entrance-engine/evaluation·assignment` + `entrance-batch` 구현, `go-hellogsm` 대비 parity | 1차/2차/최종배정/추가모집 배치 결과 전수 일치 (의도된 수정 제외) — **엔진 전 범위 완료(2026-07-21): 1차/2차 선발·편입·동점자, 최초 학과 배정, 예비합격, 중도포기 재배정, 추가모집 + go-hellogsm 대비 golden test. 남은 것: `entrance-batch`(DB 러너), 실 배치 대비 재검증(Go 툴체인 필요)** |
-| **Phase 3** | server(`hellogsm-server-26`)가 엔진을 의존성으로 소비, Go 레포 퇴역 | 운영 트래픽이 Kotlin 엔진만 사용 |
+| **Phase 3** | server(`hellogsm-server-26`)가 엔진을 모듈 의존성으로 소비, Go 레포 퇴역 | 운영 트래픽이 Kotlin 엔진만 사용 |
 | **Phase 4+** (비전) | admin에서 plan 시뮬레이션/미리보기, DSL 스키마 기반 FE 폼 생성 | — |
+
+> **순서 주의**: 저장소 통합([MIGRATION.md](./MIGRATION.md) M1·M2)은 Phase 2의 남은 항목인 `entrance-batch`보다 **먼저** 진행한다. 배치는 서버의 영속성 레이어를 재사용해야 하는데, 통합 전에 만들면 공유 MySQL에 대한 자체 스키마 매핑을 짜게 되고 그것이 통합으로 없애려던 3중 매핑이다.
 
 ## 9. 리스크
 
@@ -275,8 +277,9 @@ val plan2026 = admissionPlan(year = 2026) {
 
 ## 10. Open Questions
 
-1. **산출물 위치**: 이 레포를 독립 라이브러리로 유지 vs `hellogsm-server-26`에 모듈로 흡수? (권장: MVP 동안 독립 유지 — 배치·Lambda도 소비자이므로)
-2. **모의 성적 계산 가용성 요건 유지 여부**: server 다운 시에도 동작해야 한다는 요건이 계속 유효한가? 유효하다면 Lambda 유지, 아니면 server 내장으로 단순화 가능
+1. ~~**산출물 위치**~~ → **해소(2026-07-20)**: `hellogsm-server-26`에 Gradle 멀티모듈로 **흡수**한다. 기존에 적어둔 "배치·Lambda도 소비자이므로 독립 유지" 논거는 성립하지 않았다 — 그 둘은 이 레포에 들어올 모듈이라 실제 외부 소비자는 서버 하나뿐이다. 방향은 `every-entrance` → 서버 레포(`git subtree`), 반대 방향은 CI/CD·CodeDeploy 이전 비용으로 기각. 상세는 [MIGRATION.md](./MIGRATION.md).
+2. ~~**모의 성적 계산 가용성 요건 유지 여부**~~ → **해소(2026-07-20)**: 요건 유효. `entrance-lambda`를 별도 배포 아티팩트로 유지한다. 저장소 통합과 런타임 결합은 별개이며, 같은 레포의 모듈이어도 Lambda는 독립 배포된다.
 3. ~~**검정고시 봉사 환산식**: 정확한 계수를 `go-hellogsm-score-calculator` 코드에서 확인 필요~~ → **해소(2026-07-20)**: 봉사 = (평균 − 40) ÷ 60 × 30, 교과 = (평균 − 50) ÷ 50 × 240. 요강 PDF p.26 원문과 Go 구현이 일치. (기존 PLAN.md의 "(평균 − 60) ÷ 40 × 240"이 추출 손상으로 잘못된 값이었음)
-4. **졸업자의 최종 동점자 학기 순서**: 요강은 3-1, 2-2, 2-1, 1-2만 명시하는데 졸업자는 3-2 성적이 존재 — 기존 구현의 처리 방식 확인 필요
-5. **DB 마이그레이션 소유권**: 공유 MySQL의 스키마 변경 주체 (기존에도 "팀에 문의" 상태)
+4. ~~**졸업자의 최종 동점자 학기 순서**~~ → **해소(2026-07-20)**: 졸업자도 **3-2를 쓰지 않는다.** 요강 명시 범위(3-1·2-2·2-1·1-2)를 그대로 따른다. `Plan2026.kt`가 이미 그 상태이고 `Tiebreakers`는 plan에 선언된 학기만 읽으므로 코드 변경 없음 — 향후 plan에서도 3-2를 추가하지 않는다.
+5. **DB 마이그레이션 소유권**: 공유 MySQL의 스키마 변경 주체 (기존에도 "팀에 문의" 상태). 저장소 통합 후 배치·서버가 한 레포가 되므로 범위는 좁아지지만 정책 자체는 미결.
+6. **`hellogsm-server-26`의 레포 수명**: 이름의 `-26`이 학년도별 신규 레포를 뜻한다면 누적 자산인 `PlanXXXX.kt`가 매년 이사를 다녀야 해 1번 결정이 뒤집힌다. 첫 커밋 2024-02·패키지 `hellogsmv3`로 보아 여러 시즌을 한 레포로 넘겨온 것으로 보이나, 통합 착수 전 팀 확인 필요 ([MIGRATION.md](./MIGRATION.md) 3절 사전 조건).

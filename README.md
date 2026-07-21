@@ -299,4 +299,5 @@ second.tiebreakers                     // 동점자 기준 체인 (우선순위 
 ```
 
 - Kotlin 2.3.21 · Gradle wrapper 9.6.1 · JVM target 21
-- 현재 상태: **Phase 0 완료** (DSL + 2026 plan + 검증). 다음 단계는 성적 계산 엔진(`entrance-engine/scoring`) — 전체 로드맵은 [PLAN.md](./PLAN.md) 8절 참고.
+- 현재 상태: **Phase 0~2 완료** — DSL + 2026 plan + 검증, 그리고 엔진 전 범위(`scoring`·`evaluation`·`assignment`)와 기존 Go 구현 대비 golden test. 테스트 108개 통과.
+- 남은 것: `entrance-batch`(DB 러너), `entrance-lambda`(배포), 서버 통합. 전체 로드맵은 [PLAN.md](./PLAN.md) 8절, 저장소 통합 계획은 [MIGRATION.md](./MIGRATION.md) 참고.
