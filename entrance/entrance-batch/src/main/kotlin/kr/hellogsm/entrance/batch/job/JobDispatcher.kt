@@ -5,8 +5,8 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 
 /**
- * CLI 진입점. ops 가 `--job=<이름> [--dry-run]` 으로 실행한다.
- * 사용 가능한 잡: status, first-eval, second-eval, assign.
+ * CLI 진입점. ops 가 `--job=<이름> [--dry-run] [--기타 옵션]` 으로 실행한다.
+ * 사용 가능한 잡: status, first-eval, second-eval, assign, seed-testdata.
  */
 @Component
 class JobDispatcher(
@@ -30,7 +30,7 @@ class JobDispatcher(
             else -> {
                 val job = jobs.firstOrNull { it.name == jobName }
                     ?: error("알 수 없는 job: '$jobName'. 사용 가능: status, ${jobs.joinToString(", ") { it.name }}")
-                job.run(dryRun)
+                job.run(dryRun, options)
             }
         }
     }

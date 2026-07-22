@@ -20,7 +20,7 @@ class FirstEvaluationJob(
     override val name = "first-eval"
 
     @Transactional
-    override fun run(dryRun: Boolean) {
+    override fun run(dryRun: Boolean, options: Map<String, String>) {
         val loaded = loader.load()
         reconciliation.report(loaded)
 
@@ -51,7 +51,7 @@ class SecondEvaluationJob(
     override val name = "second-eval"
 
     @Transactional
-    override fun run(dryRun: Boolean) {
+    override fun run(dryRun: Boolean, options: Map<String, String>) {
         val loaded = loader.load()
         val byId = loaded.associateBy { it.applicant.id }
 
@@ -79,7 +79,7 @@ class AssignmentJob(
     override val name = "assign"
 
     @Transactional
-    override fun run(dryRun: Boolean) {
+    override fun run(dryRun: Boolean, options: Map<String, String>) {
         val loaded = loader.load()
 
         val first = pipeline.evaluateFirst(loaded)
