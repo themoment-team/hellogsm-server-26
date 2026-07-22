@@ -23,11 +23,14 @@ dependencies {
     implementation(project(":persistence")) // JPA 엔티티·spring-data-jpa 를 api 로 전이
 
     implementation("org.springframework.boot:spring-boot-starter") // CLI 배치 — web 불필요
+    implementation(kotlin("reflect")) // Spring 의 Kotlin 빈 생성자 주입에 필요
     runtimeOnly("com.mysql:mysql-connector-j")
 
     testImplementation(kotlin("test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    // Testcontainers(MySQL parity 통합 테스트)는 해당 증분에서 BOM과 함께 추가한다.
+    testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.6"))
+    testImplementation("org.testcontainers:mysql")
+    testImplementation("org.testcontainers:junit-jupiter")
 }
 
 // bootJar 산출(ops 가 CLI 로 실행). 라이브러리 jar 는 불필요.

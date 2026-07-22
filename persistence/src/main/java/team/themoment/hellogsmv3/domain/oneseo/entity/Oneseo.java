@@ -115,6 +115,17 @@ public class Oneseo {
         this.entranceIntentionYn = yn;
     }
 
+    /** 1차 결과로 확정된 적용 전형(편입 반영) — entrance-batch 가 기록한다. */
+    public void applyScreening(Screening appliedScreening) {
+        this.appliedScreening = appliedScreening;
+    }
+
+    /** 최종 학과 배정·합격 여부 확정 — entrance-batch 가 기록한다. */
+    public void decideAdmission(Major decidedMajor, YesNo passYn) {
+        this.decidedMajor = decidedMajor;
+        this.passYn = passYn;
+    }
+
     public void switchRealOneseoArrivedYn() {
         this.realOneseoArrivedYn = this.realOneseoArrivedYn == YES ? NO : YES;
     }

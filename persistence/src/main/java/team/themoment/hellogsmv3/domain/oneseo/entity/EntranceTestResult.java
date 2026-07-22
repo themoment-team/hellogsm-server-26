@@ -58,6 +58,16 @@ public class EntranceTestResult {
         this.documentEvaluationScore = documentEvaluationScore;
     }
 
+    /** 1차 전형(서류) 결과 확정 — entrance-batch 가 기록한다. */
+    public void decideFirstTestResult(YesNo firstTestPassYn) {
+        this.firstTestPassYn = firstTestPassYn;
+    }
+
+    /** 2차 전형(역량검사·심층면접) 결과 확정 — entrance-batch 가 기록한다. */
+    public void decideSecondTestResult(YesNo secondTestPassYn) {
+        this.secondTestPassYn = secondTestPassYn;
+    }
+
     public EntranceTestResult(Oneseo oneseo,
             EntranceTestFactorsDetail entranceTestFactorsDetail,
             BigDecimal documentEvaluationScore) {
