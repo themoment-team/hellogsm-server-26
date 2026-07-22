@@ -17,6 +17,8 @@ include 'persistence'
 include 'entrance-dsl'
 include 'entrance-plans'
 include 'entrance-engine'
+include 'entrance-batch'
 project(':entrance-dsl').projectDir = file('entrance/entrance-dsl')
 project(':entrance-plans').projectDir = file('entrance/entrance-plans')
 project(':entrance-engine').projectDir = file('entrance/entrance-engine')
+project(':entrance-batch').projectDir = file('entrance/entrance-batch')
