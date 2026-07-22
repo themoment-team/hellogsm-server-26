@@ -9,14 +9,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import team.themoment.hellogsmv3.domain.oneseo.annotation.ValidDesiredMajors;
 
 @Embeddable
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ValidDesiredMajors
 public class DesiredMajors {
 
     @Enumerated(EnumType.STRING)

@@ -46,6 +46,9 @@ repositories {
 }
 
 dependencies {
+	/** 공유 영속성 모듈 (JPA 엔티티·Q클래스) **/
+	implementation project(':persistence')
+
 	/** spring app **/
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
