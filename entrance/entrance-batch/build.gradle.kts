@@ -25,10 +25,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter") // CLI 배치 — web 불필요
     runtimeOnly("com.mysql:mysql-connector-j")
 
+    testImplementation(kotlin("test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.testcontainers:testcontainers")
-    testImplementation("org.testcontainers:mysql")
-    testImplementation("org.testcontainers:junit-jupiter")
+    // Testcontainers(MySQL parity 통합 테스트)는 해당 증분에서 BOM과 함께 추가한다.
 }
 
 // bootJar 산출(ops 가 CLI 로 실행). 라이브러리 jar 는 불필요.
