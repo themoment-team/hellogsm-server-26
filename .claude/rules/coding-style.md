@@ -1,5 +1,7 @@
 # Coding Style Rules — hellogsm-server-25
 
+> Scope: Java/Spring modules (`server`, `persistence`) only. The Kotlin `entrance-*` modules follow [`entrance/CLAUDE.md`](../../entrance/CLAUDE.md) instead (DSL-is-data principle, `BigDecimal`-only scoring, plan-file-per-year policy).
+
 ## Language & Framework
 - Java 25, Spring Boot 4.0.5, Gradle
 - Jakarta EE (not `javax`) for validation, persistence annotations

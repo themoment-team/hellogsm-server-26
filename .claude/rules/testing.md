@@ -1,5 +1,7 @@
 # Testing Rules — hellogsm-server-25
 
+> Scope: Java/Spring modules (`server`, `persistence`) only. The Kotlin `entrance-*` modules use `kotlin.test` + JUnit5 with backtick Korean test names (not the Describe/Context/It nesting below) — see [`entrance/CLAUDE.md`](../../entrance/CLAUDE.md).
+
 ## Framework
 - JUnit 5 (Jupiter)
 - Mockito 5 (inline mock maker)
