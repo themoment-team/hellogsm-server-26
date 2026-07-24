@@ -1,0 +1,86 @@
+# entrance-lambda(모의 성적 계산)를 AWS Lambda에 배포한다. go-hellogsm-score-calculator와
+# 별도의 함수로 병행 배포하는 것을 전제로 한다 — 함수 자체(IAM 역할·메모리·타임아웃·
+# X_HG_INTERNAL_API_KEY 환경변수·API Gateway 연결)는 이 워크플로가 만들지 않으므로
+# 최초 1회는 콘솔/IaC로 미리 만들어 두어야 한다. 이후 배포는 코드만 갱신한다.
+#
+# 필요한 GitHub Secrets:
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+#   ENTRANCE_LAMBDA_FUNCTION_NAME_PROD — 대상 Lambda 함수 이름
+name: entrance-lambda prod CD workflow
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'entrance/entrance-lambda/**'
+      - 'entrance/entrance-engine/**'
+      - 'entrance/entrance-plans/**'
+      - 'entrance/entrance-dsl/**'
+      - 'settings.gradle'
+      - 'build.gradle'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  CD:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Setup JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build shadow jar
+        run: ./gradlew :entrance-lambda:shadowJar
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to AWS Lambda (prod)
+        run: |
+          JAR_PATH=$(ls entrance/entrance-lambda/build/libs/*.jar)
+          aws lambda update-function-code \
+            --function-name "${{ secrets.ENTRANCE_LAMBDA_FUNCTION_NAME_PROD }}" \
+            --zip-file "fileb://$JAR_PATH" \
+            --publish
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [CD]
+    if: always()
+
+    steps:
+      - name: Determine Status
+        id: status
+        run: |
+          if [[ "${{ needs.CD.result }}" == "failure" ]]; then
+            echo "color=0xFF4C4C" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.CD.result }}" == "success" ]]; then
+            echo "color=0x4CAF50" >> $GITHUB_OUTPUT
+          else
+            echo "color=0xFFA500" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Discord Notification
+        if: ${{ vars.DISCORD_NOTIFICATIONS_ENABLED == 'true' }}
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ needs.CD.result }}
+          color: ${{ steps.status.outputs.color }}
