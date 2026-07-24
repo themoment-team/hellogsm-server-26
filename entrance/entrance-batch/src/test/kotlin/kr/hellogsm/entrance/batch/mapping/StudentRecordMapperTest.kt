@@ -1,12 +1,14 @@
 package kr.hellogsm.entrance.batch.mapping
 
 import kr.hellogsm.entrance.engine.scoring.ScoringEngine
+import kr.hellogsm.entrance.plan.SemesterRef
 import kr.hellogsm.entrance.plans.plan2026
 import team.themoment.hellogsmv3.domain.oneseo.entity.MiddleSchoolAchievement
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 /**
  * `StudentRecordMapper` 가 go-hellogsm-score-calculator(d7b65b4)와 동일한 입력 해석을 하는지,
@@ -44,6 +46,36 @@ class StudentRecordMapperTest {
         assertEquals("10.000", score.volunteerScore.toPlainString(), "봉사 점수")
         assertEquals("101.212", score.transcriptDetail!!.generalSubjectsScore.toPlainString(), "일반교과")
         assertEquals("45.000", score.transcriptDetail!!.artsSubjectsScore.toPlainString(), "예체능")
+    }
+
+    @Test
+    fun `1_2가 없고 1_1이 있으면 SAME_YEAR_OTHER_SEMESTER 전략으로 1_1을 1_2 대체 원본으로 쓴다`() {
+        // server는 더 이상 접수 시점에 결측 학기를 미리 채우지 않으므로(OneseoService.buildCalcDto),
+        // 이 매퍼가 넘긴 원본 그대로 최종 채점 시점에 대체가 일어나야 한다 — entrance-lambda와 동일한 계약.
+        fun baseBuilder() = MiddleSchoolAchievement.builder()
+            .achievement2_1(listOf(3, 3, 3, 3, 3))
+            .achievement2_2(listOf(4, 4, 4, 4, 4))
+            .achievement3_1(listOf(3, 3, 3, 3, 3))
+            .artsPhysicalAchievement(listOf(3))
+
+        val viaFallback = baseBuilder().achievement1_1(listOf(5, 5, 5, 5, 5)).build()
+        val submittedDirectly = baseBuilder().achievement1_2(listOf(5, 5, 5, 5, 5)).build()
+        val withoutAny1 = baseBuilder().build()
+
+        val scoreViaFallback = scoring.score(StudentRecordMapper.toStudentRecord(viaFallback, GraduationType.CANDIDATE))
+        val scoreDirect = scoring.score(StudentRecordMapper.toStudentRecord(submittedDirectly, GraduationType.CANDIDATE))
+        val scoreWithoutAny1 = scoring.score(StudentRecordMapper.toStudentRecord(withoutAny1, GraduationType.CANDIDATE))
+
+        assertEquals(
+            scoreDirect.transcriptDetail!!.semesterScores[SemesterRef(1, 2)],
+            scoreViaFallback.transcriptDetail!!.semesterScores[SemesterRef(1, 2)],
+            "1_1로 대체된 1_2 학기점수가 직접 제출한 것과 같아야 함",
+        )
+        assertNotEquals(
+            scoreWithoutAny1.transcriptDetail!!.semesterScores[SemesterRef(1, 2)],
+            scoreViaFallback.transcriptDetail!!.semesterScores[SemesterRef(1, 2)],
+            "1_1이 있을 때와 없을 때(2_2로 대체) 학기점수가 달라야 함 — 우선순위가 실제로 적용됨을 확인",
+        )
     }
 
     @Test

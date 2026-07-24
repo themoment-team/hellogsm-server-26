@@ -18,6 +18,12 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType as Ent
  *   학년 합산 후 `latenessPerAbsenceDay`(=3) 로 나누므로, 지각·조퇴·결과를 latenessCount 하나로
  *   합쳐도 점수가 동일하다. 학년 3개를 모두 채워 결측 학년 기본점 경로를 타지 않게 한다.
  * - 봉사: `volunteerTime`(학년별 3개).
+ *
+ * 결측 학기 대체는 이 매퍼가 아니라 `ScoringEngine`(plan에 선언된 `MissingSemesterStrategy`)의
+ * 책임이다 — `achievement1_1`도 plan이 직접 채점하지는 않지만 `SAME_YEAR_OTHER_SEMESTER` 전략의
+ * 대체 원본으로 쓰일 수 있어 그대로 submitted map에 넣는다. server는 더 이상 접수 시점에
+ * 결측 학기를 미리 채우지 않으므로(`OneseoService.buildCalcDto`), 이 매퍼가 넘기는 원본 그대로
+ * 최종 채점 시점에 대체가 일어난다 — `entrance-lambda`의 `StudentRecordMapper`와 동일한 규칙.
  */
 object StudentRecordMapper {
 
@@ -37,6 +43,7 @@ object StudentRecordMapper {
         return StudentRecord.Transcript(
             graduationType = plan,
             generalAchievements = buildMap {
+                putSemester(SemesterRef(1, 1), achievement.achievement1_1)
                 putSemester(SemesterRef(1, 2), achievement.achievement1_2)
                 putSemester(SemesterRef(2, 1), achievement.achievement2_1)
                 putSemester(SemesterRef(2, 2), achievement.achievement2_2)
