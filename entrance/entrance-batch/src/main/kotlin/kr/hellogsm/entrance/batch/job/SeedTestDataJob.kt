@@ -29,8 +29,8 @@ import kotlin.random.Random
 class SeedTestDataJob(
     private val factory: MockApplicantFactory,
     private val txManager: PlatformTransactionManager,
-    @Value("\${spring.datasource.url}") private val dbUrl: String,
-    @Value("\${spring.datasource.username}") private val dbUsername: String,
+    @param:Value("\${spring.datasource.url}") private val dbUrl: String,
+    @param:Value("\${spring.datasource.username}") private val dbUsername: String,
 ) : BatchJob {
 
     override val name = "seed-testdata"
@@ -73,7 +73,7 @@ class SeedTestDataJob(
                 factory.createAndPersist(row, screenings[row - 1], graduationTypes[row - 1], stage, runTag, random)
             }
         }
-        println("[seed-testdata] 저장 완료 · ${insertedIds?.size ?: 0}명 (oneseo_id ${insertedIds?.minOrNull()}..${insertedIds?.maxOrNull()})")
+        println("[seed-testdata] 저장 완료 · ${insertedIds.size}명 (oneseo_id ${insertedIds.minOrNull()}..${insertedIds.maxOrNull()})")
     }
 
     private enum class ScreeningParam { GEN, SPE, EXT }

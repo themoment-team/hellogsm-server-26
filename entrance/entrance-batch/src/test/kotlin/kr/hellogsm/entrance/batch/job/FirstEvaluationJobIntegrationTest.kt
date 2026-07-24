@@ -49,7 +49,10 @@ class FirstEvaluationJobIntegrationTest {
             registry.add("spring.datasource.url", mysql::getJdbcUrl)
             registry.add("spring.datasource.username", mysql::getUsername)
             registry.add("spring.datasource.password", mysql::getPassword)
-            registry.add("spring.jpa.hibernate.ddl-auto") { "create-drop" }
+            // 컨테이너가 클래스 종료 직후 버려지는 일회용이라 DROP이 불필요함 — create-drop을 쓰면
+            // 컨텍스트 종료 시(JVM 셧다운 훅) 이미 죽은 컨테이너에 DROP DDL을 시도하며 HikariCP
+            // 커넥션 타임아웃(기본 30초)만큼 그대로 멈춘다.
+            registry.add("spring.jpa.hibernate.ddl-auto") { "create" }
         }
     }
 
