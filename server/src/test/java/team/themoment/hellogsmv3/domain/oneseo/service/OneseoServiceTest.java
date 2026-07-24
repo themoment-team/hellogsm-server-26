@@ -245,8 +245,8 @@ class OneseoServiceTest {
     }
 
     @Nested
-    @DisplayName("buildCalcDtoWithFillEmpty 메서드는")
-    class Describe_buildCalcDtoWithFillEmpty {
+    @DisplayName("buildCalcDto 메서드는")
+    class Describe_buildCalcDto {
         private MiddleSchoolAchievementReqDto middleSchoolAchievementReqDto;
 
         @BeforeEach
@@ -268,9 +268,10 @@ class OneseoServiceTest {
             @Test
             @DisplayName("검정고시 평균 점수만 포함된 DTO를 반환한다")
             void it_returns_dto_with_ged_avg_score() {
-                MiddleSchoolAchievementCalcDto resultDto = OneseoService
-                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
+                MiddleSchoolAchievementCalcDto resultDto = OneseoService.buildCalcDto(middleSchoolAchievementReqDto,
+                        graduationType);
                 assertEquals(new BigDecimal("100"), resultDto.gedAvgScore());
+                assertNull(resultDto.achievement1_1());
                 assertNull(resultDto.achievement1_2());
                 assertNull(resultDto.achievement2_1());
                 assertNull(resultDto.achievement2_2());
@@ -280,154 +281,40 @@ class OneseoServiceTest {
         }
 
         @Nested
-        @DisplayName("졸업자(GRADUATE)이고 3학년 2학기 성적이 null이면")
-        class Context_with_graduate_and_missing_3_2 {
+        @DisplayName("졸업예정자·졸업자이면")
+        class Context_with_candidate_or_graduate {
             private GraduationType graduationType;
 
             @BeforeEach
             void setUp() {
-                middleSchoolAchievementReqDto = createDefaultDtoBuilder().freeSemester("3-2").achievement3_2(null)
+                graduationType = CANDIDATE;
+            }
+
+            @Test
+            @DisplayName("결측 학기를 채우지 않고 제출된 성적을 그대로 담는다 — 대체는 최종 채점 시점(entrance-engine)의 몫이다")
+            void it_passes_through_without_filling_missing_semesters() {
+                middleSchoolAchievementReqDto = createDefaultDtoBuilder().achievement1_2(null).achievement3_1(null)
                         .build();
-                graduationType = GraduationType.GRADUATE;
+
+                MiddleSchoolAchievementCalcDto resultDto = OneseoService.buildCalcDto(middleSchoolAchievementReqDto,
+                        graduationType);
+
+                assertEquals(middleSchoolAchievementReqDto.achievement1_1(), resultDto.achievement1_1());
+                assertNull(resultDto.achievement1_2(), "제출되지 않은 학기는 다른 학기로 대체하지 않고 null 그대로 둔다");
+                assertEquals(middleSchoolAchievementReqDto.achievement2_1(), resultDto.achievement2_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
+                assertNull(resultDto.achievement3_1(), "제출되지 않은 학기는 다른 학기로 대체하지 않고 null 그대로 둔다");
+                assertEquals(middleSchoolAchievementReqDto.achievement3_2(), resultDto.achievement3_2());
+                assertNull(resultDto.gedAvgScore());
             }
 
             @Test
-            @DisplayName("3학년 2학기 성적을 3학년 1학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_3_2_with_3_1() {
-                MiddleSchoolAchievementCalcDto resultDto = OneseoService
-                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement1_2());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_1());
-                assertNull(resultDto.gedAvgScore());
-            }
-        }
+            @DisplayName("achievement1_1을 검증만 하고 그대로 CalcDto에 담는다")
+            void it_passes_through_achievement1_1() {
+                MiddleSchoolAchievementCalcDto resultDto = OneseoService.buildCalcDto(middleSchoolAchievementReqDto,
+                        graduationType);
 
-        @Nested
-        @DisplayName("3학년 1학기 성적이 null이면")
-        class Context_with_missing_3_1 {
-            private GraduationType graduationType;
-
-            @BeforeEach
-            void setUp() {
-                middleSchoolAchievementReqDto = createDefaultDtoBuilder().achievement3_1(null).build();
-                graduationType = CANDIDATE;
-            }
-
-            @Test
-            @DisplayName("3학년 1학기 성적을 3학년 2학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_3_1_with_3_2() {
-                MiddleSchoolAchievementCalcDto resultDto = OneseoService
-                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement1_2());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_2());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
-                assertNull(resultDto.gedAvgScore());
-            }
-        }
-
-        @Nested
-        @DisplayName("2학년 1학기 성적이 null이면")
-        class Context_with_missing_2_1 {
-            private GraduationType graduationType;
-
-            @BeforeEach
-            void setUp() {
-                middleSchoolAchievementReqDto = createDefaultDtoBuilder().achievement2_1(null).build();
-                graduationType = CANDIDATE;
-            }
-
-            @Test
-            @DisplayName("2학년 1학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_2_1_with_2_2() {
-                MiddleSchoolAchievementCalcDto resultDto = OneseoService
-                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement1_2());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
-                assertNull(resultDto.gedAvgScore());
-            }
-        }
-
-        @Nested
-        @DisplayName("2학년 2학기 성적이 null이면")
-        class Context_with_missing_2_2 {
-            private GraduationType graduationType;
-
-            @BeforeEach
-            void setUp() {
-                middleSchoolAchievementReqDto = createDefaultDtoBuilder().achievement2_2(null).build();
-                graduationType = CANDIDATE;
-            }
-
-            @Test
-            @DisplayName("2학년 2학기 성적을 2학년 1학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_2_2_with_2_1() {
-                MiddleSchoolAchievementCalcDto resultDto = OneseoService
-                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement1_2());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
-                assertNull(resultDto.gedAvgScore());
-            }
-        }
-
-        @Nested
-        @DisplayName("졸업예정자(CANDIDATE)이고, 1학년 2학기 성적만 null이면")
-        class Context_with_candidate_and_missing_1_2_only {
-            private GraduationType graduationType;
-
-            @BeforeEach
-            void setUp() {
-                middleSchoolAchievementReqDto = createDefaultDtoBuilder().achievement1_2(null).build();
-                graduationType = CANDIDATE;
-            }
-
-            @Test
-            @DisplayName("1학년 2학기 성적을 1학년 1학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_1_2_with_1_1() {
-                MiddleSchoolAchievementCalcDto resultDto = OneseoService
-                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement1_1());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
-                assertNull(resultDto.gedAvgScore());
-            }
-        }
-
-        @Nested
-        @DisplayName("졸업예정자(CANDIDATE)이고, 1학년 성적이 모두 null이면")
-        class Context_with_candidate_and_missing_1_1_and_1_2 {
-            private GraduationType graduationType;
-
-            @BeforeEach
-            void setUp() {
-                middleSchoolAchievementReqDto = createDefaultDtoBuilder().achievement1_1(null).achievement1_2(null)
-                        .build();
-                graduationType = CANDIDATE;
-            }
-
-            @Test
-            @DisplayName("1학년 2학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_1_2_with_2_2() {
-                MiddleSchoolAchievementCalcDto resultDto = OneseoService
-                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
-                assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
-                assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
-                assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
-                assertNull(resultDto.gedAvgScore());
+                assertEquals(middleSchoolAchievementReqDto.achievement1_1(), resultDto.achievement1_1());
             }
         }
 
@@ -448,7 +335,31 @@ class OneseoServiceTest {
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
-                        () -> OneseoService.buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType));
+                        () -> OneseoService.buildCalcDto(middleSchoolAchievementReqDto, graduationType));
+
+                assertEquals("올바르지 않은 일반교과 등급이 입력되었습니다.", exception.getMessage());
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("1학년 1학기 성적에 잘못된 등급이 포함되어 있으면")
+        class Context_with_invalid_achievement1_1 {
+            private GraduationType graduationType;
+
+            @BeforeEach
+            void setUp() {
+                middleSchoolAchievementReqDto = createDefaultDtoBuilder()
+                        .achievement1_1(new ArrayList<>(List.of(1, 2, 6))) // valid value: 1~5
+                        .build();
+                graduationType = CANDIDATE;
+            }
+
+            @Test
+            @DisplayName("ExpectedException을 던진다")
+            void it_throws_expected_exception() {
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> OneseoService.buildCalcDto(middleSchoolAchievementReqDto, graduationType));
 
                 assertEquals("올바르지 않은 일반교과 등급이 입력되었습니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -472,7 +383,7 @@ class OneseoServiceTest {
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
-                        () -> OneseoService.buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType));
+                        () -> OneseoService.buildCalcDto(middleSchoolAchievementReqDto, graduationType));
 
                 assertEquals("올바르지 않은 예체능 등급이 입력되었습니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -496,7 +407,7 @@ class OneseoServiceTest {
             @DisplayName("ExpectedException을 던진다")
             void it_throws_expected_exception() {
                 ExpectedException exception = assertThrows(ExpectedException.class,
-                        () -> OneseoService.buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType));
+                        () -> OneseoService.buildCalcDto(middleSchoolAchievementReqDto, graduationType));
 
                 assertEquals("예체능 성취점수가 비어있습니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());

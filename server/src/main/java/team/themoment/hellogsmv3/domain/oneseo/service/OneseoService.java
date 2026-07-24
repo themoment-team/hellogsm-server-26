@@ -54,7 +54,14 @@ public class OneseoService {
         }
     }
 
-    public static MiddleSchoolAchievementCalcDto buildCalcDtoWithFillEmpty(MiddleSchoolAchievementReqDto dto,
+    /**
+     * 원본 성적을 검증만 하고 그대로 담은 CalcDto를 만든다.
+     *
+     * 결측 학기를 다른 학기 성적으로 채우는 대체는 여기서 하지 않는다 — 그 대체는 최종 채점 시점(entrance-engine)의 책임이며,
+     * plan에 선언된 MissingSemesterStrategy가 (`SAME_YEAR_OTHER_SEMESTER` → `UPPER_YEAR`
+     * → `LOWER_YEAR`) 적용한다. 여기서 미리 대체해 버리면 그 대체가 plan 밖의 하드코딩된 규칙으로 이중화된다.
+     */
+    public static MiddleSchoolAchievementCalcDto buildCalcDto(MiddleSchoolAchievementReqDto dto,
             GraduationType graduationType) {
         MiddleSchoolAchievementCalcDto.MiddleSchoolAchievementCalcDtoBuilder builder = MiddleSchoolAchievementCalcDto
                 .builder();
@@ -62,36 +69,13 @@ public class OneseoService {
             builder.gedAvgScore(dto.gedAvgScore());
             return builder.build();
         }
-        // 졸업예정자 & 졸업자는 없는 성적을 복사하여 사용
-        // 자유학년제(1학년)을 제외하고,두개 이상의 빈학기가 없다는 가정
-        List<Integer> tmpAchievement1_1 = dto.achievement1_1();
-        List<Integer> tmpAchievement1_2 = dto.achievement1_2();
-        List<Integer> tmpAchievement2_1 = dto.achievement2_1();
-        List<Integer> tmpAchievement2_2 = dto.achievement2_2();
-        List<Integer> tmpAchievement3_1 = dto.achievement3_1();
-        List<Integer> tmpAchievement3_2 = dto.achievement3_2();
 
-        if (graduationType == GraduationType.GRADUATE && tmpAchievement3_2 == null) {
-            tmpAchievement3_2 = tmpAchievement3_1;
-        } else if (tmpAchievement3_1 == null) {
-            tmpAchievement3_1 = tmpAchievement3_2;
-        } else if (tmpAchievement2_1 == null) {
-            tmpAchievement2_1 = tmpAchievement2_2;
-        } else if (tmpAchievement2_2 == null) {
-            tmpAchievement2_2 = tmpAchievement2_1;
-        } else if (graduationType == GraduationType.CANDIDATE && dto.achievement1_2() == null) {
-            if (dto.achievement1_1() == null) {
-                tmpAchievement1_2 = tmpAchievement2_2;
-            } else {
-                tmpAchievement1_2 = tmpAchievement1_1;
-            }
-        }
-
-        builder.achievement1_2(validationGeneralAchievement(tmpAchievement1_2))
-                .achievement2_1(validationGeneralAchievement(tmpAchievement2_1))
-                .achievement2_2(validationGeneralAchievement(tmpAchievement2_2))
-                .achievement3_1(validationGeneralAchievement(tmpAchievement3_1))
-                .achievement3_2(validationGeneralAchievement(tmpAchievement3_2))
+        builder.achievement1_1(validationGeneralAchievement(dto.achievement1_1()))
+                .achievement1_2(validationGeneralAchievement(dto.achievement1_2()))
+                .achievement2_1(validationGeneralAchievement(dto.achievement2_1()))
+                .achievement2_2(validationGeneralAchievement(dto.achievement2_2()))
+                .achievement3_1(validationGeneralAchievement(dto.achievement3_1()))
+                .achievement3_2(validationGeneralAchievement(dto.achievement3_2()))
                 .artsPhysicalAchievement(
                         validationArtsPhysicalAchievement(dto.artsPhysicalAchievement(), dto.artsPhysicalSubjects()))
                 .absentDays(dto.absentDays()).attendanceDays(dto.attendanceDays()).volunteerTime(dto.volunteerTime())

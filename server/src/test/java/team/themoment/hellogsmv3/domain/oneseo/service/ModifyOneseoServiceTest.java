@@ -198,7 +198,7 @@ class ModifyOneseoServiceTest {
 
                 assertEquals(middleSchoolAchievement.getId(), capturedAchievement.getId());
                 assertEquals(middleSchoolAchievement.getOneseo().getId(), capturedAchievement.getOneseo().getId());
-                assertEquals(achievement, capturedAchievement.getAchievement1_2());
+                assertNull(capturedAchievement.getAchievement1_2(), "제출되지 않은 학기는 대체하지 않고 null 그대로 저장한다");
                 assertEquals(achievement, capturedAchievement.getAchievement2_1());
                 assertEquals(achievement, capturedAchievement.getAchievement2_2());
                 assertEquals(achievement, capturedAchievement.getAchievement3_1());
