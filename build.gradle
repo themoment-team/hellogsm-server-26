@@ -16,7 +16,7 @@ plugins {
 group = 'team.themoment'
 version = 'v20260609.0'
 
-configure([project(':entrance-dsl'), project(':entrance-plans'), project(':entrance-engine'), project(':entrance-batch')]) {
+configure([project(':entrance-dsl'), project(':entrance-plans'), project(':entrance-engine'), project(':entrance-batch'), project(':entrance-lambda')]) {
 	group = 'kr.hellogsm.entrance'
 	version = '0.1.0-SNAPSHOT'
 }
