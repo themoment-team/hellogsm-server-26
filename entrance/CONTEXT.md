@@ -74,8 +74,8 @@ hellogsm(www.hellogsm.kr)은 광주소프트웨어마이스터고등학교 입�
 | 단계 | 상태 | 내용 |
 |---|---|---|
 | Phase 0 | ✅ 2026-07-19 | DSL + `Plan2026` + 검증 |
-| Phase 1 | ✅ 2026-07-20 | `scoring` + Go 계산기 대비 golden test — `entrance-lambda` 배포는 미착수 |
-| Phase 2 | 🔶 2026-07-21 | `evaluation`·`assignment` + go-hellogsm 대비 golden test — **엔진은 완료, `entrance-batch`(DB 러너) 미착수** |
+| Phase 1 | ✅ 2026-07-24 | `scoring` + Go 계산기 대비 golden test, `entrance-lambda`(모의 성적 계산 API) 구현·테스트·CI/CD 완료 — AWS 실배포(인프라)만 남음 |
+| Phase 2 | ✅ 2026-07-21 | `evaluation`·`assignment` + go-hellogsm 대비 golden test, `entrance-batch`(DB 러너) 완료 |
 | Phase 3 | ⬜ | 서버가 엔진 소비 → Go 레포 퇴역 |
 
 ### 모듈별 산출물

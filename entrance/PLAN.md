@@ -260,7 +260,7 @@ val plan2026 = admissionPlan(year = 2026) {
 | 단계 | 내용 | 완료 기준 |
 |---|---|---|
 | **Phase 0** | 레포 세팅(Gradle 멀티모듈, Kotlin 2.x), `entrance-dsl` 도메인 모델 + 빌더, `Plan2026.kt` 인코딩 | 2026 요강 전체가 DSL로 표현되고 plan 검증 테스트(정원 합계, 가중치 합 = 만점 등) 통과 |
-| **Phase 1** | `entrance-engine/scoring` 구현 + Go 계산기 대비 golden test, `entrance-lambda` 배포 | 모의 성적 계산 API가 기존 Lambda와 동일 응답 — **scoring·golden test 완료(2026-07-20), `entrance-lambda` 미착수** |
+| **Phase 1** | `entrance-engine/scoring` 구현 + Go 계산기 대비 golden test, `entrance-lambda` 배포 | 모의 성적 계산 API가 기존 Lambda와 동일 응답 — **scoring·golden test 완료(2026-07-20), `entrance-lambda` 구현·테스트·CI/CD 완료(2026-07-24). 남은 것은 AWS 실배포(함수·API Gateway는 인프라 작업)뿐** |
 | **Phase 2** | `entrance-engine/evaluation·assignment` + `entrance-batch` 구현, `go-hellogsm` 대비 parity | 1차/2차/최종배정/추가모집 배치 결과 전수 일치 (의도된 수정 제외) — **엔진 전 범위 완료(2026-07-21): 1차/2차 선발·편입·동점자, 최초 학과 배정, 예비합격, 중도포기 재배정, 추가모집 + go-hellogsm 대비 golden test. 남은 것: `entrance-batch`(DB 러너), 실 배치 대비 재검증(Go 툴체인 필요)** |
 | **Phase 3** | server(`hellogsm-server-26`)가 엔진을 모듈 의존성으로 소비, Go 레포 퇴역 | 운영 트래픽이 Kotlin 엔진만 사용 |
 | **Phase 4+** (비전) | admin에서 plan 시뮬레이션/미리보기, DSL 스키마 기반 FE 폼 생성 | — |

@@ -298,6 +298,6 @@ second.tiebreakers                     // 동점자 기준 체인 (우선순위 
 ./gradlew :entrance-dsl:test --tests '*PlanValidatorTest*' # 특정 테스트 클래스
 ```
 
-- Kotlin 2.3.21 · Gradle wrapper 9.6.1 · JVM target 21
-- 현재 상태: **Phase 0~2 완료** — DSL + 2026 plan + 검증, 그리고 엔진 전 범위(`scoring`·`evaluation`·`assignment`)와 기존 Go 구현 대비 golden test. 테스트 108개 통과.
-- 남은 것: `entrance-batch`(DB 러너), `entrance-lambda`(배포), 서버 통합. 전체 로드맵은 [PLAN.md](./PLAN.md) 8절, 저장소 통합 계획은 [MIGRATION.md](./MIGRATION.md) 참고.
+- Kotlin 2.3.21 · Gradle wrapper 9.6.1 · JVM target 25
+- 현재 상태: **Phase 0~2 완료** — DSL + 2026 plan + 검증, 엔진 전 범위(`scoring`·`evaluation`·`assignment`)와 기존 Go 구현 대비 golden test, `entrance-batch`(DB 러너), `entrance-lambda`(모의 성적 계산 API) 구현·테스트·CI/CD까지 완료.
+- 남은 것: `entrance-lambda`의 AWS 실배포(함수·API Gateway는 인프라 작업, 코드 밖), 실 배치 대비 재검증(Go 툴체인 필요), 서버가 엔진을 실제로 소비하도록 전환. 전체 로드맵은 [PLAN.md](./PLAN.md) 8절, 저장소 통합 계획은 [MIGRATION.md](./MIGRATION.md) 참고.

@@ -41,11 +41,11 @@ hellogsm-server-26/
 ├── server/                      기존 src/ 이동. Spring Boot 4, Java 25
 │   ├── build.gradle
 │   └── src/
-├── entrance-dsl/                Kotlin, JVM 21 — 순수, 의존성 없음
+├── entrance-dsl/                Kotlin, JVM 25 — 순수, 의존성 없음
 ├── entrance-plans/              → entrance-dsl
 ├── entrance-engine/             → entrance-dsl        (DB 모름)
-├── entrance-batch/              → entrance-engine + persistence  (신규)
-└── entrance-lambda/             → entrance-engine     (JVM 21, 독립 배포, 신규)
+├── entrance-batch/              → entrance-engine + persistence  (완료)
+└── entrance-lambda/             → entrance-engine + entrance-plans (JVM 25, 독립 배포, 구현 완료 — AWS 배포는 별도)
 ```
 
 ### 불변 규칙 (통합 후에도 유지)
@@ -124,6 +124,8 @@ git subtree add --prefix=entrance /Users/user/dev/every-entrance main
 서버의 `LambdaScoreCalculatorClient`(Feign) 호출을 유지할지 in-process 엔진 호출로 바꿀지는 별도 판단이다.
 **모의 성적 계산의 가용성 요건(server 다운 시에도 동작)은 유효하므로 `entrance-lambda`는 존속한다.** 레포 통합과 런타임 결합은 별개이며, 같은 레포의 모듈이어도 Lambda는 독립 배포된다.
 
+**`entrance-lambda`로의 전환 방식 (2026-07-24 결정)**: 기존 Go 함수(`go-hellogsm-score-calculator`)와 **병행 배포** — 같은 요청/응답 JSON·인증 헤더 계약을 그대로 구현했으므로(entrance/CLAUDE.md 참고), 검증 후 전환은 서버의 `SCORE_CALCULATOR_SERVICE_URL` 환경변수를 새 Lambda의 API Gateway 엔드포인트로 바꾸는 것만으로 충분하다 — **서버 코드 변경 불필요**. 단 새 Lambda는 API Gateway REST API(v1 프록시 통합)로 앞단을 구성해야 한다(Lambda Function URL·HTTP API(v2)는 이벤트 스키마가 달라 그대로 안 됨). CI/CD는 `.github/workflows/entrance-lambda-{stage,prod}-{ci,cd}.yml`로 구성했으며, 실제 AWS 함수 생성·IAM·API Gateway 연결은 코드 밖의 인프라 작업으로 남아있다.
+
 ---
 
 ## 5. 경로 의존 체크리스트 (M1 필수)
@@ -174,6 +176,7 @@ M1과 M2를 한 PR로 묶지 않는다 — 파이프라인 변경과 코드 유�
 
 ## 7. 남은 판단
 
-- `entrance-lambda`의 cold start 대응 — SnapStart 우선, 미달 시 GraalVM native (PLAN.md 9절 리스크)
+- `entrance-lambda`의 cold start 대응 — SnapStart 우선, 미달 시 GraalVM native (PLAN.md 9절 리스크). 실측은 AWS 실배포 이후 가능
+- `entrance-lambda` 실 AWS 배포 — 함수 생성·IAM 역할·`X_HG_INTERNAL_API_KEY` 환경변수·API Gateway 연결(콘솔/IaC, 코드 밖), GitHub Secrets(`AWS_*`, `ENTRANCE_LAMBDA_FUNCTION_NAME_{STAGE,PROD}`) 등록
 - 실 Go 바이너리/배치 대비 재검증 및 병행 운전 (PLAN.md 7절 1·3항) — 통합과 독립적으로 진행 가능
 - M3 persistence 추출 범위 — 전면 분리 vs 배치가 쓰는 엔티티만 최소 분리
