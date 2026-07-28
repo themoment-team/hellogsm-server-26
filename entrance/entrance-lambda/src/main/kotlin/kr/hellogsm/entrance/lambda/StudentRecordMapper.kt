@@ -12,7 +12,7 @@ import kr.hellogsm.entrance.plan.SemesterRef
  * 결측 학기 대체는 이 매퍼가 아니라 `ScoringEngine`(plan에 선언된 `MissingSemesterStrategy`)의
  * 책임이다 — 그래서 plan이 직접 채점하지 않는 학기(1-1)도 **대체 원본으로 쓰일 수 있으므로
  * submitted map에 그대로 넣는다.** 1-1을 여기서 미리 걸러내면 엔진이 SAME_YEAR_OTHER_SEMESTER
- * 전략으로 1-2를 채울 방법이 없어진다 (Plan2026의 `missingSemester(SAME_YEAR_OTHER_SEMESTER, ...)`
+ * 전략으로 1-2를 채울 방법이 없어진다 (Plan.kt의 `missingSemester(SAME_YEAR_OTHER_SEMESTER, ...)`
  * 선언이 있어도 무력화됨). `entrance-batch`의 `StudentRecordMapper`는 영속 엔티티에 애초에
  * achievement1_1 컬럼이 없어 이 대체를 받을 수 없다 — 별도 이슈(스키마 확장 필요).
  */

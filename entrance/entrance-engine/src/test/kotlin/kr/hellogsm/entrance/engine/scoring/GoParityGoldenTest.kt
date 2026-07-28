@@ -1,6 +1,6 @@
 package kr.hellogsm.entrance.engine.scoring
 
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,7 +14,7 @@ import kotlin.test.assertEquals
  */
 class GoParityGoldenTest {
 
-    private val engine = ScoringEngine(plan2026)
+    private val engine = ScoringEngine(plan)
 
     @Test
     fun `2026 시즌 Go 계산기와 동일한 결과를 낸다`() {

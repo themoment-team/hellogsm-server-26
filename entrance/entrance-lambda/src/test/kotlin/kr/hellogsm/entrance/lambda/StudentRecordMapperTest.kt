@@ -2,7 +2,7 @@ package kr.hellogsm.entrance.lambda
 
 import kr.hellogsm.entrance.engine.scoring.ScoringEngine
 import kr.hellogsm.entrance.plan.SemesterRef
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,7 +14,7 @@ import kotlin.test.assertNotEquals
  */
 class StudentRecordMapperTest {
 
-    private val scoring = ScoringEngine(plan2026)
+    private val scoring = ScoringEngine(plan)
 
     @Test
     fun `요청을 매핑해 채점하면 entrance-batch 매퍼와 동일한 점수가 나온다`() {

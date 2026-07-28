@@ -3,7 +3,7 @@ package kr.hellogsm.entrance.engine.assignment
 import kr.hellogsm.entrance.engine.evaluation.EvaluationException
 import kr.hellogsm.entrance.engine.evaluation.UnresolvedTieException
 import kr.hellogsm.entrance.engine.evaluation.testApplicant
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,7 +11,7 @@ import kotlin.test.assertFailsWith
 
 class AssignmentEngineTest {
 
-    private val engine = AssignmentEngine(plan2026)
+    private val engine = AssignmentEngine(plan)
 
     /** 최종 점수가 [score]인 배정 대상자. 동점자 기준은 일반교과 성적으로 구분 */
     private fun candidate(

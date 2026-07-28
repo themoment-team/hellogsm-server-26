@@ -15,11 +15,17 @@ import kr.hellogsm.entrance.plan.MissingSemesterStrategy.UPPER_YEAR
 import java.time.LocalDate
 
 /**
- * 2026학년도 광주소프트웨어마이스터고등학교 입학전형요강.
+ * 현재 활성 요강 — 2026학년도 광주소프트웨어마이스터고등학교 입학전형요강.
+ *
+ * 이 파일(`Plan.kt`)은 항상 "지금 쓰는 plan"을 가리키는 고정 이름이다. 소비자(`entrance-batch`,
+ * `entrance-lambda` 등)는 연도를 몰라도 `kr.hellogsm.entrance.plans.plan`만 참조하면 된다.
+ * 새 학년도로 넘어갈 때는 이 파일을 고치는 게 아니라 ① 지금 내용을 `legacy/PlanXXXX.kt`로
+ * 옮기고 심볼명을 `planXXXX`로 바꿔 얼린 뒤 ② 이 파일을 새 연도 내용으로 덮어쓴다
+ * (`legacy/README.md`, `entrance/CLAUDE.md` 참고).
  *
  * 근거 문서: `.reference/2026_entrance.pdf` (2025. 7. 11. 공고)
  */
-val plan2026 = admissionPlan(year = 2026) {
+val plan = admissionPlan(year = 2026) {
     majors {
         major("SW", "소프트웨어개발과", capacity = 36)
         major("IOT", "스마트IoT과", capacity = 18)

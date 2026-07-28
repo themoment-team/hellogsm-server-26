@@ -1,7 +1,7 @@
 # entrance-batch — DB 러너 (사용법)
 
 `entrance-batch`는 공유 MySQL을 읽어 엔진을 돌리고 결과를 다시 써 넣는 **Spring Boot CLI**다.
-기존 **`go-hellogsm` 배치와 Lambda 성적 계산기를 대체**한다. 엔진(순수)·요강(`plan2026`)·공유
+기존 **`go-hellogsm` 배치와 Lambda 성적 계산기를 대체**한다. 엔진(순수)·요강(`plan`)·공유
 영속성(`persistence`)을 잇는 어댑터이며, 아키텍처상 위치는 [architecture.md](./architecture.md) 참고.
 
 ## 무엇을 하나

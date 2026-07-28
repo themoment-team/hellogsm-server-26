@@ -1,7 +1,7 @@
 package kr.hellogsm.entrance.engine.evaluation
 
 import kr.hellogsm.entrance.plan.SemesterRef
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
  */
 class AdditionalRecruitmentTest {
 
-    private val engine = EvaluationEngine(plan2026)
+    private val engine = EvaluationEngine(plan)
 
     @Test
     fun `1차 환산점수 상위순으로 빈자리 수만큼 선발한다`() {

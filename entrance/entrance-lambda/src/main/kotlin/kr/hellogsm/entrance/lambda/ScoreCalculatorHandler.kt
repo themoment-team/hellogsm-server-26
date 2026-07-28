@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kr.hellogsm.entrance.engine.scoring.ScoringEngine
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 
 private const val API_KEY_HEADER = "x-hg-api-key"
 private const val API_KEY_ENV_VAR = "X_HG_INTERNAL_API_KEY"
@@ -27,8 +27,8 @@ class ScoreCalculatorHandler @JvmOverloads constructor(
 ) : RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
-    private val scoringEngine = ScoringEngine(plan2026)
-    private val resultScale = plan2026.grading.rounding.resultScale
+    private val scoringEngine = ScoringEngine(plan)
+    private val resultScale = plan.grading.rounding.resultScale
 
     override fun handleRequest(input: APIGatewayProxyRequestEvent, context: Context): APIGatewayProxyResponseEvent {
         val headerApiKey = input.headers.orEmpty().entries

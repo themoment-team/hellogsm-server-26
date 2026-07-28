@@ -5,9 +5,9 @@
 낸다(모든 연산은 `BigDecimal`).
 
 ```kotlin
-val scoring = ScoringEngine(plan2026)
-val evaluation = EvaluationEngine(plan2026)
-val assignment = AssignmentEngine(plan2026)
+val scoring = ScoringEngine(plan)
+val evaluation = EvaluationEngine(plan)
+val assignment = AssignmentEngine(plan)
 ```
 
 ## ① ScoringEngine — 성적 계산

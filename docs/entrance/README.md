@@ -34,7 +34,7 @@
 | 모듈 | 역할 | 의존성 | 패키지 루트 |
 |---|---|---|---|
 | `entrance-dsl` | 도메인 모델 + type-safe builder | 없음(순수 Kotlin) | `kr.hellogsm.entrance.plan` / `.dsl` |
-| `entrance-plans` | 연도별 요강 선언(`plan2026`) — **데이터만** | `entrance-dsl` | `kr.hellogsm.entrance.plans` |
+| `entrance-plans` | 현재 활성 요강 선언(`plan`, 고정 이름 — 지난 연도는 `legacy/`) — **데이터만** | `entrance-dsl` | `kr.hellogsm.entrance.plans` |
 | `entrance-engine` | 해석 엔진(scoring·evaluation·assignment) | `entrance-dsl` | `kr.hellogsm.entrance.engine.*` |
 | `entrance-batch` | DB 러너(go-hellogsm 대체) — Spring Boot CLI | `entrance-engine`·`entrance-plans`·`persistence` | `kr.hellogsm.entrance.batch` |
 | `persistence` | 서버·배치 공유 JPA 엔티티 | — | `team.themoment.hellogsmv3.*` |
@@ -42,7 +42,7 @@
 ```mermaid
 graph LR
     dsl[entrance-dsl<br/>순수 모델·DSL]
-    plans[entrance-plans<br/>plan2026 데이터]
+    plans[entrance-plans<br/>plan 데이터]
     engine[entrance-engine<br/>계산 엔진·DB 모름]
     batch[entrance-batch<br/>Spring Boot CLI]
     persistence[persistence<br/>공유 JPA 엔티티]

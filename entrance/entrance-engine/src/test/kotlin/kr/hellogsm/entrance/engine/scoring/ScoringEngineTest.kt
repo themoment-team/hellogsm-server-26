@@ -11,7 +11,7 @@ import kr.hellogsm.entrance.plan.GraduationType.CANDIDATE
 import kr.hellogsm.entrance.plan.GraduationType.GRADUATE
 import kr.hellogsm.entrance.plan.MissingSemesterStrategy
 import kr.hellogsm.entrance.plan.SemesterRef
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,7 +24,7 @@ import kotlin.test.assertIs
  */
 class ScoringEngineTest {
 
-    private val engine = ScoringEngine(plan2026)
+    private val engine = ScoringEngine(plan)
 
     // ── 테스트 헬퍼 ────────────────────────────────────────────────
 

@@ -143,7 +143,7 @@ class MockApplicantFactory(
     }
 
     /**
-     * 졸업 구분별 원본 성적 무작위 생성. 학기 구성은 plan2026 의 요건([Plan2026.kt]의
+     * 졸업 구분별 원본 성적 무작위 생성. 학기 구성은 plan 의 요건([Plan.kt]의
      * `transcript(CANDIDATE)`/`transcript(GRADUATE)`)과 정확히 맞춘다 — 결측 학기 대체 경로를
      * 타지 않도록, 해당 없는 학기는 애초에 채우지 않는다(예: 졸업자는 1-2 없음, 재학생은 3-2 없음).
      */

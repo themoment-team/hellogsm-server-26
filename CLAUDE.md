@@ -23,7 +23,7 @@ Gradle multi-module monorepo. The core is a Spring Boot 4 / Java 25 REST API ser
 | `server`          | Spring Boot API — controllers, services, security, batch triggers       | `persistence` |
 | `persistence`     | Shared JPA entities/repositories (`Oneseo`, `MiddleSchoolAchievement`, …), reused by `server` and `entrance-batch` | — |
 | `entrance-dsl`    | Kotlin type-safe builder + immutable domain model (`AdmissionPlan`) for admission-plan rules | none (pure Kotlin) |
-| `entrance-plans`  | Year-by-year plan declarations (`Plan2026.kt`) — data only, no logic     | `entrance-dsl` |
+| `entrance-plans`  | Active plan declaration under a fixed name (`Plan.kt`) — past years archived in `legacy/` — data only, no logic | `entrance-dsl` |
 | `entrance-engine` | Pure-function interpreter: `scoring` → `evaluation` → `assignment`      | `entrance-dsl` |
 | `entrance-batch`  | DB-backed batch runner invoking `entrance-engine` (replaces the old `go-hellogsm`) | `entrance-engine`, `persistence` |
 | `entrance-lambda` | Mock score-calculation API, deployed standalone to AWS Lambda (replaces the old `go-hellogsm-score-calculator`) — no Spring, plain `RequestHandler` to minimize cold start | `entrance-engine`, `entrance-plans` |

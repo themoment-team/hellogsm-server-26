@@ -2,7 +2,7 @@ package kr.hellogsm.entrance.batch.mapping
 
 import kr.hellogsm.entrance.engine.scoring.ScoringEngine
 import kr.hellogsm.entrance.plan.SemesterRef
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import team.themoment.hellogsmv3.domain.oneseo.entity.MiddleSchoolAchievement
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType
 import java.math.BigDecimal
@@ -20,7 +20,7 @@ import kotlin.test.assertNotEquals
  */
 class StudentRecordMapperTest {
 
-    private val scoring = ScoringEngine(plan2026)
+    private val scoring = ScoringEngine(plan)
 
     @Test
     fun `MiddleSchoolAchievement 를 매핑해 채점하면 Go parity golden 점수와 일치한다`() {

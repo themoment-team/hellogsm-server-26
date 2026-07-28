@@ -10,11 +10,12 @@
 
 ## 전체 골격
 
-`entrance/entrance-plans/.../Plan2026.kt`가 정본 예시다. 최상위는 `admissionPlan(year) { }` 하나이고
+`entrance/entrance-plans/.../Plan.kt`가 정본 예시다. 이 파일은 항상 "현재 활성 plan"을 가리키는
+고정 이름이다(아래 '새 학년도 요강 추가하기' 참고). 최상위는 `admissionPlan(year) { }` 하나이고
 그 안에 블록들이 들어간다.
 
 ```kotlin
-val plan2026 = admissionPlan(year = 2026) {
+val plan = admissionPlan(year = 2026) {
     majors { /* 학과와 정원 */ }
     screenings { /* 전형과 정원·편입 규칙 */ }
     grading { /* 성적 산출 규칙(졸업구분별) */ }
@@ -157,13 +158,18 @@ schedule { event("APPLICATION", "원서 접수…", LocalDate.of(2025, 10, 20), 
 
 ## 새 학년도 요강 추가하기
 
-1. **파일을 수정하지 말고 추가한다.** `Plan2026.kt`를 복사해 `Plan2027.kt` 신규 파일로 만들고
-   `val plan2027 = admissionPlan(year = 2027) { … }`로 선언한다. 과거 plan은 재현성을 위해 보존한다.
-2. 요강 PDF의 수치를 그대로 옮긴다. 수치의 근거는 PDF뿐이다.
-3. 요강 수치를 고정하는 테스트(`Plan2026Test` 류)를 함께 추가한다. 요강 개정 없이 이 테스트를
-   고쳐 통과시키지 않는다.
-4. 배치가 새 plan을 쓰게 하려면 `entrance-batch`의 엔진 빈 설정(`EngineConfig`)에서 주입하는
-   plan을 바꾼다([batch.md](./batch.md)).
+`Plan.kt`/`val plan`은 항상 "현재 활성 plan"을 가리키는 고정 이름이다 — 소비자(`entrance-batch`,
+`entrance-lambda`)는 연도를 몰라도 `kr.hellogsm.entrance.plans.plan`만 참조하면 되므로, 새 학년도로
+넘어가도 소비자 코드는 고칠 필요가 없다(2026-07-28 결정).
+
+1. **지금의 `Plan.kt` 내용을 얼린다.** `legacy/PlanXXXX.kt`로 옮기고 심볼명을 `val plan` →
+   `val planXXXX`로 바꾼다. 같은 이름의 `PlanTest`도 `legacy/PlanXXXXTest.kt`로 함께 옮긴다.
+   과거 plan은 재현성을 위해 이후 수정하지 않는다.
+2. **`Plan.kt`를 새 연도 내용으로 덮어쓴다.** 가장 빠른 방법은 방금 얼린 legacy 파일을 복사해
+   바뀐 수치만 고치는 것이다. 요강 PDF의 수치를 그대로 옮긴다 — 수치의 근거는 PDF뿐이다.
+3. 요강 수치를 고정하는 새 `PlanTest`를 작성한다. 요강 개정 없이 이 테스트를 고쳐 통과시키지 않는다.
+4. `entrance-batch`/`entrance-lambda`는 손대지 않는다 — `plan` import가 그대로이므로 자동으로
+   새 plan을 쓴다([batch.md](./batch.md)).
 
 ## 설계 규칙 (위반 금지)
 

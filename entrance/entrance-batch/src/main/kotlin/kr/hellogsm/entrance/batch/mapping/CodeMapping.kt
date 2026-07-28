@@ -6,7 +6,7 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening
 /**
  * 엔티티 enum ↔ 요강(plan) 코드 문자열 변환.
  *
- * 엔진은 전형·학과를 문자열 코드로 다루고(plan2026 의 선언 코드), DB 는 enum 으로 저장한다.
+ * 엔진은 전형·학과를 문자열 코드로 다루고(plan 의 선언 코드), DB 는 enum 으로 저장한다.
  * - 전형: GENERAL→GEN, SPECIAL→SPE, EXTRA_VETERANS→EXT_VETERANS, EXTRA_ADMISSION→EXT_SPECIAL
  * - 학과: enum 이름이 곧 plan 코드(SW/IOT/AI)
  */

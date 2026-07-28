@@ -2,7 +2,7 @@ package kr.hellogsm.entrance.engine.evaluation
 
 import kr.hellogsm.entrance.engine.assignment.AssignmentEngine
 import kr.hellogsm.entrance.engine.assignment.FinalCandidate
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,8 +16,8 @@ import kotlin.test.assertEquals
  */
 class PostAdmissionFlowTest {
 
-    private val evaluation = EvaluationEngine(plan2026)
-    private val assignment = AssignmentEngine(plan2026)
+    private val evaluation = EvaluationEngine(plan)
+    private val assignment = AssignmentEngine(plan)
 
     private fun candidate(id: String, score: String) = FinalCandidate(
         applicant = testApplicant(id, "GEN", total = "290.000", general = "100.000"),

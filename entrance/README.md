@@ -4,7 +4,7 @@
 
 ```
 entrance-dsl      도메인 모델 + DSL 빌더 (순수 Kotlin, 의존성 없음)
-entrance-plans    연도별 요강 선언 — Plan2026.kt
+entrance-plans    현재 활성 요강 선언 — Plan.kt (지난 연도는 legacy/에 보관)
 entrance-engine   해석 엔진 (성적 계산·전형 배치 — 개발 중)
 ```
 
@@ -42,7 +42,7 @@ val plan = admissionPlan(year = 2027) {
 
 빌드 결과물은 불변 모델 `AdmissionPlan`이며, **생성되는 순간 정합성이 검증**됩니다. 정원 합계가 안 맞거나 가중치 합이 100%가 아니면 그 자리에서 `PlanValidationException`이 발생하므로, 존재하는 plan 인스턴스는 항상 유효합니다.
 
-전체 예시는 [`entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan2026.kt`](./entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan2026.kt)가 2026 요강 전문을 인코딩한 실전 레퍼런스입니다.
+전체 예시는 [`entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt`](./entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt)가 2026 요강 전문을 인코딩한 실전 레퍼런스입니다(이 파일은 항상 "현재 활성 plan"을 가리키는 고정 이름 — 아래 '새 학년도 요강 추가하기' 참고).
 
 ---
 
@@ -160,7 +160,7 @@ formula(GED) {
 }
 ```
 
-> ⚠️ 2026 plan의 검정고시 봉사 환산식은 기존 Go 구현과 대조 전의 **가정값**입니다 (`Plan2026.kt`의 TODO 참고).
+> ⚠️ 2026 plan의 검정고시 봉사 환산식은 기존 Go 구현과 대조 전의 **가정값**입니다 (`Plan.kt`의 TODO 참고).
 
 ### 전형 절차 — `rounds { }`
 
@@ -271,24 +271,27 @@ val plan = admissionPlan(year = 2027) {
 ## 만들어진 plan 사용하기
 
 ```kotlin
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 
-plan2026.totalCapacity                 // 72
-plan2026.resolvedQuota("GEN")          // 64 (Remainder가 풀린 값)
-plan2026.major("SW").name              // "소프트웨어개발과"
-plan2026.screening("SPE").unfilledGoesTo   // "GEN"
+plan.totalCapacity                 // 72
+plan.resolvedQuota("GEN")          // 64 (Remainder가 풀린 값)
+plan.major("SW").name              // "소프트웨어개발과"
+plan.screening("SPE").unfilledGoesTo   // "GEN"
 
-val second = plan2026.round("SECOND")
-second.manualScores                    // [COMPETENCY(100점), INTERVIEW(100점)]
-second.tiebreakers                     // 동점자 기준 체인 (우선순위 순)
+val second = plan.round("SECOND")
+second.manualScores                // [COMPETENCY(100점), INTERVIEW(100점)]
+second.tiebreakers                 // 동점자 기준 체인 (우선순위 순)
 ```
+
+`kr.hellogsm.entrance.plans.plan`은 항상 "현재 활성 plan"을 가리키는 **고정 이름**입니다. 소비자(`entrance-batch`, `entrance-lambda`)는 몇 년도 요강인지 몰라도 이 import 경로 하나만 참조하면 됩니다.
 
 ## 새 학년도 요강 추가하기
 
-1. `entrance-plans`에 `PlanXXXX.kt`를 **새 파일로 추가**합니다 (기존 연도 파일은 재현성을 위해 수정하지 않습니다). 가장 빠른 방법은 직전 연도 파일을 복사해 바뀐 수치만 고치는 것입니다.
-2. 요강 원문(PDF)을 `.reference/`에 두고, plan의 모든 수치는 그 문서를 근거로 합니다.
-3. `PlanXXXXTest`를 함께 작성해 요강의 핵심 수치(정원, 배점, 가중치, 동점자 순서)를 테스트로 고정합니다.
-4. 기존 DSL로 표현할 수 없는 새 규칙이 생겼다면 — 그것이 이 구조의 존재 이유입니다. plan 파일에 우회 코드를 넣지 말고 `entrance-dsl`의 모델·빌더·검증기를 확장하세요.
+1. 지금의 `Plan.kt` 내용을 `legacy/PlanXXXX.kt`로 옮기고 심볼명을 `val plan` → `val planXXXX`로 바꿔 얼립니다(과거 plan은 재현성을 위해 수정하지 않고 보존). `PlanTest`도 함께 `legacy/PlanXXXXTest.kt`로 옮깁니다.
+2. `Plan.kt`를 새 연도 내용으로 덮어씁니다. 가장 빠른 방법은 방금 얼린 legacy 파일을 복사해 바뀐 수치만 고치는 것입니다. 요강 원문(PDF)을 `.reference/`에 두고, plan의 모든 수치는 그 문서를 근거로 합니다.
+3. 새 `PlanTest`를 작성해 요강의 핵심 수치(정원, 배점, 가중치, 동점자 순서)를 테스트로 고정합니다.
+4. `entrance-batch`/`entrance-lambda` 등 소비자 코드는 고치지 않습니다 — `kr.hellogsm.entrance.plans.plan` import가 그대로이므로 자동으로 새 plan을 씁니다.
+5. 기존 DSL로 표현할 수 없는 새 규칙이 생겼다면 — 그것이 이 구조의 존재 이유입니다. plan 파일에 우회 코드를 넣지 말고 `entrance-dsl`의 모델·빌더·검증기를 확장하세요.
 
 ## 개발
 

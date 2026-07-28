@@ -2,7 +2,7 @@ package kr.hellogsm.entrance.engine.evaluation
 
 import kr.hellogsm.entrance.plan.GraduationType.GED
 import kr.hellogsm.entrance.plan.SemesterRef
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 
 class EvaluationEngineTest {
 
-    private val engine = EvaluationEngine(plan2026)
+    private val engine = EvaluationEngine(plan)
 
     // ── 1차 전형: 선발 인원과 배수 ─────────────────────────────────
 

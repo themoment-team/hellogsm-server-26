@@ -62,7 +62,7 @@ hellogsm(www.hellogsm.kr)은 광주소프트웨어마이스터고등학교 입�
   - DSL 산출물은 불변 `AdmissionPlan` 모델이며 **생성자에서 항상 검증**됨 — 존재하는 plan은 항상 유효
   - 모델에 람다/함수 타입 금지 — 수식도 선형 환산 파라미터(`RangeScaleFormula`)로 데이터화
   - 점수는 전부 `BigDecimal`, 반올림 정책(`RoundingPolicy`)은 plan에 선언
-  - 연도별 plan은 수정이 아니라 **파일 추가** (`Plan2026.kt`, `Plan2027.kt`, …) — 과거 재현성 보존
+  - 연도별 plan은 수정이 아니라 **파일 추가**로 보존한다 — 과거 재현성 보존. (2026-07-28 갱신: 활성 plan은 `Plan.kt`/`val plan`이라는 고정 이름을 쓰고, 지난 연도는 `legacy/PlanXXXX.kt`로 옮겨 보존하는 방식으로 구체화했다. 기존엔 `Plan2026.kt`, `Plan2027.kt`처럼 연도가 파일명·심볼명에 그대로 박혀 있었는데, 그러면 소비자가 매년 import를 갱신해야 해서 고정 이름 + legacy 폴더로 바꿨다. 상세는 CLAUDE.md·`legacy/README.md` 참고.)
   - 빌드 환경: Kotlin 2.3.21 / Gradle 9.6.1 (wrapper) / **JVM target 25** (server·엔진·Lambda 통일, 2026-07-21 — Lambda Java 25 지원 확인)
   - 패키지 루트: `kr.hellogsm.entrance`
 - **산출물 위치 확정 (2026-07-20)**: 독립 라이브러리 유지가 아니라 `hellogsm-server-26`에 **멀티모듈로 흡수**. 근거는 ① 공유 MySQL 스키마 매핑이 3중(go-hellogsm·서버 JPA·신규 배치)이 되는 것을 막고, ② 소비자가 서버 하나뿐이라 태그 릴리스 사이클이 값을 못 사며, 원서접수(10월)·평가(11월) 성수기에 마찰만 남기기 때문. 경계는 레포가 아니라 Gradle 모듈 그래프로 강제한다. 통합 방향과 절차는 [MIGRATION.md](./MIGRATION.md)
@@ -83,7 +83,7 @@ hellogsm(www.hellogsm.kr)은 광주소프트웨어마이스터고등학교 입�
 | 모듈 | 내용 |
 |---|---|
 | `entrance-dsl` | 도메인 모델(`plan/`: AdmissionPlan, Screening, Grading, Round, Policies) + `@DslMarker` 기반 빌더(`dsl/`) + `PlanValidator` (오류를 모아 한 번에 보고) |
-| `entrance-plans` | `Plan2026.kt` — 2026 요강 전문 인코딩 (fallback 규칙, 동점자 체인, 결측 대체, 반올림 정책, 봉사 계단, 일정 포함) |
+| `entrance-plans` | `Plan.kt`(현재 활성 plan, 2026 요강 전문 인코딩 — fallback 규칙, 동점자 체인, 결측 대체, 반올림 정책, 봉사 계단, 일정 포함) + `legacy/`(지난 연도 plan 보관, 현재는 비어있음) |
 | `entrance-engine` | `scoring`(성적 계산 + breakdown), `evaluation`(1차/2차 선발·편입·동점자·추가모집), `assignment`(학과 배정·예비합격·중도포기 재배정) |
 
 ### 테스트 — 108개 전부 통과
@@ -91,7 +91,7 @@ hellogsm(www.hellogsm.kr)은 광주소프트웨어마이스터고등학교 입�
 | 모듈 | 테스트 |
 |---|---|
 | `entrance-dsl` | `PlanValidatorTest`(14), `AdmissionPlanDslTest`(6) |
-| `entrance-plans` | `Plan2026Test`(18) — 요강 수치 고정 |
+| `entrance-plans` | `PlanTest`(18) — 요강 수치 고정 |
 | `entrance-engine` | `ScoringEngineTest`(25), `EvaluationEngineTest`(20), `AssignmentEngineTest`(14), `AdditionalRecruitmentTest`(7), `GoParityGoldenTest`(2), `PostAdmissionFlowTest`(1), `BatchParityGoldenTest`(1) |
 
 golden fixture 규모 (테스트 개수와 별개):

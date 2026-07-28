@@ -2,7 +2,7 @@ package kr.hellogsm.entrance.engine.evaluation
 
 import kr.hellogsm.entrance.engine.assignment.AssignmentEngine
 import kr.hellogsm.entrance.engine.assignment.FinalCandidate
-import kr.hellogsm.entrance.plans.plan2026
+import kr.hellogsm.entrance.plans.plan
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,8 +16,8 @@ import kotlin.test.assertEquals
  */
 class BatchParityGoldenTest {
 
-    private val evaluation = EvaluationEngine(plan2026)
-    private val assignment = AssignmentEngine(plan2026)
+    private val evaluation = EvaluationEngine(plan)
+    private val assignment = AssignmentEngine(plan)
 
     @Test
     fun `2026 시즌 배치와 동일하게 1차-2차-학과배정을 수행한다`() {
