@@ -9,8 +9,8 @@ import kotlin.test.assertEquals
  * 기존 Go 계산기(go-hellogsm-score-calculator, 2026 시즌 코드) 대비 golden test.
  *
  * fixture는 tools/golden/generate_golden.py 가 Go의 big.Rat 산술을 포팅해 생성한다.
- * Phase 1 완료 기준(PLAN.md 8절)의 parity 검증이며, 요강과 Go가 갈리는 지점은
- * [specDivergenceCases]에 요강 기준 기대값으로 분리 고정되어 있다 (요강이 정답 — PLAN.md 7절 2항).
+ * 요강과 Go가 갈리는 지점은 [specDivergenceCases]에 요강 기준 기대값으로 분리 고정되어 있다
+ * (요강이 정답).
  */
 class GoParityGoldenTest {
 

@@ -197,7 +197,7 @@ class AssignmentEngineTest {
     @Test
     fun `정원 내 포기자가 생겨도 정원 외 자리는 열리지 않는다`() {
         // go-hellogsm은 정원 내 포기자만큼 정원 외 자리도 열어 학과당 2명 상한을 넘길 수 있다.
-        // 요강상 두 상한은 독립이므로 엔진은 열지 않는다 (PLAN.md 7절 2항).
+        // 요강상 두 상한은 독립이므로 엔진은 열지 않는다.
         val extras = listOf(
             candidate("e1", screening = "EXT_VETERANS", score = "50.000"),
             candidate("e2", screening = "EXT_VETERANS", score = "49.000"),

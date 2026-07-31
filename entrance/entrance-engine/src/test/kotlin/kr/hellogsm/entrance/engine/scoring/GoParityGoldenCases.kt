@@ -2024,7 +2024,7 @@ internal val goParityGoldenCases: List<GoldenCase> = listOf(
 
 /**
  * 요강의 학기 몫 scale-5 중간 반올림 때문에 Go(중간 반올림 없음)와 결과가 ±0.001 갈리는 케이스.
- * 요강이 정답 기준이므로(PLAN.md 7절 2항) 기대값은 요강 방식이다. Go 값은 각 케이스 주석 참고.
+ * 요강이 정답 기준이므로 기대값은 요강 방식이다. Go 값은 각 케이스 주석 참고.
  */
 internal val specDivergenceCases: List<GoldenCase> = listOf(
     // Go와 결과가 다른 학기 — 3-1: Go 35.345 vs 요강 35.346

@@ -19,7 +19,7 @@ private const val API_KEY_ENV_VAR = "X_HG_INTERNAL_API_KEY"
  * 코드 변경 없이 이 람다를 대신 호출할 수 있다.
  *
  * Spring을 쓰지 않는다: server 다운 시에도 동작해야 하는 가용성 요건상 콜드 스타트를
- * 최소화해야 하기 때문이다(PLAN.md 9절).
+ * 최소화해야 하기 때문이다.
  */
 class ScoreCalculatorHandler @JvmOverloads constructor(
     private val expectedApiKey: String =

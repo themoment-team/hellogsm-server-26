@@ -11,8 +11,8 @@ import kotlin.test.assertEquals
  * 기존 배치(go-hellogsm, 2026 시즌 상수) 대비 golden test.
  *
  * fixture는 tools/golden/generate_batch_golden.py 가 배치 로직을 포팅해 생성한다.
- * 1차 평가 → 2차 평가 → 학과 배정을 엔진으로 이어 실행하며 각 단계의 결과를 전수 비교한다.
- * Phase 2 완료 기준(PLAN.md 8절)의 parity 검증 1단계다 (실 DB 배치 대비 검증은 별도).
+ * 1차 평가 → 2차 평가 → 학과 배정을 엔진으로 이어 실행하며 각 단계의 결과를 전수 비교한다
+ * (실 DB 배치 대비 검증은 별도).
  */
 class BatchParityGoldenTest {
 

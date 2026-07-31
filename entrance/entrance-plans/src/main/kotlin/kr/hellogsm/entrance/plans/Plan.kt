@@ -21,7 +21,7 @@ import java.time.LocalDate
  * `entrance-lambda` 등)는 연도를 몰라도 `kr.hellogsm.entrance.plans.plan`만 참조하면 된다.
  * 새 학년도로 넘어갈 때는 이 파일을 고치는 게 아니라 ① 지금 내용을 `legacy/PlanXXXX.kt`로
  * 옮기고 심볼명을 `planXXXX`로 바꿔 얼린 뒤 ② 이 파일을 새 연도 내용으로 덮어쓴다
- * (`legacy/README.md`, `entrance/CLAUDE.md` 참고).
+ * (절차는 `entrance/README.md` "새 학년도 요강 추가하기" 참고).
  *
  * 근거 문서: `.reference/2026_entrance.pdf` (2025. 7. 11. 공고)
  */

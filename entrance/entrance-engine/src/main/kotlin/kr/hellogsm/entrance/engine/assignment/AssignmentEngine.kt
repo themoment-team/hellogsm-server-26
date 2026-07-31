@@ -77,7 +77,7 @@ class AssignmentEngine(private val plan: AdmissionPlan) {
      * ⚠️ go-hellogsm과의 의도된 차이: 기존 구현은 정원 내 포기자가 생겨도 같은 학과의 정원 외
      * 자리가 함께 열리도록 계산한다(`major_assignment_job.go`의 `ExtraMajor-extra-normal`).
      * 정원 외 상한(학과당 2명)은 정원 내와 독립이므로 이는 상한을 넘길 수 있는 버그로 보고,
-     * 엔진은 각 풀의 빈자리만 채운다 — PLAN.md 7절 2항(요강이 정답).
+     * 엔진은 각 풀의 빈자리만 채운다 (요강이 정답).
      */
     fun reassign(
         previous: AssignmentResult,

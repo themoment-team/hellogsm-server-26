@@ -9,7 +9,7 @@ Go 툴체인 없이 parity를 검증하기 위해, 2026 시즌 코드(커밋 4e8
 - Go의 RoundToThreeDecimals는 big.Rat → float64(×1000) → math.Round 경로지만,
   이 점수 범위(≤300)에서는 정확한 유리수 반올림(반올림 자리 5는 올림)과 동일하다.
 - Go는 검정고시 평균을 JSON float64로 받으므로 이진 오차가 섞일 수 있다.
-  fixture는 소수 둘째 자리 이하의 평균만 사용해 이 문제를 회피한다 (PLAN.md 7절 참고).
+  fixture는 소수 둘째 자리 이하의 평균만 사용해 이 문제를 회피한다.
 - 요강의 학기 몫 scale-5 중간 반올림은 Go에 없다. 생성 시 두 방식을 모두 계산해
   결과가 갈리는 케이스는 fixture에서 제외하고 표준 출력으로 보고한다.
 
@@ -375,7 +375,7 @@ internal val goParityGoldenCases: List<GoldenCase> = listOf(
 
 /**
  * 요강의 학기 몫 scale-5 중간 반올림 때문에 Go(중간 반올림 없음)와 결과가 ±0.001 갈리는 케이스.
- * 요강이 정답 기준이므로(PLAN.md 7절 2항) 기대값은 요강 방식이다. Go 값은 각 케이스 주석 참고.
+ * 요강이 정답 기준이므로 기대값은 요강 방식이다. Go 값은 각 케이스 주석 참고.
  */
 internal val specDivergenceCases: List<GoldenCase> = listOf(
 {divergent_body}
