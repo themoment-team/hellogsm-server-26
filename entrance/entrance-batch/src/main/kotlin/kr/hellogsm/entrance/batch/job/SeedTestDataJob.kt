@@ -1,7 +1,6 @@
 package kr.hellogsm.entrance.batch.job
 
 import kr.hellogsm.entrance.batch.mocking.MockApplicantFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -21,16 +20,12 @@ import kotlin.random.Random
  * - `--status` (필수): `FIRST`/`SECOND`/`FINAL_MAJOR`/`RE_EVALUATE` — 어느 배치 단계 직전 상태로 만들지
  * - `--graduate` (선택, 기본 RANDOM): `CANDIDATE`/`GRADUATE`/`GED`/`RANDOM`
  *
- * `--dry-run` 이면 생성 개수만 보고하고 DB 에는 쓰지 않는다. 실제로 쓰기 전에는 대상 DB URL을
- * 출력하고 `yes` 입력을 요구한다 — 운영 DB를 잘못 겨냥한 채 실행하는 사고를 막기 위함
- * (`BATCH_DB_URL` 이 실수로 stage/prod 를 가리키고 있을 수 있어서다).
+ * `--dry-run` 이면 생성 개수만 보고하고 DB 에는 쓰지 않는다.
  */
 @Component
 class SeedTestDataJob(
     private val factory: MockApplicantFactory,
     private val txManager: PlatformTransactionManager,
-    @param:Value("\${spring.datasource.url}") private val dbUrl: String,
-    @param:Value("\${spring.datasource.username}") private val dbUsername: String,
 ) : BatchJob {
 
     override val name = "seed-testdata"
@@ -55,14 +50,6 @@ class SeedTestDataJob(
 
         if (dryRun) {
             println("[seed-testdata] dry-run — DB에 쓰지 않음")
-            return
-        }
-
-        println("[seed-testdata] 대상 DB: $dbUrl (user=$dbUsername)")
-        print("[seed-testdata] 이 DB에 지원자 ${rows}명을 추가합니다. 계속하려면 'yes' 를 입력하세요: ")
-        System.out.flush()
-        if (readlnOrNull()?.trim() != "yes") {
-            println("[seed-testdata] 취소됨 — DB에 쓰지 않음")
             return
         }
 
