@@ -5,7 +5,9 @@
 ```
 entrance-dsl      도메인 모델 + DSL 빌더 (순수 Kotlin, 의존성 없음)
 entrance-plans    현재 활성 요강 선언 — Plan.kt (지난 연도는 legacy/에 보관)
-entrance-engine   해석 엔진 (성적 계산·전형 배치 — 개발 중)
+entrance-engine   해석 엔진 — scoring·evaluation·assignment (완료)
+entrance-batch    DB 러너, go-hellogsm 대체 (완료)
+entrance-lambda   모의 성적 계산 API, go-hellogsm-score-calculator 대체 (완료, AWS 실배포만 남음)
 ```
 
 - 프로젝트 배경: [CONTEXT.md](./CONTEXT.md) · 스펙/로드맵: [PLAN.md](./PLAN.md) · 개발 규칙: [CLAUDE.md](./CLAUDE.md)
