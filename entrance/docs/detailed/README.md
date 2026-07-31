@@ -11,11 +11,11 @@
 
 | 문서 | 내용 |
 |---|---|
-| [architecture.md](./architecture.md) | 모듈 구조, 의존성 그래프, "엔진은 DB를 모른다"의 의미 |
-| [dsl-and-plans.md](./dsl-and-plans.md) | 요강을 DSL로 선언하는 법, 새 학년도 plan 추가법 |
-| [engine.md](./engine.md) | 성적 계산·선발·배정 엔진의 입출력과 도메인 흐름 |
-| [batch.md](./batch.md) | `entrance-batch` 실행법(CLI), DB↔엔진 매핑, 대조 리포트 |
-| [glossary.md](./glossary.md) | 도메인 용어집(전형·차수·정원 외·동점자 등) |
+| [architecture.md](architecture.md) | 모듈 구조, 의존성 그래프, "엔진은 DB를 모른다"의 의미 |
+| [dsl-and-plans.md](dsl-and-plans.md) | 요강을 DSL로 선언하는 법, 새 학년도 plan 추가법 |
+| [engine.md](engine.md) | 성적 계산·선발·배정 엔진의 입출력과 도메인 흐름 |
+| [batch.md](batch.md) | `entrance-batch` 실행법(CLI), DB↔엔진 매핑, 대조 리포트 |
+| [glossary.md](glossary.md) | 도메인 용어집(전형·차수·정원 외·동점자 등) |
 
 ## 왜 이렇게 만들었나
 
@@ -57,7 +57,7 @@ graph LR
 ```
 
 의존성 화살표가 **한 방향**뿐이라는 점이 핵심이다. `entrance-engine`은 `persistence`·`server`를
-가리키지 않는다 — 자세한 이유는 [architecture.md](./architecture.md).
+가리키지 않는다 — 자세한 이유는 [architecture.md](architecture.md).
 
 ## 전체 도메인 흐름
 
@@ -84,4 +84,4 @@ graph LR
 ./gradlew :entrance-batch:bootJar
 ```
 
-배치 CLI 사용법은 [batch.md](./batch.md) 참고.
+배치 CLI 사용법은 [batch.md](batch.md) 참고.

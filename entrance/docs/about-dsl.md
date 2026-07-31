@@ -1,6 +1,6 @@
-# every-entrance
+# entrance-dsl
 
-입학전형 요강을 **Kotlin DSL로 선언**하고, 공용 엔진이 성적 계산과 전형 배치를 수행하는 라이브러리입니다. hellogsm(광주소프트웨어마이스터고 입학지원시스템)의 전형 로직을 "매년 코드 수정"에서 "**연도별 plan 파일 하나의 선언**"으로 바꾸는 것이 목표입니다.
+입학전형 요강을 **Kotlin DSL로 선언**하고, 공용 엔진이 성적 계산과 전형 배치를 수행하는 기능입니다. hellogsm(광주소프트웨어마이스터고 입학지원시스템)의 전형 로직을 "매년 코드 수정"에서 "**연도별 plan 파일 하나의 선언**"으로 바꾸는 것이 목표입니다.
 
 ```
 entrance-dsl      도메인 모델 + DSL 빌더 (순수 Kotlin, 의존성 없음)
@@ -10,7 +10,7 @@ entrance-batch    DB 러너, go-hellogsm 대체
 entrance-lambda   모의 성적 계산 API, go-hellogsm-score-calculator 대체
 ```
 
-- 개발 규칙: [`.claude/rules/entrance.md`](../.claude/rules/entrance.md) · 아키텍처 문서: [`docs/entrance/`](../docs/entrance/README.md)
+- 개발 규칙: [`.claude/rules/entrance.md`](../../.claude/rules/entrance.md) · 아키텍처 문서: [`docs/entrance/`](detailed/README.md)
 
 ## 빠른 시작
 
@@ -44,7 +44,7 @@ val plan = admissionPlan(year = 2027) {
 
 빌드 결과물은 불변 모델 `AdmissionPlan`이며, **생성되는 순간 정합성이 검증**됩니다. 정원 합계가 안 맞거나 가중치 합이 100%가 아니면 그 자리에서 `PlanValidationException`이 발생하므로, 존재하는 plan 인스턴스는 항상 유효합니다.
 
-전체 예시는 [`entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt`](./entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt)가 2026 요강 전문을 인코딩한 실전 레퍼런스입니다(이 파일은 항상 "현재 활성 plan"을 가리키는 고정 이름 — 아래 '새 학년도 요강 추가하기' 참고).
+전체 예시는 [`entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt`](../entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt)가 2026 요강 전문을 인코딩한 실전 레퍼런스입니다(이 파일은 항상 "현재 활성 plan"을 가리키는 고정 이름 — 아래 '새 학년도 요강 추가하기' 참고).
 
 ---
 

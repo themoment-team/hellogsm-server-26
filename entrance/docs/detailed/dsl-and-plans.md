@@ -142,7 +142,7 @@ rounds {
 ```
 
 `manualScore("COMPETENCY"/"INTERVIEW")`가 곧 엔진 입력의 `RoundApplicant.manualScores` 키다
-([engine.md](./engine.md) 참고). 2차 점수는 1차 점수 50% + 역량 30% + 면접 20%.
+([engine.md](engine.md) 참고). 2차 점수는 1차 점수 50% + 역량 30% + 면접 20%.
 
 ### 나머지 블록
 
@@ -169,7 +169,7 @@ schedule { event("APPLICATION", "원서 접수…", LocalDate.of(2025, 10, 20), 
    바뀐 수치만 고치는 것이다. 요강 PDF의 수치를 그대로 옮긴다 — 수치의 근거는 PDF뿐이다.
 3. 요강 수치를 고정하는 새 `PlanTest`를 작성한다. 요강 개정 없이 이 테스트를 고쳐 통과시키지 않는다.
 4. `entrance-batch`/`entrance-lambda`는 손대지 않는다 — `plan` import가 그대로이므로 자동으로
-   새 plan을 쓴다([batch.md](./batch.md)).
+   새 plan을 쓴다([batch.md](batch.md)).
 
 ## 설계 규칙 (위반 금지)
 

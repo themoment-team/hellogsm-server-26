@@ -94,7 +94,7 @@ val result = assignment.assign(finalists)
 ```
 
 각 지원자의 `breakdown`(1차 근거)과 `manualScores`(2차 역량·면접)는 어디서 왔든 상관없다 —
-테스트에서는 픽스처가, 실제로는 `entrance-batch`가 DB에서 만들어 넣는다([batch.md](./batch.md)).
+테스트에서는 픽스처가, 실제로는 `entrance-batch`가 DB에서 만들어 넣는다([batch.md](batch.md)).
 
 ## 검증(테스트)이 완료 기준이다
 

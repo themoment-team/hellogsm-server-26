@@ -3,8 +3,8 @@
 > `entrance-batch`로 입학전형 배치를 로컬에서 굴려보기 위한 명령어 모음집입니다. "DB 준비 →
 > 목데이터 생성 → 배치 실행 → 결과 확인 → (필요하면) Plan 수정 후 재검증 → 초기화하고 재시도"
 > 흐름을 순서대로 다룹니다. 개념 설명(DSL, 엔진 구조)은
-> [`docs/introduce.md`](./introduce.md)를, 잡 자체의 상세 동작은
-> [`docs/entrance/batch.md`](./entrance/batch.md)를 참고하세요.
+> [`docs/introduce.md`](introduce.md)를, 잡 자체의 상세 동작은
+> [`docs/entrance/batch.md`](detailed/batch.md)를 참고하세요.
 
 ## 0. 사전 준비물
 
@@ -14,7 +14,7 @@
 | 로컬 MySQL 8 (또는 Docker) | `entrance-batch`가 읽고 쓰는 대상 |
 | Docker | `entrance-batch:test`의 Testcontainers 통합 테스트용 (수동 DB 세팅 없이 전체 흐름을 보는 가장 빠른 방법 — 아래 6번 참고) |
 
-`entrance-batch`는 **스키마를 만들지 않습니다**(`ddl-auto: none`, [`docs/entrance/batch.md`](./entrance/batch.md) 참고). 테이블은 `server`(Spring Boot)가 관리하므로, 로컬 DB에 테이블이 없다면 먼저 DDL 스냅샷([`docs/entrance/local-schema.sql`](./entrance/local-schema.sql))을 적용해 스키마를 만들어야 합니다(아래 1.2).
+`entrance-batch`는 **스키마를 만들지 않습니다**(`ddl-auto: none`, [`docs/entrance/batch.md`](detailed/batch.md) 참고). 테이블은 `server`(Spring Boot)가 관리하므로, 로컬 DB에 테이블이 없다면 먼저 DDL 스냅샷([`docs/entrance/local-schema.sql`](detailed/local-schema.sql))을 적용해 스키마를 만들어야 합니다(아래 1.2).
 
 ## 1. 로컬 DB 세팅
 
@@ -34,7 +34,7 @@ docker run -d --name hellogsm-mysql \
 ### 1.2 스키마 생성 — DDL 스크립트 적용
 
 `server`를 매번 띄워 스키마를 만들 필요 없이, JPA 엔티티 기준으로 미리 떠 둔 DDL 스냅샷
-([`docs/entrance/local-schema.sql`](./entrance/local-schema.sql))을 바로 적용하면 됩니다.
+([`docs/entrance/local-schema.sql`](detailed/local-schema.sql))을 바로 적용하면 됩니다.
 `achievement_1_1` 등 최신 컬럼까지 이미 반영되어 있습니다.
 
 ```bash
@@ -109,7 +109,7 @@ FROM tb_oneseo o JOIN tb_entrance_test_result r ON r.oneseo_id = o.id;
 ## 5. Plan 수정 후 재빌드해서 다시 테스트하기
 
 요강 수치(정원, 배점, 동점자 기준 등)를 바꾸는 건 항상
-[`Plan.kt`](../entrance/entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt) 파일
+[`Plan.kt`](../entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt) 파일
 하나입니다. 절차:
 
 ```bash
@@ -130,7 +130,7 @@ java -jar entrance/entrance-batch/build/libs/entrance-batch-*.jar --job=first-ev
 ```
 
 새 학년도로 통째로 넘어가는 절차(현재 `Plan.kt`를 `legacy/`로 얼리고 새 내용으로 덮어쓰기)는
-[`entrance/README.md`](../entrance/README.md)의 "새 학년도 요강 추가하기"를 참고하세요.
+[`entrance/README.md`](about-dsl.md)의 "새 학년도 요강 추가하기"를 참고하세요.
 
 ## 6. 처음부터 다시 테스트하기 위한 초기화
 
@@ -213,8 +213,8 @@ java -jar entrance/entrance-batch/build/libs/entrance-batch-*.jar --job=<job> [�
 
 | 문서 | 언제 보나 |
 |---|---|
-| [`docs/introduce.md`](./introduce.md) | entrance 엔진 전체 소개, DSL 개념, 아키텍처 |
-| [`docs/entrance/local-schema.sql`](./entrance/local-schema.sql) | 로컬 DB 스키마 DDL 스냅샷(1.2에서 적용하는 파일) |
-| [`docs/entrance/batch.md`](./entrance/batch.md) | `entrance-batch` 잡별 상세 동작, DB↔엔진 매핑 |
-| [`.claude/rules/entrance.md`](../.claude/rules/entrance.md) | 개발 규칙 (DSL 설계 원칙, BigDecimal 정책, plan 파일 절차) |
-| [`.agents/skills/migration-guide`](../.agents/skills/migration-guide/SKILL.md) | 엔티티 컬럼 추가/삭제 시 DDL 반영 절차 |
+| [`docs/introduce.md`](introduce.md) | entrance 엔진 전체 소개, DSL 개념, 아키텍처 |
+| [`docs/entrance/local-schema.sql`](detailed/local-schema.sql) | 로컬 DB 스키마 DDL 스냅샷(1.2에서 적용하는 파일) |
+| [`docs/entrance/batch.md`](detailed/batch.md) | `entrance-batch` 잡별 상세 동작, DB↔엔진 매핑 |
+| [`.claude/rules/entrance.md`](../../.claude/rules/entrance.md) | 개발 규칙 (DSL 설계 원칙, BigDecimal 정책, plan 파일 절차) |
+| [`.agents/skills/migration-guide`](../../.agents/skills/migration-guide/SKILL.md) | 엔티티 컬럼 추가/삭제 시 DDL 반영 절차 |

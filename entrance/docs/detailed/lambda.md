@@ -70,4 +70,4 @@ println(response.body)       // ScoreCalculatorResponse의 JSON
 - 콜드 스타트 실측 — SnapStart 우선 적용, 미달 시 GraalVM native 검토.
 
 더 넓은 맥락(왜 별도 배포 아티팩트로 유지하는지, entrance-batch와의 관계)은
-[architecture.md](./architecture.md) 참고.
+[architecture.md](architecture.md) 참고.

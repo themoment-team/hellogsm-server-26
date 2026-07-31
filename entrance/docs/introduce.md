@@ -3,12 +3,14 @@
 > 이 문서는 `entrance-dsl`/`entrance-plans`/`entrance-engine`/`entrance-batch`/`entrance-lambda`
 > (통칭 entrance 모듈군)를 처음 보는 팀원에게 "우리가 뭘 왜 이렇게 만들었는지"와 "로컬에서
 > 직접 돌려보는 법"을 소개하기 위한 쇼케이스입니다. 레퍼런스 문서(전체 API, 상세 규칙)는
-> [`docs/entrance/`](./entrance/README.md)에 따로 있으니, 이 문서를 먼저 읽고 필요할 때
+> [`docs/entrance/`](detailed/README.md)에 따로 있으니, 이 문서를 먼저 읽고 필요할 때
 > 그쪽으로 넘어가면 됩니다.
 
 정본(실제 2026 요강 인코딩)은
-[`Plan.kt`](../entrance/entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt),
-로컬에서 직접 돌려보는 절차는 [`docs/test_guide.md`](./test_guide.md)를 참고하세요.
+[`Plan.kt`](../entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt),
+DSL 작성법은
+[`docs/about-dsl.md`](about-dsl.md),
+그리고 로컬에서 직접 돌려보는 절차는 [`docs/test_guide.md`](test-guide.md)를 참고하세요.
 
 ## TL;DR
 
@@ -69,9 +71,9 @@ val badPlan = admissionPlan(year = 2027) {
 
 ## 2. DSL 작성 요령 — 2026 요강이 실제로 이렇게 생겼습니다
 
-전체 문법은 [`entrance/README.md`](../entrance/README.md)의 DSL 레퍼런스에 있고, 여기서는
+전체 문법은 [`entrance/README.md`](about-dsl.md)의 DSL 레퍼런스에 있고, 여기서는
 "요강 한 편을 어떻게 나눠 읽는지" 감을 잡는 정도로 훑습니다. 정본은
-[`Plan.kt`](../entrance/entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt)입니다.
+[`Plan.kt`](../entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt)입니다.
 
 **학과 · 전형** — 정원 내(`regular`)/정원 외(`extra`)를 구분하고, 전형 간 이동(fallback) 세
 가지(`unfilledGoesTo`/`rejectedFallsTo`/`overflowFallsTo`)를 선언합니다.
@@ -154,7 +156,7 @@ additionalRecruitment { screening("GEN"); basedOnRound("FIRST") }
 ```
 
 새 학년도 요강을 추가할 때 절차나 검증 규칙 전체 목록은
-[`entrance/README.md`](../entrance/README.md#새-학년도-요강-추가하기)를 보세요.
+[`entrance/README.md`](about-dsl.md#새-학년도-요강-추가하기)를 보세요.
 
 ## 3. 한눈에 보는 아키텍처
 
@@ -176,7 +178,7 @@ entrance-batch  entrance-lambda
 가장 중요한 규칙: **`entrance-engine`은 `persistence`·`server`를 의존성으로 선언하지
 않습니다.** DB를 아는 건 엔진이 아니라 엔진을 감싸는 `entrance-batch`(어댑터)뿐입니다. 그래서
 같은 엔진이 배치·Lambda·(앞으로는 서버 in-process 호출)에서 전부 재사용됩니다. 자세한 설계
-근거는 [`docs/entrance/architecture.md`](./entrance/architecture.md) 참고.
+근거는 [`docs/entrance/architecture.md`](detailed/architecture.md) 참고.
 
 ## 4. 로컬에서 직접 돌려보기
 
@@ -272,9 +274,9 @@ export BATCH_DB_PASSWORD=
 
 | 문서 | 언제 보나 |
 |---|---|
-| [`entrance/README.md`](../entrance/README.md) | DSL 문법 전체 레퍼런스, 새 학년도 plan 추가법 |
-| [`docs/entrance/architecture.md`](./entrance/architecture.md) | "엔진은 DB를 모른다"의 설계 근거 |
-| [`docs/entrance/engine.md`](./entrance/engine.md) | scoring·evaluation·assignment 엔진의 입출력 상세 |
-| [`docs/entrance/batch.md`](./entrance/batch.md) | `entrance-batch` 잡 전체 목록, DB↔엔진 매핑 |
-| [`docs/entrance/glossary.md`](./entrance/glossary.md) | 전형·학과·동점자 등 도메인 용어집 |
-| [`.claude/rules/entrance.md`](../.claude/rules/entrance.md) | 개발 규칙 (DSL 설계 원칙, BigDecimal 정책, plan 파일 절차) |
+| [`entrance/README.md`](about-dsl.md) | DSL 문법 전체 레퍼런스, 새 학년도 plan 추가법 |
+| [`docs/entrance/architecture.md`](detailed/architecture.md) | "엔진은 DB를 모른다"의 설계 근거 |
+| [`docs/entrance/engine.md`](detailed/engine.md) | scoring·evaluation·assignment 엔진의 입출력 상세 |
+| [`docs/entrance/batch.md`](detailed/batch.md) | `entrance-batch` 잡 전체 목록, DB↔엔진 매핑 |
+| [`docs/entrance/glossary.md`](detailed/glossary.md) | 전형·학과·동점자 등 도메인 용어집 |
+| [`.claude/rules/entrance.md`](../../.claude/rules/entrance.md) | 개발 규칙 (DSL 설계 원칙, BigDecimal 정책, plan 파일 절차) |

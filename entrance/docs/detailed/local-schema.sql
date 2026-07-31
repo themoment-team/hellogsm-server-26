@@ -6,7 +6,7 @@
 --
 -- 주의: 이 파일은 스냅샷이다. 엔티티(persistence 모듈)에 컬럼/테이블 변경이 생기면 자동으로
 -- 갱신되지 않는다 — 최신 상태가 필요하면 아래 절차로 다시 떠야 한다
--- (docs/test_guide.md 1.2 참고):
+-- (docs/test-guide.md 1.2 참고):
 --   1. 로컬 MySQL을 깨끗한 상태로 준비
 --   2. HIBERNATE_DDL_AUTO=create 로 :server:bootRun 1회 기동 후 종료
 --   3. mysqldump --no-data --skip-comments --compact -u<user> <db> 로 떠서 이 파일을 갱신
