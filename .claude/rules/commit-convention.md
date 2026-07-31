@@ -38,7 +38,7 @@
 | `entrance`        | Cross-cutting entrance engine changes (build wiring, docs spanning `entrance-dsl`/`entrance-plans`/`entrance-engine`) |
 | `entrance-batch`  | `entrance-batch` module (DB runner, CLI jobs)        |
 
-Within the `entrance-*` modules, commits also use narrower scopes inherited from the former standalone repo (`dsl`, `plans`, `engine`) when a change is local to one of those — see `entrance/CLAUDE.md` and `git log` for precedent.
+Within the `entrance-*` modules, commits also use narrower scopes inherited from the former standalone repo (`dsl`, `plans`, `engine`) when a change is local to one of those — see `git log` for precedent.
 
 ## Multi-file Commits
 - Group logically related changes in one commit

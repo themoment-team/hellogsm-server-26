@@ -1,6 +1,6 @@
 # Exception Handling Rules — hellogsm-server-25
 
-> Scope: Java/Spring modules (`server`, `persistence`) only. `entrance-*` (Kotlin) has no equivalent custom exception type — see [`entrance/CLAUDE.md`](../../entrance/CLAUDE.md) (`PlanValidationException` for plan validation errors).
+> Scope: Java/Spring modules (`server`, `persistence`) only. `entrance-*` (Kotlin) has no equivalent custom exception type — see [`entrance.md`](./entrance.md) (`PlanValidationException` for plan validation errors).
 
 ## Exception Hierarchy
 There is exactly **one custom exception class** in this project:
