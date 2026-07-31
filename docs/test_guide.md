@@ -130,7 +130,7 @@ java -jar entrance/entrance-batch/build/libs/entrance-batch-*.jar --job=first-ev
 ```
 
 새 학년도로 통째로 넘어가는 절차(현재 `Plan.kt`를 `legacy/`로 얼리고 새 내용으로 덮어쓰기)는
-[`legacy/README.md`](../entrance/entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/legacy/README.md)를 참고하세요.
+[`entrance/README.md`](../entrance/README.md)의 "새 학년도 요강 추가하기"를 참고하세요.
 
 ## 6. 처음부터 다시 테스트하기 위한 초기화
 
@@ -216,5 +216,5 @@ java -jar entrance/entrance-batch/build/libs/entrance-batch-*.jar --job=<job> [�
 | [`docs/introduce.md`](./introduce.md) | entrance 엔진 전체 소개, DSL 개념, 아키텍처 |
 | [`docs/entrance/local-schema.sql`](./entrance/local-schema.sql) | 로컬 DB 스키마 DDL 스냅샷(1.2에서 적용하는 파일) |
 | [`docs/entrance/batch.md`](./entrance/batch.md) | `entrance-batch` 잡별 상세 동작, DB↔엔진 매핑 |
-| [`entrance/CLAUDE.md`](../entrance/CLAUDE.md) | 개발 규칙, 결측 학기 대체 원칙, 최근 스키마 변경 이력 |
+| [`.claude/rules/entrance.md`](../.claude/rules/entrance.md) | 개발 규칙 (DSL 설계 원칙, BigDecimal 정책, plan 파일 절차) |
 | [`.agents/skills/migration-guide`](../.agents/skills/migration-guide/SKILL.md) | 엔티티 컬럼 추가/삭제 시 DDL 반영 절차 |

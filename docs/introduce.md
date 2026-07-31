@@ -273,6 +273,4 @@ export BATCH_DB_PASSWORD=
 | [`docs/entrance/engine.md`](./entrance/engine.md) | scoring·evaluation·assignment 엔진의 입출력 상세 |
 | [`docs/entrance/batch.md`](./entrance/batch.md) | `entrance-batch` 잡 전체 목록, DB↔엔진 매핑 |
 | [`docs/entrance/glossary.md`](./entrance/glossary.md) | 전형·학과·동점자 등 도메인 용어집 |
-| [`entrance/CONTEXT.md`](../entrance/CONTEXT.md) | 프로젝트 배경, 진행 상황 |
-| [`entrance/PLAN.md`](../entrance/PLAN.md) | 스펙 정의, parity 검증 전략, 로드맵 |
-| [`entrance/CLAUDE.md`](../entrance/CLAUDE.md) | 개발 규칙, 현재 상태·주의사항 |
+| [`.claude/rules/entrance.md`](../.claude/rules/entrance.md) | 개발 규칙 (DSL 설계 원칙, BigDecimal 정책, plan 파일 절차) |

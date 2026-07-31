@@ -5,12 +5,12 @@
 ```
 entrance-dsl      도메인 모델 + DSL 빌더 (순수 Kotlin, 의존성 없음)
 entrance-plans    현재 활성 요강 선언 — Plan.kt (지난 연도는 legacy/에 보관)
-entrance-engine   해석 엔진 — scoring·evaluation·assignment (완료)
-entrance-batch    DB 러너, go-hellogsm 대체 (완료)
-entrance-lambda   모의 성적 계산 API, go-hellogsm-score-calculator 대체 (완료, AWS 실배포만 남음)
+entrance-engine   해석 엔진 — scoring·evaluation·assignment
+entrance-batch    DB 러너, go-hellogsm 대체
+entrance-lambda   모의 성적 계산 API, go-hellogsm-score-calculator 대체
 ```
 
-- 프로젝트 배경: [CONTEXT.md](./CONTEXT.md) · 스펙/로드맵: [PLAN.md](./PLAN.md) · 개발 규칙: [CLAUDE.md](./CLAUDE.md)
+- 개발 규칙: [`.claude/rules/entrance.md`](../.claude/rules/entrance.md) · 아키텍처 문서: [`docs/entrance/`](../docs/entrance/README.md)
 
 ## 빠른 시작
 
@@ -162,8 +162,6 @@ formula(GED) {
 }
 ```
 
-> ⚠️ 2026 plan의 검정고시 봉사 환산식은 기존 Go 구현과 대조 전의 **가정값**입니다 (`Plan.kt`의 TODO 참고).
-
 ### 전형 절차 — `rounds { }`
 
 N차 전형을 순서대로 선언합니다. 선언 순서가 곧 진행 순서입니다.
@@ -304,5 +302,3 @@ second.tiebreakers                 // 동점자 기준 체인 (우선순위 순)
 ```
 
 - Kotlin 2.3.21 · Gradle wrapper 9.6.1 · JVM target 25
-- 현재 상태: **Phase 0~2 완료** — DSL + 2026 plan + 검증, 엔진 전 범위(`scoring`·`evaluation`·`assignment`)와 기존 Go 구현 대비 golden test, `entrance-batch`(DB 러너), `entrance-lambda`(모의 성적 계산 API) 구현·테스트·CI/CD까지 완료.
-- 남은 것: `entrance-lambda`의 AWS 실배포(함수·API Gateway는 인프라 작업, 코드 밖), 실 배치 대비 재검증(Go 툴체인 필요), 서버가 엔진을 실제로 소비하도록 전환. 전체 로드맵은 [PLAN.md](./PLAN.md) 8절, 저장소 통합 계획은 [MIGRATION.md](./MIGRATION.md) 참고.
