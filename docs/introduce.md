@@ -6,6 +6,10 @@
 > [`docs/entrance/`](./entrance/README.md)에 따로 있으니, 이 문서를 먼저 읽고 필요할 때
 > 그쪽으로 넘어가면 됩니다.
 
+정본(실제 2026 요강 인코딩)은
+[`Plan.kt`](../entrance/entrance-plans/src/main/kotlin/kr/hellogsm/entrance/plans/Plan.kt),
+로컬에서 직접 돌려보는 절차는 [`docs/test_guide.md`](./test_guide.md)를 참고하세요.
+
 ## TL;DR
 
 광주소프트웨어마이스터고 입학전형 로직(성적 계산 + 1차/2차 선발 + 학과 배정)이 예전엔
