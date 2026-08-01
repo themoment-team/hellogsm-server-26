@@ -306,6 +306,58 @@ class OneseoServiceTest {
         }
 
         @Nested
+        @DisplayName("졸업자(GRADUATE)이고, 1학년 2학기 성적만 null이면")
+        class Context_with_graduate_and_missing_1_2_only {
+            private GraduationType graduationType;
+
+            @BeforeEach
+            void setUp() {
+                middleSchoolAchievementReqDto = createDefaultDtoBuilder().freeSemester("1-2").achievement1_2(null)
+                        .build();
+                graduationType = GraduationType.GRADUATE;
+            }
+
+            @Test
+            @DisplayName("1학년 2학기 성적을 1학년 1학기 성적으로 채운 DTO를 반환한다")
+            void it_fills_1_2_with_1_1() {
+                MiddleSchoolAchievementCalcDto resultDto = OneseoService
+                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
+                assertEquals(middleSchoolAchievementReqDto.achievement1_1(), resultDto.achievement1_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_1(), resultDto.achievement2_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_1(), resultDto.achievement3_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_2(), resultDto.achievement3_2());
+                assertNull(resultDto.gedAvgScore());
+            }
+        }
+
+        @Nested
+        @DisplayName("졸업자(GRADUATE)이고, 1학년 성적이 모두 null이면")
+        class Context_with_graduate_and_missing_1_1_and_1_2 {
+            private GraduationType graduationType;
+
+            @BeforeEach
+            void setUp() {
+                middleSchoolAchievementReqDto = createDefaultDtoBuilder().freeSemester("1-2").achievement1_1(null)
+                        .achievement1_2(null).build();
+                graduationType = GraduationType.GRADUATE;
+            }
+
+            @Test
+            @DisplayName("1학년 2학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다")
+            void it_fills_1_2_with_2_2() {
+                MiddleSchoolAchievementCalcDto resultDto = OneseoService
+                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement1_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_1(), resultDto.achievement2_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_1(), resultDto.achievement3_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_2(), resultDto.achievement3_2());
+                assertNull(resultDto.gedAvgScore());
+            }
+        }
+
+        @Nested
         @DisplayName("3학년 1학기 성적이 null이면")
         class Context_with_missing_3_1 {
             private GraduationType graduationType;
@@ -427,6 +479,32 @@ class OneseoServiceTest {
                 assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
                 assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
                 assertEquals(resultDto.achievement3_2(), middleSchoolAchievementReqDto.achievement3_2());
+                assertNull(resultDto.gedAvgScore());
+            }
+        }
+
+        @Nested
+        @DisplayName("2학년 1학기와 1학년 2학기 성적이 동시에 null이면")
+        class Context_with_multiple_missing_semesters_at_once {
+            private GraduationType graduationType;
+
+            @BeforeEach
+            void setUp() {
+                middleSchoolAchievementReqDto = createDefaultDtoBuilder().achievement2_1(null).achievement1_2(null)
+                        .build();
+                graduationType = CANDIDATE;
+            }
+
+            @Test
+            @DisplayName("두 학기 성적을 모두 각자의 대체 성적으로 채운 DTO를 반환한다")
+            void it_fills_both_semesters_independently() {
+                MiddleSchoolAchievementCalcDto resultDto = OneseoService
+                        .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement1_1(), resultDto.achievement1_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_1(), resultDto.achievement3_1());
+                assertEquals(middleSchoolAchievementReqDto.achievement3_2(), resultDto.achievement3_2());
                 assertNull(resultDto.gedAvgScore());
             }
         }

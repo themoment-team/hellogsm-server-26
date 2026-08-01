@@ -73,14 +73,18 @@ public class OneseoService {
 
         if (graduationType == GraduationType.GRADUATE && tmpAchievement3_2 == null) {
             tmpAchievement3_2 = tmpAchievement3_1;
-        } else if (tmpAchievement3_1 == null) {
+        }
+        if (tmpAchievement3_1 == null) {
             tmpAchievement3_1 = tmpAchievement3_2;
-        } else if (tmpAchievement2_1 == null) {
+        }
+        if (tmpAchievement2_1 == null) {
             tmpAchievement2_1 = tmpAchievement2_2;
-        } else if (tmpAchievement2_2 == null) {
+        }
+        if (tmpAchievement2_2 == null) {
             tmpAchievement2_2 = tmpAchievement2_1;
-        } else if (graduationType == GraduationType.CANDIDATE && dto.achievement1_2() == null) {
-            if (dto.achievement1_1() == null) {
+        }
+        if (tmpAchievement1_2 == null) {
+            if (tmpAchievement1_1 == null) {
                 tmpAchievement1_2 = tmpAchievement2_2;
             } else {
                 tmpAchievement1_2 = tmpAchievement1_1;
