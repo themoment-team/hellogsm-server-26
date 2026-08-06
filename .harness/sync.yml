@@ -14,13 +14,16 @@ overrides:
   claude/hooks/secret-guard: true
   claude/hooks/command-guard: true
   claude/hooks/spotless: true
+  claude/hooks/gradle-test: true
 
   codex/hooks/dispatcher: true
   codex/hooks-json: true
   codex/hooks/secret-guard: true
   codex/hooks/command-guard: true
   codex/hooks/spotless: true
+  codex/hooks/gradle-test: true
 
 base_branch: develop
 branch_prefix: harness-sync/
 language: ko
+pr_label: false

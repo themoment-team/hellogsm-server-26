@@ -1,79 +1,68 @@
 ---
 name: write-pr
-description: Analyzes commits since branching from develop/main, generates PR title/body following project conventions, and creates the PR via GitHub CLI for hellogsm-server-25.
+description: Generate PR title, body, and labels from commits since the base branch, then create the PR on GitHub. Handles base branch detection, label selection, and PR creation end-to-end.
+allowed-tools: Bash(git *:*), Bash(bash *create-pr.sh:*), Bash(cat *:*), Read, Write
 ---
 
-You are executing the **write-pr** skill for hellogsm-server-25.
-
-## Step 1 — Analyze Commits
+## Step 1 — Gather Context
 
 ```bash
 git branch --show-current
-git log origin/develop..HEAD --oneline
-git diff origin/develop...HEAD --stat
-git diff origin/develop...HEAD
+git log origin/develop..HEAD --oneline 2>/dev/null || git log --oneline -15
+git diff origin/develop...HEAD --stat 2>/dev/null || git diff HEAD~5...HEAD --stat
+git diff origin/develop...HEAD 2>/dev/null || git diff HEAD~5...HEAD
 ```
 
-Default base is `develop`. For hotfix branches, base is `main`.
-
-## Step 2 — Compose PR Title
-
-Format: `{type}({scope}): {Korean description}` (≤ 72 chars)
-
-Types: `feat`, `fix`, `update`, `refactor`, `test`, `chore`, `ci/cd`  
-Scopes: `global`, `member`, `oneseo`, `operation`, `common`
-
-## Step 3 — Compose PR Body
-
-```markdown
-## 개요
-
-{작업 내용을 1~3 문장으로 요약}
-
-## 본문
-
-{변경 사항을 더 자세하게 서술 — 왜 이 변경이 필요했는지, 어떤 문제를 해결하는지 포함}
-
-### 추가
-
-{기존에 없던 무언가(기능, 코드 등)가 추가된 경우에만 작성. 없으면 섹션 전체 생략}
-
-- {추가된 항목 bullet}
-
-### 변경
-
-{기존에 있던 무언가가 변경된 경우에만 작성. 없으면 섹션 전체 생략}
-
-- {변경된 항목 bullet}
-
-```
-
-Rules for body composition:
-- `### 추가` section: include only when new files, features, or endpoints are added
-- `### 변경` section: include only when existing behavior, config, or code is modified
-- If only additions exist, omit `### 변경` and vice versa
-- Write in Korean
-
-## Step 4 — Create PR
+Also read the PR template:
 
 ```bash
-git push -u origin $(git branch --show-current)
-
-gh pr create \
-  --base develop \
-  --title "{title}" \
-  --body "$(cat <<'EOF'
-{body}
-EOF
-)"
+cat .github/PULL_REQUEST_TEMPLATE.md
 ```
 
-## Step 5 — Output
+## Step 2 — Determine Labels
+
+Read `references/labels.md` and select 1–2 appropriate labels based on the nature of the changes.
+Read `references/commit-conventions.md` for commit type and scope naming rules.
+
+## Step 3 — Generate PR Content
+
+**Title** — Generate 3 options in the format `[scope] description`:
+- Scope: determine from changed file paths and directory structure — infer the domain from path segments. Use `[global]` / `[ci/cd]` for cross-cutting changes only. Wrap in brackets: `[auth]`, `[user]`, etc.
+- Description: Korean, concise, no emojis, max 50 characters total
+- Wrap class names, method names, annotations, and technical terms in backticks (e.g., `@Transactional`, `StudentServiceImpl`)
+
+**Body** — Follow the `.github/PULL_REQUEST_TEMPLATE.md` structure:
+- Korean 합쇼체: `~하였습니다`, `~되었습니다`, `~추가하였습니다`
+- No emojis
+- Max 2500 characters
+- Wrap all proper nouns and technical identifiers in backticks: class names, method names, annotations, file names, field names, config keys, module names
+
+## Step 4 — Write Body & Show Preview
+
+Write the body to `PR_BODY.md`, then display:
 
 ```
-## PR Created
+## PR 제목 후보
+1. [title1]
+2. [title2]
+3. [title3]
 
-Title: {title}
-Base: develop ← {current-branch}
-URL: {url}
+## 선택된 라벨
+- label1, label2
+
+## PR 본문 미리보기
+[body content]
 ```
+
+Ask the user which title to use (present options 1/2/3). Wait for the answer before proceeding.
+
+## Step 5 — Create PR
+
+Run the creation script with the confirmed title and labels:
+
+```bash
+bash scripts/create-pr.sh "<confirmed-title>" "PR_BODY.md" "<label1>,<label2>"
+```
+
+After creation, display the PR URL.
+Cleanup: remove `PR_BODY.md`.
