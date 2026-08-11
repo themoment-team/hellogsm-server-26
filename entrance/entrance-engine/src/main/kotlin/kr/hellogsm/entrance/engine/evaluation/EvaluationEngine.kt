@@ -166,6 +166,18 @@ class EvaluationEngine(private val plan: AdmissionPlan) {
 
     // ── 차수 점수 계산 ────────────────────────────────────────────────
 
+    /**
+     * 지원자 한 명의 차수 점수만 산출한다 — 선발·편입은 하지 않는다.
+     *
+     * 이전 차수의 합격 여부가 이미 확정(발표·저장)되어 다시 전형할 필요는 없고, 다음 차수 입력에
+     * 실을 이전 차수 점수만 필요할 때 쓴다. 필요한 수동 점수가 없으면(미응시) null.
+     */
+    fun scoreOf(roundCode: String, applicant: RoundApplicant): BigDecimal? {
+        val round = wrapInputError { plan.round(roundCode) }
+        validateApplicants(round, listOf(applicant))
+        return roundScore(round, applicant)
+    }
+
     /** 차수 점수. 필요한 수동 점수가 없으면(미응시) null */
     private fun roundScore(round: Round, applicant: RoundApplicant): BigDecimal? =
         when (val composition = round.score) {
