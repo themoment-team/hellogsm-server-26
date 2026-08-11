@@ -82,11 +82,11 @@ internal object PlanValidator {
             }
         }
 
-        val regulars = plan.screenings.filter(Screening::withinCapacity)
+        val regulars = plan.regularScreenings
         val remainders = regulars.count { it.quota is Quota.Remainder }
         if (remainders > 1) errors += "Remainder 정원을 갖는 정원 내 전형은 최대 1개여야 함 (현재 $remainders 개)"
 
-        val fixedSum = regulars.map(Screening::quota).filterIsInstance<Quota.Fixed>().sumOf(Quota.Fixed::count)
+        val fixedSum = plan.regularFixedQuota
         if (fixedSum > plan.totalCapacity) {
             errors += "정원 내 전형의 고정 정원 합($fixedSum)이 총정원(${plan.totalCapacity})을 초과함"
         }

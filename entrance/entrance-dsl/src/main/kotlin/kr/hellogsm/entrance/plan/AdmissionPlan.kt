@@ -22,6 +22,19 @@ data class AdmissionPlan(
     /** 정원 내 총 모집정원 (학과별 정원의 합) */
     val totalCapacity: Int = majors.sumOf(Major::capacity)
 
+    /** 정원 내([Screening.withinCapacity]) 전형 — 학과 총정원을 나눠 갖는 전형들 */
+    internal val regularScreenings: List<Screening> = screenings.filter(Screening::withinCapacity)
+
+    /**
+     * 정원 내 전형들의 고정([Quota.Fixed]) 정원 합.
+     * [resolvedQuota]의 [Quota.Remainder] 산출과 [PlanValidator]의 정합성 검증이 같은 정의를 쓰도록
+     * 한 곳에서만 계산한다.
+     */
+    internal val regularFixedQuota: Int = regularScreenings
+        .map(Screening::quota)
+        .filterIsInstance<Quota.Fixed>()
+        .sumOf(Quota.Fixed::count)
+
     init {
         PlanValidator.validate(this)
     }
@@ -41,11 +54,7 @@ data class AdmissionPlan(
     fun resolvedQuota(screeningCode: String): Int =
         when (val quota = screening(screeningCode).quota) {
             is Quota.Fixed -> quota.count
-            Quota.Remainder -> totalCapacity - screenings
-                .filter { it.withinCapacity }
-                .map(Screening::quota)
-                .filterIsInstance<Quota.Fixed>()
-                .sumOf(Quota.Fixed::count)
+            Quota.Remainder -> totalCapacity - regularFixedQuota
         }
 }
 
