@@ -13,8 +13,12 @@ import kr.hellogsm.entrance.plan.SemesterRef
  * 책임이다 — 그래서 plan이 직접 채점하지 않는 학기(1-1)도 **대체 원본으로 쓰일 수 있으므로
  * submitted map에 그대로 넣는다.** 1-1을 여기서 미리 걸러내면 엔진이 SAME_YEAR_OTHER_SEMESTER
  * 전략으로 1-2를 채울 방법이 없어진다 (Plan.kt의 `missingSemester(SAME_YEAR_OTHER_SEMESTER, ...)`
- * 선언이 있어도 무력화됨). `entrance-batch`의 `StudentRecordMapper`는 영속 엔티티에 애초에
- * achievement1_1 컬럼이 없어 이 대체를 받을 수 없다 — 별도 이슈(스키마 확장 필요).
+ * 선언이 있어도 무력화됨).
+ *
+ * 같은 이유로 대부분의 DTO는 achievement1_1을 그대로 포함시키며, 실제 대체 사용 여부는
+ * 최종 점수 계산(대체 로직) 단계에서만 가려진다. 점수 계산이 끝난 뒤 학기별 성적을 그대로
+ * 전달하는 응답이라 하더라도 1-1은 계속 포함시켜야 한다 — 호출부는 1-1이 대체 원본으로
+ * 실제 사용되었는지 여부를 알 수 없기 때문이다.
  */
 object StudentRecordMapper {
 
