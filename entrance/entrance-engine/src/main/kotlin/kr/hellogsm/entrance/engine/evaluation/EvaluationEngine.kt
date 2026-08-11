@@ -1,9 +1,9 @@
 package kr.hellogsm.entrance.engine.evaluation
 
+import kr.hellogsm.entrance.engine.result
 import kr.hellogsm.entrance.plan.AdmissionPlan
 import kr.hellogsm.entrance.plan.Quota
 import kr.hellogsm.entrance.plan.Round
-import kr.hellogsm.entrance.plan.RoundingPolicy
 import kr.hellogsm.entrance.plan.ScoreComponent
 import kr.hellogsm.entrance.plan.ScoreComposition
 import kr.hellogsm.entrance.plan.Screening
@@ -327,5 +327,3 @@ class EvaluationEngine(private val plan: AdmissionPlan) {
             throw EvaluationException(e.message ?: "잘못된 입력")
         }
 }
-
-private fun RoundingPolicy.result(value: BigDecimal): BigDecimal = value.setScale(resultScale, resultMode)

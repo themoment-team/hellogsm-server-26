@@ -1,5 +1,6 @@
 package kr.hellogsm.entrance.engine.scoring
 
+import kr.hellogsm.entrance.engine.result
 import kr.hellogsm.entrance.plan.Achievement
 import kr.hellogsm.entrance.plan.AdmissionPlan
 import kr.hellogsm.entrance.plan.ArtsSubjectRule
@@ -266,5 +267,3 @@ class ScoringEngine(private val plan: AdmissionPlan) {
         val source: SemesterSource,
     )
 }
-
-private fun RoundingPolicy.result(value: BigDecimal): BigDecimal = value.setScale(resultScale, resultMode)
