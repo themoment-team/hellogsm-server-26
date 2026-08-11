@@ -41,7 +41,7 @@ class FirstEvaluationJob(
     }
 }
 
-/** 2차 전형(역량검사·심층면접) 평가 → `secondTestPassYn` 기록. */
+/** 2차 전형(역량검사·심층면접) 평가 → `secondTestPassYn` 기록. `first-eval` 선행 필요. */
 @Component
 class SecondEvaluationJob(
     private val loader: ApplicantLoader,
@@ -55,8 +55,7 @@ class SecondEvaluationJob(
         val loaded = loader.load()
         val byId = loaded.associateBy { it.applicant.id }
 
-        val first = pipeline.evaluateFirst(loaded)
-        val second = pipeline.evaluateSecond(loaded, first)
+        val second = pipeline.evaluateSecond(loaded)
 
         var passed = 0
         second.entries.forEach { entry ->
@@ -69,7 +68,7 @@ class SecondEvaluationJob(
     }
 }
 
-/** 학과 배정 → `decidedMajor` + `passYn` 기록(합격자 YES/그 외 NO). */
+/** 학과 배정 → `decidedMajor` + `passYn` 기록(합격자 YES/그 외 NO). `second-eval` 선행 필요. */
 @Component
 class AssignmentJob(
     private val loader: ApplicantLoader,
@@ -81,10 +80,7 @@ class AssignmentJob(
     @Transactional
     override fun run(dryRun: Boolean, options: Map<String, String>) {
         val loaded = loader.load()
-
-        val first = pipeline.evaluateFirst(loaded)
-        val second = pipeline.evaluateSecond(loaded, first)
-        val assignment = pipeline.assign(loaded, second)
+        val assignment = pipeline.assign(loaded)
 
         val assignedById = assignment.assignments.associateBy { it.applicantId }
         loaded.forEach { la ->
