@@ -14,11 +14,14 @@
 |---|---|---|
 | `status` | 접수 대상 원서 수 출력(연결 확인) | — |
 | `first-eval` | 성적 재계산 + 1차 전형 | `EntranceTestResult.firstTestPassYn`, `Oneseo.appliedScreening` |
-| `second-eval` | 1차 + 2차 전형 | `EntranceTestResult.secondTestPassYn` |
-| `assign` | 1차 + 2차 + 학과 배정 | `Oneseo.decidedMajor`, `Oneseo.passYn` |
+| `second-eval` | 2차 전형 (`first-eval` 선행 필요) | `EntranceTestResult.secondTestPassYn` |
+| `assign` | 학과 배정 (`second-eval` 선행 필요) | `Oneseo.decidedMajor`, `Oneseo.passYn` |
 
 - **대상 지원자**: `realOneseoArrivedYn = YES`(실물 원서 도착)인 원서.
-- 각 잡은 **멱등**하다 — 상류 단계를 매번 재계산하므로 재실행하면 결과를 덮어쓴다. 2차/배정은
+- 각 잡은 **앞 잡이 DB에 확정해 둔 결과에서 출발한다** — 앞 차수를 다시 전형하지 않으므로
+  발표 후의 수동 정정(위원회 결정 등)이 그대로 이어지고, 같은 전형이 중복 실행되지 않는다.
+  따라서 `first-eval` → `second-eval` → `assign` 순서로 실행해야 한다.
+- 각 잡은 **멱등**하다 — 같은 입력으로 재실행하면 자기 단계의 결과를 덮어쓴다. 2차/배정은
   역량검사·심층면접 점수가 DB에 입력된 뒤 실행해야 의미가 있다(그 전엔 미응시 처리된다).
 
 ## 실행법
@@ -72,14 +75,17 @@ ApplicantLoader ──▶ StudentRecordMapper ──▶ ScoringEngine  (성적 �
    RoundApplicant  (+ 역량/면접 manualScores, 지망 학과 choices, 원본 엔티티 핸들)
         │
         ▼
-EvaluationPipeline ──▶ evaluate("FIRST") → evaluate("SECOND") → assign()
-        │
+EvaluationPipeline ──▶ first-eval: evaluate("FIRST")
+        │              second-eval: 저장된 1차 결과 → evaluate("SECOND")
+        │              assign:      저장된 2차 결과 → assign()
         ▼
    각 Job이 결과를 엔티티 mutator로 write-back (@Transactional)
 ```
 
-- **`StudentRecordMapper`**: `MiddleSchoolAchievement`(JPA) → `StudentRecord`(엔진). go 계산기
-  (parity 기준 커밋 `d7b65b4`)의 입력 해석을 그대로 재현한다 — 성취도 5→A…1→E(0=미수강 제외),
+- **`StudentRecordMapper`**: `MiddleSchoolAchievement`(JPA) → `StudentRecord`(엔진). 값을 꺼내는
+  일만 하고, 해석 규칙 자체는 엔진의 `RawRecordMapping`에 있다 — `entrance-lambda`의 동명 매퍼와
+  규칙을 공유해야 배치(최종 채점)와 Lambda(모의 계산)의 결과가 갈라지지 않는다. 규칙은 go 계산기
+  (parity 기준 커밋 `d7b65b4`)의 입력 해석 그대로다 — 성취도 5→A…1→E(0=미수강 제외),
   출결 `absentDays`+`attendanceDays`(지각·조퇴·결과÷3), 봉사, 검정고시 `gedAvgScore`.
 - **`CodeMapping`**: 전형·학과의 엔티티 enum ↔ plan 코드 변환(예: `Screening.GENERAL` ↔ `"GEN"`,
   `Major.SW` ↔ `"SW"`).

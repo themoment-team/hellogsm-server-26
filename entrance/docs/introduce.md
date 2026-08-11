@@ -257,6 +257,7 @@ export BATCH_DB_PASSWORD=
 ./gradlew :entrance-batch:bootRun --args="--job=assign"                  # 최종 학과 배정
 ```
 
+각 잡은 앞 잡이 DB에 확정해 둔 결과에서 출발하므로 **위 순서대로** 실행해야 합니다.
 `second-eval`은 `TestResult.competencyEvaluationScore`/`interviewScore`가 DB에 미리 채워져
 있어야 합니다(운영자 입력 API가 채우는 값이라 배치가 만들지 않습니다).
 
