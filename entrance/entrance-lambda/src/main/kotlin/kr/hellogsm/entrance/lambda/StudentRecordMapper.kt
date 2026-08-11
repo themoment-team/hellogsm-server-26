@@ -1,15 +1,18 @@
 package kr.hellogsm.entrance.lambda
 
-import kr.hellogsm.entrance.engine.scoring.AttendanceRecord
+import kr.hellogsm.entrance.engine.scoring.RawRecordMapping
 import kr.hellogsm.entrance.engine.scoring.StudentRecord
-import kr.hellogsm.entrance.plan.Achievement
 import kr.hellogsm.entrance.plan.GraduationType
 import kr.hellogsm.entrance.plan.SemesterRef
 
 /**
  * [ScoreCalculatorRequest](server가 보내는 원시 성적 입력) → `StudentRecord`(엔진 scoring 입력) 변환.
  *
- * 결측 학기 대체는 이 매퍼가 아니라 `ScoringEngine`(plan에 선언된 `MissingSemesterStrategy`)의
+ * 성취도 코드 환산·출결 환산 같은 **해석 규칙은 [RawRecordMapping]** 에 있다 —
+ * `entrance-batch`의 `StudentRecordMapper`와 규칙이 갈라지지 않도록 공유하며, 이 매퍼는
+ * 요청 DTO에서 값을 꺼내 넘기는 일만 한다.
+ *
+ * 결측 학기 대체는 매퍼가 아니라 `ScoringEngine`(plan에 선언된 `MissingSemesterStrategy`)의
  * 책임이다 — 그래서 plan이 직접 채점하지 않는 학기(1-1)도 **대체 원본으로 쓰일 수 있으므로
  * submitted map에 그대로 넣는다.** 1-1을 여기서 미리 걸러내면 엔진이 SAME_YEAR_OTHER_SEMESTER
  * 전략으로 1-2를 채울 방법이 없어진다 (Plan.kt의 `missingSemester(SAME_YEAR_OTHER_SEMESTER, ...)`
@@ -34,60 +37,24 @@ object StudentRecordMapper {
 
         return StudentRecord.Transcript(
             graduationType = graduationType,
-            generalAchievements = buildMap {
-                putSemester(SemesterRef(1, 1), request.achievement1_1)
-                putSemester(SemesterRef(1, 2), request.achievement1_2)
-                putSemester(SemesterRef(2, 1), request.achievement2_1)
-                putSemester(SemesterRef(2, 2), request.achievement2_2)
-                putSemester(SemesterRef(3, 1), request.achievement3_1)
-                putSemester(SemesterRef(3, 2), request.achievement3_2)
-            },
-            artsAchievements = request.artsPhysicalAchievement.toAchievements(),
-            attendanceByYear = toAttendanceByYear(
-                absentDays = request.absentDays.orEmpty(),
-                attendanceDays = request.attendanceDays.orEmpty(),
+            generalAchievements = RawRecordMapping.generalAchievements(
+                mapOf(
+                    SemesterRef(1, 1) to request.achievement1_1,
+                    SemesterRef(1, 2) to request.achievement1_2,
+                    SemesterRef(2, 1) to request.achievement2_1,
+                    SemesterRef(2, 2) to request.achievement2_2,
+                    SemesterRef(3, 1) to request.achievement3_1,
+                    SemesterRef(3, 2) to request.achievement3_2,
+                ),
             ),
-            volunteerHoursByYear = request.volunteerTime.orEmpty()
-                .mapIndexed { index, hours -> (index + 1) to hours }
-                .toMap(),
+            artsAchievements = RawRecordMapping.achievements(request.artsPhysicalAchievement),
+            attendanceByYear = RawRecordMapping.attendanceByYear(
+                absentDays = request.absentDays,
+                attendanceDays = request.attendanceDays,
+            ),
+            volunteerHoursByYear = RawRecordMapping.volunteerHoursByYear(request.volunteerTime),
         )
     }
-
-    private fun MutableMap<SemesterRef, List<Achievement>>.putSemester(
-        semester: SemesterRef,
-        raw: List<Int>?,
-    ) {
-        val achievements = raw.toAchievements()
-        if (achievements.isNotEmpty()) put(semester, achievements)
-    }
-
-    /** 0(미수강)을 제외하고 5→A … 1→E 로 변환한다. */
-    private fun List<Int>?.toAchievements(): List<Achievement> =
-        this.orEmpty().filter { it != 0 }.map { it.toAchievement() }
-
-    private fun Int.toAchievement(): Achievement = when (this) {
-        5 -> Achievement.A
-        4 -> Achievement.B
-        3 -> Achievement.C
-        2 -> Achievement.D
-        1 -> Achievement.E
-        else -> throw IllegalArgumentException("유효하지 않은 성취도 환산점수: $this (허용 1..5, 0=미수강)")
-    }
-
-    private fun toAttendanceByYear(
-        absentDays: List<Int>,
-        attendanceDays: List<Int>,
-    ): Map<Int, AttendanceRecord> =
-        (1..3).associateWith { year ->
-            val base = (year - 1) * 3
-            val latenessTotal = (0 until 3).sumOf { attendanceDays.getOrElse(base + it) { 0 } }
-            AttendanceRecord(
-                absenceDays = absentDays.getOrElse(year - 1) { 0 },
-                latenessCount = latenessTotal,
-                earlyLeaveCount = 0,
-                classAbsenceCount = 0,
-            )
-        }
 
     private fun toPlanGraduationType(raw: String): GraduationType = when (raw) {
         "CANDIDATE" -> GraduationType.CANDIDATE
