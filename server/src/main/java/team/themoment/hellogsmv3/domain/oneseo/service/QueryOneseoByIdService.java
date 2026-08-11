@@ -23,6 +23,7 @@ import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoPrivacyDetailRep
 public class QueryOneseoByIdService {
 
     private static final String LIBERAL_YEAR_SYSTEM = "자유학년제";
+    private static final String FREE_SEMESTER_1_1 = "1-1";
     private static final String FREE_SEMESTER_1_2 = "1-2";
     private static final String FREE_SEMESTER_2_1 = "2-1";
     private static final String FREE_SEMESTER_2_2 = "2-2";
@@ -108,6 +109,7 @@ public class QueryOneseoByIdService {
         String liberalSystem = middleSchoolAchievement.getLiberalSystem();
         String freeSemester = middleSchoolAchievement.getFreeSemester();
 
+        List<Integer> achievement1_1 = middleSchoolAchievement.getAchievement1_1();
         List<Integer> achievement1_2 = middleSchoolAchievement.getAchievement1_2();
         List<Integer> achievement2_1 = middleSchoolAchievement.getAchievement2_1();
         List<Integer> achievement2_2 = middleSchoolAchievement.getAchievement2_2();
@@ -121,6 +123,7 @@ public class QueryOneseoByIdService {
 
         if (freeSemester != null) {
             switch (freeSemester) {
+                case FREE_SEMESTER_1_1 -> achievement1_1 = null;
                 case FREE_SEMESTER_1_2 -> achievement1_2 = null;
                 case FREE_SEMESTER_2_1 -> achievement2_1 = null;
                 case FREE_SEMESTER_2_2 -> achievement2_2 = null;
@@ -129,10 +132,9 @@ public class QueryOneseoByIdService {
             }
         }
 
-        return MiddleSchoolAchievementResDto.builder().achievement1_1(middleSchoolAchievement.getAchievement1_1())
-                .achievement1_2(achievement1_2).achievement2_1(achievement2_1).achievement2_2(achievement2_2)
-                .achievement3_1(achievement3_1).achievement3_2(achievement3_2)
-                .generalSubjects(middleSchoolAchievement.getGeneralSubjects())
+        return MiddleSchoolAchievementResDto.builder().achievement1_1(achievement1_1).achievement1_2(achievement1_2)
+                .achievement2_1(achievement2_1).achievement2_2(achievement2_2).achievement3_1(achievement3_1)
+                .achievement3_2(achievement3_2).generalSubjects(middleSchoolAchievement.getGeneralSubjects())
                 .newSubjects(middleSchoolAchievement.getNewSubjects())
                 .artsPhysicalAchievement(middleSchoolAchievement.getArtsPhysicalAchievement())
                 .artsPhysicalSubjects(middleSchoolAchievement.getArtsPhysicalSubjects()).absentDays(absentDays)
