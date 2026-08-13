@@ -187,6 +187,8 @@ public class MiddleSchoolRecordParser {
                 continue;
             }
 
+            // markerGrades는 이 루프와 같은 lines를 같은 조건으로 훑어 만들어지므로 매치 횟수와 크기가 항상 같습니다.
+            // 이 아래 순회 조건을 바꾸면 개수가 어긋나 범위를 벗어나므로 resolveMarkerGrades도 함께 고쳐야 합니다.
             if (GRADE_MARKER.matcher(line).find()) {
                 currentGrade = markerGrades.get(markerIndex++);
             }
@@ -215,6 +217,7 @@ public class MiddleSchoolRecordParser {
      * 숫자가 하나도 읽히지 않았다면 1학년부터 순서대로 매깁니다.
      */
     private List<Integer> resolveMarkerGrades(String[] lines) {
+        // readLines의 순회 조건과 일치해야 합니다. 어긋나면 readLines의 markerIndex가 범위를 벗어납니다.
         List<Integer> markers = new ArrayList<>();
         for (String rawLine : lines) {
             Matcher matcher = GRADE_MARKER.matcher(rawLine.strip());
