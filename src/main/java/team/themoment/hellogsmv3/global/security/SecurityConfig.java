@@ -163,7 +163,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/oneseo/v3/admission-tickets").hasAnyAuthority(ADMIN_ONLY)
                 .requestMatchers(HttpMethod.GET, "/oneseo/v3/editability").hasAnyAuthority(ALL_AUTHENTICATED)
                 .requestMatchers(HttpMethod.POST, "/oneseo/v3/oneseo/me/request").hasAnyAuthority(APPLICANT_OR_ROOT)
-                .requestMatchers(HttpMethod.PATCH, "/oneseo/v3/oneseo/{memberId}/approval").hasAnyAuthority(ADMIN_ONLY);
+                .requestMatchers(HttpMethod.PATCH, "/oneseo/v3/oneseo/{memberId}/approval").hasAnyAuthority(ADMIN_ONLY)
+                .requestMatchers(HttpMethod.POST, "/oneseo/v3/extraction/**").hasAnyAuthority(APPLICANT_OR_ROOT);
     }
 
     private void operationRequests(

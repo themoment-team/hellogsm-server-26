@@ -85,6 +85,12 @@ dependencies {
 	/** excel **/
 	implementation 'org.apache.poi:poi-ooxml:5.5.1'
 
+	/** pdf - 생활기록부 텍스트 레이어 추출 **/
+	implementation 'org.apache.pdfbox:pdfbox:3.0.4'
+
+	/** ocr - 스캔 이미지 생활기록부 추출 **/
+	implementation 'net.sourceforge.tess4j:tess4j:5.13.0'
+
 	/** json **/
 	implementation 'net.minidev:json-smart:2.6.0'
 

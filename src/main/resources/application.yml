@@ -86,6 +86,17 @@ spring:
 auth:
   allowed-origins:
       - '*'
+ocr:
+  # kor.traineddata, eng.traineddata 가 들어있는 디렉터리.
+  # 비워두면 Tesseract 기본 경로(TESSDATA_PREFIX)를 사용합니다.
+  tessdata-path: ${TESSDATA_PATH:}
+  # 페이지 렌더링 해상도. 높일수록 정확하지만 느려집니다.
+  dpi: ${OCR_DPI:300}
+oneseo:
+  extraction:
+    # 데모 진단용. 생활기록부 추출 원문을 응답에 포함합니다.
+    # 개인정보가 그대로 노출되므로 운영 환경에서는 반드시 false여야 합니다.
+    expose-raw-text: ${EXTRACTION_EXPOSE_RAW_TEXT:false}
 schedule:
   oneseoSubmissionStart: ${ONESEO_SUBMISSION_START}
   oneseoSubmissionEnd: ${ONESEO_SUBMISSION_END}
