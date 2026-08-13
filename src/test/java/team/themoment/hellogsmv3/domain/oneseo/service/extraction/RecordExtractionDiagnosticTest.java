@@ -2,8 +2,6 @@ package team.themoment.hellogsmv3.domain.oneseo.service.extraction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,12 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -25,36 +17,38 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.internal.ExtractedTextDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.ExtractionSource;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.ExtractedAchievementResDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
-import team.themoment.hellogsmv3.global.thirdParty.ocr.TesseractTextExtractor;
-import team.themoment.hellogsmv3.global.thirdParty.pdf.PdfBoxTextExtractor;
 
 /**
- * PDF 생성부터 파싱까지 전체 경로를 한 번에 통과시키는 진단 테스트입니다.
+ * 생활기록부 텍스트를 파싱 결과 표로 보여주는 진단 테스트입니다.
  *
  * <p>
- * 기본적으로는 생활기록부 형태의 PDF를 직접 만들어 검증합니다. 실제 생활기록부로 확인하려면 환경변수로 파일 경로를 넘기세요.
+ * 파일에서 텍스트를 얻는 일은 클라이언트가 담당하므로, 이 테스트는 서버가 실제로 받는 것과 같은 텍스트를 입력으로 삼습니다. 기본적으로는
+ * 생활기록부 형태를 흉내낸 합성 텍스트로 검증하고, 실제 추출 결과로 확인하려면 파일 경로를 넘기세요.
  *
  * <pre>
- * RECORD_PDF=/path/to/생활기록부.pdf ./gradlew test --tests "*RecordExtractionDiagnosticTest" -i
+ * RECORD_TEXT=/path/to/추출결과.txt ./gradlew test --tests "*RecordExtractionDiagnosticTest" -i
  * </pre>
  *
  * <p>
- * 이때는 추출 원문과 파싱 결과를 콘솔에 출력하기만 하므로, 정규식을 어떻게 조정해야 하는지 바로 확인할 수 있습니다.
+ * 이때는 파싱 결과를 콘솔에 출력하기만 하므로, 정규식을 어떻게 조정해야 하는지 바로 확인할 수 있습니다. 텍스트 파일에는 개인정보가
+ * 담기므로 저장소 바깥에 두어야 합니다.
  */
-@DisplayName("생활기록부 추출 전체 경로 진단")
+@DisplayName("생활기록부 파싱 진단")
 class RecordExtractionDiagnosticTest {
 
-    /** 실제 생활기록부 PDF 경로. 지정하면 합성 PDF 대신 이 파일을 사용합니다. */
-    private static final String REAL_PDF_ENV = "RECORD_PDF";
+    /** 실제 추출 결과 텍스트 파일 경로. 지정하면 합성 텍스트 대신 이 파일을 사용합니다. */
+    private static final String REAL_TEXT_ENV = "RECORD_TEXT";
 
-    /** 실제 파일이라도 추출 원문 전체를 출력하고 싶을 때 사용합니다. 개인정보가 그대로 노출됩니다. */
-    private static final String FULL_TEXT_ENV = "RECORD_PDF_FULL_TEXT";
+    /** 실제 파일이라도 원문 전체를 출력하고 싶을 때 사용합니다. 개인정보가 그대로 노출됩니다. */
+    private static final String FULL_TEXT_ENV = "RECORD_TEXT_FULL";
 
-    private static final String FONT_PATH = "C:/Windows/Fonts/malgun.ttf";
+    /** 실제 실행에서 관측된 인식 신뢰도를 재현할 때 사용합니다. */
+    private static final String CONFIDENCE_ENV = "RECORD_CONFIDENCE";
 
-    /** 표 형태를 흉내내기 위한 열 x좌표 */
-    private static final float[] COLUMN_X = {50, 90, 160, 250, 400, 480};
+    /** 실제 파일은 졸업 구분에 따라 대상 학기가 달라지므로 환경변수로 지정할 수 있게 합니다. */
+    private static final String GRADUATION_TYPE_ENV = "GRADUATION_TYPE";
 
+    /** 생활기록부에서 성적 · 출결 · 봉사 부분만 흉내낸 텍스트입니다. 열 사이는 공백으로 구분됩니다. */
     private static final String[][] ROWS = {{"[1학년]"}, {"학기", "교과", "과목", "원점수/과목평균(표준편차)", "성취도(수강자수)", "비고"},
             {"2", "국어", "국어", "85/70.5(12.3)", "A(250)"}, {"2", "사회(역사포함)", "사회", "78/65.2(14.1)", "B(250)"},
             {"2", "수학", "수학", "91/68.0(15.0)", "A(250)"}, {"2", "기술·가정", "기술·가정", "82/70.0(12.0)", "B(250)"},
@@ -67,105 +61,23 @@ class RecordExtractionDiagnosticTest {
             {"1", "사회(역사포함)", "사회", "84/67.0(12.5)", "B(245)"}, {"1", "수학", "수학", "77/65.0(15.5)", "C(245)"}, {"출결상황"},
             {"1", "190", "2 0 0 1 0 0 0 0 0 0 0 0"}, {"창의적 체험활동상황"}, {"1", "봉사활동", "7"}};
 
-    private byte[] createSyntheticRecordPdf() throws IOException {
-        try (PDDocument document = new PDDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            PDPage page = new PDPage(PDRectangle.A4);
-            document.addPage(page);
-            PDType0Font font = PDType0Font.load(document, new File(FONT_PATH));
-
-            try (PDPageContentStream content = new PDPageContentStream(document, page)) {
-                content.setFont(font, 9);
-                float y = 800;
-                for (String[] row : ROWS) {
-                    for (int col = 0; col < row.length; col++) {
-                        content.beginText();
-                        content.newLineAtOffset(COLUMN_X[Math.min(col, COLUMN_X.length - 1)], y);
-                        content.showText(row[col]);
-                        content.endText();
-                    }
-                    y -= 14;
-                }
-            }
-            document.save(out);
-            return out.toByteArray();
-        }
+    private String createSyntheticRecordText() {
+        return Arrays.stream(ROWS).map(row -> String.join(" ", row)).reduce((a, b) -> a + "\n" + b).orElseThrow();
     }
 
     /**
      * 성적 표처럼 보이는 줄만 고르는 느슨한 필터입니다.
      *
      * <p>
-     * 생활기록부에는 이름, 학교, 세부능력특기사항 등 진단에 불필요한 개인정보가 함께 담겨 있으므로, 실제 파일을 넣을 때는 성적·출결·봉사
-     * 관련 줄만 출력합니다.
+     * 클라이언트가 표만 잘라 보내더라도 이름이나 학교가 섞여 들어올 수 있으므로, 실제 파일을 넣을 때는 성적 · 출결 · 봉사 관련 줄만
+     * 출력합니다.
      */
     private static final Pattern DIAGNOSTIC_LINE = Pattern
             .compile("^[123]?\\s*학년|^\\[?[123]\\s*학년|^[12]\\s+\\S+\\s+\\S+.*[A-E]|^[123](\\s+\\d+){5,}|봉사활동\\s+\\d+");
 
-    /**
-     * 서비스와 동일한 순서로 추출을 시도합니다. 텍스트 레이어가 없으면 OCR로 넘어갑니다.
-     *
-     * <p>
-     * OCR 경로는 {@code TESSDATA_PATH} 환경변수로 학습 데이터 위치를 지정해야 동작합니다.
-     */
-    private ExtractedTextDto extractWithFallback(byte[] pdfBytes) throws IOException {
-        ExtractedTextDto viaTextLayer = new PdfBoxTextExtractor().extract(pdfBytes, "application/pdf");
-        if (viaTextLayer.rawText().strip().length() >= 200) {
-            return viaTextLayer;
-        }
-
-        String tessdataPath = System.getenv("TESSDATA_PATH");
-        Assumptions.assumeTrue(tessdataPath != null && !tessdataPath.isBlank(),
-                "텍스트 레이어가 없는 PDF입니다. OCR로 확인하려면 TESSDATA_PATH를 지정하세요.");
-
-        System.out.println("텍스트 레이어가 없어 OCR로 전환합니다. (글자수 " + viaTextLayer.rawText().strip().length() + ")");
-
-        // OCR은 페이지당 수십 초가 걸립니다. 정규식을 반복 조정할 때 매번 다시 돌리지 않도록 결과를 캐시합니다.
-        Path cache = ocrCachePath();
-        if (cache != null && Files.exists(cache)) {
-            String cached = Files.readString(cache);
-            System.out.println("캐시된 OCR 결과를 사용합니다. (" + cached.length() + "자, " + cache + ")");
-            // 캐시에는 텍스트만 담기므로, 인식 신뢰도는 환경변수로 넘겨 실제 실행값을 재현합니다.
-            String cachedConfidence = System.getenv("OCR_CONFIDENCE");
-            double confidence = cachedConfidence == null || cachedConfidence.isBlank()
-                    ? 1.0
-                    : Double.parseDouble(cachedConfidence);
-            return new ExtractedTextDto(cached, viaTextLayer.pageCount(), false, ExtractionSource.OCR, confidence);
-        }
-
-        long startedAt = System.currentTimeMillis();
-        ExtractedTextDto viaOcr = new TesseractTextExtractor(tessdataPath,
-                System.getenv("SCOUT_TESSDATA_PATH"),
-                ocrDpi(),
-                parallelism()).extract(pdfBytes, "application/pdf");
-        System.out.println("OCR 전체 소요 " + (System.currentTimeMillis() - startedAt) / 1000 + "초");
-
-        if (cache != null) {
-            Files.createDirectories(cache.getParent());
-            Files.writeString(cache, viaOcr.rawText());
-            System.out.println("OCR 결과를 캐시했습니다: " + cache);
-        }
-        return viaOcr;
-    }
-
-    /** OCR 결과 캐시 파일 경로. 개인정보가 담기므로 저장소 바깥을 지정해야 합니다. */
-    private Path ocrCachePath() {
-        String path = System.getenv("OCR_TEXT_CACHE");
-        return path == null || path.isBlank() ? null : Path.of(path);
-    }
-
-    private int parallelism() {
-        String value = System.getenv("OCR_PARALLELISM");
-        return value == null || value.isBlank() ? 0 : Integer.parseInt(value);
-    }
-
-    private int ocrDpi() {
-        String dpi = System.getenv("OCR_DPI");
-        return dpi == null || dpi.isBlank() ? 300 : Integer.parseInt(dpi);
-    }
-
     private void printExtractedText(ExtractedTextDto extracted, boolean redact) {
         if (!redact) {
-            System.out.println("=== 추출 원문 ===");
+            System.out.println("=== 입력 텍스트 ===");
             System.out.println(extracted.rawText());
             return;
         }
@@ -174,10 +86,10 @@ class RecordExtractionDiagnosticTest {
                 .filter(line -> !line.isEmpty()).toList();
         List<String> relevant = lines.stream().filter(line -> DIAGNOSTIC_LINE.matcher(line).find()).toList();
 
-        System.out.println("=== 추출 원문 (성적 관련 줄만) ===");
+        System.out.println("=== 입력 텍스트 (성적 관련 줄만) ===");
         System.out.println("전체 " + lines.size() + "줄 중 " + relevant.size() + "줄이 성적 표 형태로 보입니다.");
         System.out.println("나머지 줄은 개인정보가 포함될 수 있어 출력하지 않습니다.");
-        System.out.println("전체 원문이 필요하면 RECORD_PDF_FULL_TEXT=true 로 다시 실행하세요.");
+        System.out.println("전체 원문이 필요하면 " + FULL_TEXT_ENV + "=true 로 다시 실행하세요.");
         System.out.println();
         relevant.stream().limit(80).forEach(System.out::println);
         if (relevant.size() > 80) {
@@ -268,11 +180,10 @@ class RecordExtractionDiagnosticTest {
     }
 
     private void printResult(ExtractedTextDto extracted, ExtractedAchievementResDto result, boolean redact) {
-        System.out.println("=== 추출 진단 ===");
+        System.out.println("=== 입력 진단 ===");
         System.out.println("hasTextLayer : " + extracted.hasTextLayer());
         System.out.println("인식신뢰도     : " + extracted.recognitionConfidence());
         System.out.println("source       : " + extracted.source());
-        System.out.println("pageCount    : " + extracted.pageCount());
         System.out.println("글자수        : " + extracted.rawText().length());
         System.out.println();
         printExtractedText(extracted, redact);
@@ -299,38 +210,42 @@ class RecordExtractionDiagnosticTest {
                 + (warning.index() == null ? "" : "[" + warning.index() + "]") + " : " + warning.message()));
     }
 
+    private double confidence() {
+        String value = System.getenv(CONFIDENCE_ENV);
+        return value == null || value.isBlank() ? 1.0 : Double.parseDouble(value);
+    }
+
+    private GraduationType graduationType() {
+        String value = System.getenv(GRADUATION_TYPE_ENV);
+        return value == null || value.isBlank() ? GraduationType.CANDIDATE : GraduationType.valueOf(value);
+    }
+
     @Test
-    @DisplayName("PDF 생성 → 텍스트 추출 → 파싱 전체 경로가 성적을 복원한다")
-    void it_runs_full_pipeline() throws IOException {
-        String realPdfPath = System.getenv(REAL_PDF_ENV);
-        boolean useRealPdf = realPdfPath != null && !realPdfPath.isBlank();
+    @DisplayName("추출된 텍스트를 성적 표로 복원한다")
+    void it_parses_extracted_text() throws IOException {
+        String realTextPath = System.getenv(REAL_TEXT_ENV);
+        boolean useRealText = realTextPath != null && !realTextPath.isBlank();
 
-        Assumptions.assumeTrue(useRealPdf || new File(FONT_PATH).exists(),
-                "한글 폰트를 찾을 수 없어 합성 PDF를 만들 수 없습니다: " + FONT_PATH);
+        String rawText = useRealText ? Files.readString(Path.of(realTextPath)) : createSyntheticRecordText();
+        ExtractedTextDto extracted = new ExtractedTextDto(rawText,
+                0,
+                !useRealText,
+                useRealText ? ExtractionSource.OCR : ExtractionSource.TEXT_LAYER,
+                useRealText ? confidence() : 1.0);
 
-        byte[] pdfBytes = useRealPdf ? Files.readAllBytes(Path.of(realPdfPath)) : createSyntheticRecordPdf();
-
-        // 실제 파일은 졸업 구분에 따라 대상 학기가 달라지므로 환경변수로 지정할 수 있게 합니다.
-        String graduationTypeEnv = System.getenv("GRADUATION_TYPE");
-        GraduationType graduationType = graduationTypeEnv == null || graduationTypeEnv.isBlank()
-                ? GraduationType.CANDIDATE
-                : GraduationType.valueOf(graduationTypeEnv);
-
-        ExtractedTextDto extracted = extractWithFallback(pdfBytes);
         ExtractedAchievementResDto result = new MiddleSchoolRecordParser(new SubjectNameNormalizer())
-                .parse(extracted, graduationType, MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+                .parse(extracted, graduationType(), MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
 
         // 실제 생활기록부는 개인정보가 포함되므로 성적 관련 줄만 출력합니다.
-        boolean redact = useRealPdf && !"true".equalsIgnoreCase(System.getenv(FULL_TEXT_ENV));
+        boolean redact = useRealText && !"true".equalsIgnoreCase(System.getenv(FULL_TEXT_ENV));
         printResult(extracted, result, redact);
         printComparisonTable(result);
 
-        if (useRealPdf) {
+        if (useRealText) {
             // 실제 생활기록부는 형식을 알 수 없으므로 출력만 하고 값을 단정하지 않습니다.
             return;
         }
 
-        assertThat(extracted.hasTextLayer()).isTrue();
         assertThat(result.achievement().generalSubjects())
                 .containsExactly("국어", "사회", "도덕", "역사", "수학", "과학", "기술가정", "정보", "영어");
         assertThat(result.achievement().newSubjects()).isEmpty();
@@ -342,7 +257,7 @@ class RecordExtractionDiagnosticTest {
         // 자유학기제 졸업예정자: 1-1, 1-2, 2-1, 2-2, 3-1 → 15칸. 1-2의 체육 A가 index 3
         assertThat(result.achievement().artsPhysicalAchievement()).hasSize(15);
         assertThat(result.achievement().artsPhysicalAchievement().get(3)).isEqualTo(5);
-        // 합성 PDF에는 1학년 출결 · 봉사만 담았으므로 나머지 학년은 비어 있어야 합니다.
+        // 합성 텍스트에는 1학년 출결 · 봉사만 담았으므로 나머지 학년은 비어 있어야 합니다.
         assertThat(result.achievement().absentDays()).containsExactly(2, null, null);
         assertThat(result.achievement().volunteerTime()).containsExactly(7, null, null);
     }
