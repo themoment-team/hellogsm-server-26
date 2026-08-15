@@ -198,8 +198,6 @@ class MiddleSchoolRecordParserTest {
             @Test
             @DisplayName("P 등급 과목을 0점으로 채우고 누락 경고를 붙이지 않는다")
             void it_treats_pass_grade_as_not_missing() {
-                // 순서: 국어, 사회, 도덕, 역사, 수학, 과학, 기술가정, 정보, 영어. P로 표기된 국어 · 수학 · 영어(index
-                // 0, 4, 8)는 값이 0이더라도 실제로 발견됐으므로 MISSING_SUBJECT 경고가 붙지 않아야 한다.
                 assertThat(result.achievement().achievement1_1()).containsExactly(0, 0, 0, 0, 0, 0, 0, 0, 0);
                 assertThat(result.meta().warnings())
                         .noneMatch(warning -> warning.type() == ExtractionWarningType.MISSING_SUBJECT

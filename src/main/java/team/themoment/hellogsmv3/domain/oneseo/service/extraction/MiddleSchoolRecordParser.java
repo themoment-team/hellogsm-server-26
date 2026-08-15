@@ -74,12 +74,6 @@ public class MiddleSchoolRecordParser {
      * 해서 숫자 안의 공백을 허용합니다.
      *
      * <p>
-     * 자유학기제 학기는 원점수 없이 {@code P}(이수)만 나옵니다. {@code P}를 성취도 문자에 포함하지 않으면 그 줄 전체가
-     * 매치되지 않아 "과목을 찾지 못함" 경고가 붙는데, 실제로는 자유학기제라 원래 등급이 없는 것이므로 잘못된 경고입니다. 그래서
-     * {@code P}도 성취도 문자로 인정하고, {@link #ACHIEVEMENT_SCORE}에는 넣지 않아 점수는 0(미이수 또는
-     * 해당없음)으로 남깁니다.
-     *
-     * <p>
      * group1=학기, group2=과목, group3=성취도
      */
     private static final Pattern SUBJECT_ROW = Pattern.compile(
@@ -93,15 +87,6 @@ public class MiddleSchoolRecordParser {
      */
     private static final Pattern ATTENDANCE_ROW = Pattern.compile("^([123])\\s+(\\d+)((?:\\s+\\d+){12})\\s*$");
 
-    /**
-     * 결석 · 지각 · 조퇴 · 결과가 전부 없는 학년의 출결 행. 예: {@code 1 190 개근}
-     *
-     * <p>
-     * 결석이 전혀 없으면 12칸을 0으로 나열하는 대신 "개근"으로 요약해서 적는 경우가 실제로 확인되어 별도로 다룹니다.
-     *
-     * <p>
-     * group1=학년, group2=수업일수
-     */
     private static final Pattern ATTENDANCE_PERFECT_ROW = Pattern.compile("^([123])\\s+(\\d+)\\s+개근\\s*$");
 
     /** 봉사활동 행. 예: {@code 1 봉사활동 7} */
