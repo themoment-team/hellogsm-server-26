@@ -31,8 +31,9 @@ import team.themoment.hellogsmv3.domain.oneseo.service.extraction.SubjectNameNor
  * </ul>
  *
  * <p>
- * <b>중요:</b> 아래 정규식들은 실제 생활기록부 샘플 없이 작성한 1차 안입니다. 샘플 PDF를 확보한 뒤 반드시 조정해야 하며,
- * 조정이 필요한 부분은 이 클래스의 상수 영역에 모아두었습니다.
+ * <b>중요:</b> 아래 정규식 · 상태 기계는 실제 생활기록부 원문(PDF 텍스트 레이어 추출 결과)을 대조해 조정한 것입니다. 표의
+ * 병합 셀 때문에 학기 · 성취도 열이 항상 같은 줄에 있지는 않으므로, 줄 하나만 보지 않고 직전까지 읽은 상태를 함께 씁니다. 새로운
+ * 원문 형식이 발견되면 이 클래스의 상수 · 상태 영역을 확인하세요.
  */
 @Component
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class MiddleSchoolRecordParser {
     private final SubjectNameNormalizer subjectNameNormalizer;
 
     // ---------------------------------------------------------------
-    // 실제 샘플 확보 후 조정이 필요한 영역
+    // 새 원문 형식이 발견되면 조정이 필요한 영역
     // ---------------------------------------------------------------
 
     /**
@@ -77,7 +78,23 @@ public class MiddleSchoolRecordParser {
      * group1=학기, group2=과목, group3=성취도
      */
     private static final Pattern SUBJECT_ROW = Pattern.compile(
-            "^([12])\\s+.*(?<![가-힣ㆍ·])([가-힣][가-힣ㆍ·]*)\\s+(?:[\\d.\\s]+/[\\d.\\s]+\\s*(?:\\([^)]*\\))?\\s+)?([A-EP])\\s*(?:\\(\\s*\\d+\\s*\\))?\\s*$");
+            "^(?:([12])\\s+)?.*(?<![가-힣ㆍ·])([가-힣][가-힣ㆍ·]*)\\s+(?:[\\d.,\\s]+/[\\d.,\\s]+\\s*(?:\\([^)]*\\))?\\s+)?([A-EP])\\s*(?:\\(\\s*\\d+\\s*\\))?\\s*[가-힣ㆍ·]{0,3}\\s*$");
+
+    /**
+     * 학기 열이 표의 병합 셀이라 첫 과목 행에만 나오고, 그 뒤로는 줄이 통째로 숫자 하나만 있는 경우가 있습니다. 이럴 땐 이 숫자를 다음
+     * 과목 행들의 학기로 이어받습니다.
+     */
+    private static final Pattern SEMESTER_MARKER = Pattern.compile("^([12])\\s*$");
+
+    /**
+     * 예체능 과목명 행인데 성취도가 같은 줄에 없는 경우. 과목명 행들이 먼저 쭉 나오고, 그 뒤에 성취도 글자들이 같은 순서로 따로 몰려서
+     * 나오는 표가 실제로 있습니다.
+     */
+    private static final Pattern ARTS_PHYSICAL_PENDING_ROW = Pattern
+            .compile("^([12])\\s+(체육|예술\\(음악/미술\\))\\s+([가-힣]+)\\s*$");
+
+    /** 성취도 글자만 홀로 한 줄에 있는 경우. 예체능 과목명이 먼저 밀려 있을 때만 짝을 지어 소비합니다. */
+    private static final Pattern BARE_ACHIEVEMENT = Pattern.compile("^([A-EP])\\s*$");
 
     /**
      * 출결 행. {@code 학년 수업일수 결석(질병/미인정/기타) 지각(3) 조퇴(3) 결과(3)} = 학년 + 수업일수 + 숫자 12개
@@ -89,7 +106,13 @@ public class MiddleSchoolRecordParser {
 
     private static final Pattern ATTENDANCE_PERFECT_ROW = Pattern.compile("^([123])\\s+(\\d+)\\s+개근\\s*$");
 
-    /** 봉사활동 행. 예: {@code 1 봉사활동 7} */
+    /** 학년 + 수업일수만 있고 뒤가 없는 행. "개근"이 다음 줄로 떨어져 나온 경우 대기열에 넣어두고 뒤에서 짝을 맞춥니다. */
+    private static final Pattern GRADE_DAYS_ONLY = Pattern.compile("^([123])\\s+(\\d+)\\s*$");
+
+    /** "개근"만 홀로 한 줄에 있는 경우. */
+    private static final Pattern PERFECT_ATTENDANCE_WORD = Pattern.compile("^개근\\s*$");
+
+    /** 봉사활동 요약 행. 예: {@code 1 봉사활동 7} */
     private static final Pattern VOLUNTEER_ROW = Pattern.compile("^([123])\\s+봉사활동\\s+(\\d+)");
 
     /** 성취도 문자를 성취점수로 변환합니다. 예체능은 A~C(5~3)만 유효합니다. */
@@ -193,15 +216,52 @@ public class MiddleSchoolRecordParser {
             // 이 아래 순회 조건을 바꾸면 개수가 어긋나 범위를 벗어나므로 resolveMarkerGrades도 함께 고쳐야 합니다.
             if (GRADE_MARKER.matcher(line).find()) {
                 currentGrade = markerGrades.get(markerIndex++);
+                context.currentSemester = 0;
             }
 
             if (readAttendance(line, context) || readVolunteer(line, context)) {
                 continue;
             }
             if (currentGrade != 0) {
-                readSubject(line, currentGrade, context);
+                readAcademicRow(line, currentGrade, context);
             }
         }
+    }
+
+    /**
+     * 학기 · 과목 · 성취도 열이 표의 병합 셀 때문에 항상 같은 줄에 붙어 있지는 않아서, 줄 하나만으로 판단하지 않고 직전까지 읽은
+     * 상태(현재 학기, 짝을 기다리는 예체능 과목)를 함께 봅니다.
+     */
+    private void readAcademicRow(String line, int grade, ParseContext context) {
+        Matcher semesterOnly = SEMESTER_MARKER.matcher(line);
+        if (semesterOnly.matches()) {
+            context.currentSemester = Integer.parseInt(semesterOnly.group(1));
+            return;
+        }
+
+        Matcher artsPending = ARTS_PHYSICAL_PENDING_ROW.matcher(line);
+        if (artsPending.matches()) {
+            int semester = Integer.parseInt(artsPending.group(1));
+            context.currentSemester = semester;
+            NormalizedSubject subject = subjectNameNormalizer.normalize(artsPending.group(3));
+            context.pendingArtsPhysical.add(new PendingArtsPhysical(grade + "-" + semester, subject));
+            return;
+        }
+
+        Matcher bareAchievement = BARE_ACHIEVEMENT.matcher(line);
+        if (bareAchievement.matches() && !context.pendingArtsPhysical.isEmpty()) {
+            char letter = bareAchievement.group(1).charAt(0);
+            PendingArtsPhysical pending = context.pendingArtsPhysical.poll();
+            int score = ACHIEVEMENT_SCORE.getOrDefault(letter, NOT_TAKEN);
+            readArtsPhysical(pending.semesterKey(), pending.subject(), score, letter, context);
+            return;
+        }
+
+        readSubject(line, grade, context);
+    }
+
+    /** 성취도가 같은 줄에 없는 예체능 과목 하나를 나타냅니다. 뒤에 따로 나오는 성취도 글자와 순서대로 짝지어집니다. */
+    private record PendingArtsPhysical(String semesterKey, NormalizedSubject subject) {
     }
 
     /**
@@ -269,7 +329,16 @@ public class MiddleSchoolRecordParser {
             return;
         }
 
-        int semester = Integer.parseInt(matcher.group(1));
+        String semesterGroup = matcher.group(1);
+        int semester;
+        if (semesterGroup != null) {
+            semester = Integer.parseInt(semesterGroup);
+            context.currentSemester = semester;
+        } else if (context.currentSemester != 0) {
+            semester = context.currentSemester;
+        } else {
+            return;
+        }
         String rawSubject = matcher.group(2);
         char letter = matcher.group(3).charAt(0);
 
@@ -316,38 +385,89 @@ public class MiddleSchoolRecordParser {
     private boolean readAttendance(String line, ParseContext context) {
         Matcher perfectMatcher = ATTENDANCE_PERFECT_ROW.matcher(line);
         if (perfectMatcher.find()) {
-            int grade = Integer.parseInt(perfectMatcher.group(1));
-            context.absentDays[grade - 1] = 0;
-            context.attendanceDays[(grade - 1) * 3] = 0;
-            context.attendanceDays[(grade - 1) * 3 + 1] = 0;
-            context.attendanceDays[(grade - 1) * 3 + 2] = 0;
+            markPerfectAttendance(Integer.parseInt(perfectMatcher.group(1)), context);
             return true;
         }
 
         Matcher matcher = ATTENDANCE_ROW.matcher(line);
-        if (!matcher.find()) {
-            return false;
+        if (matcher.find()) {
+            int grade = Integer.parseInt(matcher.group(1));
+            int[] values = Arrays.stream(matcher.group(3).strip().split("\\s+")).mapToInt(Integer::parseInt).toArray();
+
+            // 결석 질병/미인정/기타 합산
+            context.absentDays[grade - 1] = values[0] + values[1] + values[2];
+            // 학년별 지각, 조퇴, 결과 순으로 3칸씩 배치
+            context.attendanceDays[(grade - 1) * 3] = values[3] + values[4] + values[5];
+            context.attendanceDays[(grade - 1) * 3 + 1] = values[6] + values[7] + values[8];
+            context.attendanceDays[(grade - 1) * 3 + 2] = values[9] + values[10] + values[11];
+            return true;
         }
 
-        int grade = Integer.parseInt(matcher.group(1));
-        int[] values = Arrays.stream(matcher.group(3).strip().split("\\s+")).mapToInt(Integer::parseInt).toArray();
+        // "학년 수업일수"와 "개근"이 서로 다른 줄로 떨어져 나오는 표가 있습니다. 학년들을 순서대로 대기열에 쌓아두고,
+        // "개근"을 만날 때마다 가장 오래 기다린 학년부터 채웁니다. 문서 안에서 학년은 항상 오름차순으로 나옵니다.
+        if (PERFECT_ATTENDANCE_WORD.matcher(line).matches()) {
+            Integer grade = context.pendingPerfectAttendanceGrades.poll();
+            if (grade != null) {
+                markPerfectAttendance(grade, context);
+            }
+            return true;
+        }
 
-        // 결석 질병/미인정/기타 합산
-        context.absentDays[grade - 1] = values[0] + values[1] + values[2];
-        // 학년별 지각, 조퇴, 결과 순으로 3칸씩 배치
-        context.attendanceDays[(grade - 1) * 3] = values[3] + values[4] + values[5];
-        context.attendanceDays[(grade - 1) * 3 + 1] = values[6] + values[7] + values[8];
-        context.attendanceDays[(grade - 1) * 3 + 2] = values[9] + values[10] + values[11];
-        return true;
+        Matcher daysOnly = GRADE_DAYS_ONLY.matcher(line);
+        if (daysOnly.matches()) {
+            context.pendingPerfectAttendanceGrades.add(Integer.parseInt(daysOnly.group(1)));
+            return true;
+        }
+
+        return false;
+    }
+
+    private void markPerfectAttendance(int grade, ParseContext context) {
+        context.absentDays[grade - 1] = 0;
+        context.attendanceDays[(grade - 1) * 3] = 0;
+        context.attendanceDays[(grade - 1) * 3 + 1] = 0;
+        context.attendanceDays[(grade - 1) * 3 + 2] = 0;
     }
 
     private boolean readVolunteer(String line, ParseContext context) {
-        Matcher matcher = VOLUNTEER_ROW.matcher(line);
-        if (!matcher.find()) {
+        Matcher explicit = VOLUNTEER_ROW.matcher(line);
+        if (explicit.find()) {
+            int grade = Integer.parseInt(explicit.group(1));
+            context.volunteerTime[grade - 1] = Integer.parseInt(explicit.group(2));
+            return true;
+        }
+
+        return readVolunteerLedgerRow(line, context);
+    }
+
+    /**
+     * 봉사활동실적 표는 학년별 합계 줄이 따로 없고, 날짜별 활동마다 그 시점까지의 누계시간만 적혀 있습니다. 그래서 누계시간이 이전 줄보다
+     * 작아지는 시점을 학년이 바뀐 지점으로 보고, 그 학년의 마지막(가장 큰) 누계시간을 총 봉사시간으로 씁니다.
+     *
+     * <p>
+     * 학년 열 자체는 표의 병합 셀이라 실제 학년 경계와 다른 위치에 찍혀 있는 경우가 있어 신뢰할 수 없고, 그래서 사용하지 않습니다.
+     */
+    private boolean readVolunteerLedgerRow(String line, ParseContext context) {
+        String[] tokens = line.split("\\s+");
+        if (tokens.length < 3) {
             return false;
         }
-        int grade = Integer.parseInt(matcher.group(1));
-        context.volunteerTime[grade - 1] = Integer.parseInt(matcher.group(2));
+
+        String hoursToken = tokens[tokens.length - 2];
+        String cumulativeToken = tokens[tokens.length - 1];
+        if (!hoursToken.matches("\\d+") || !cumulativeToken.matches("\\d+")) {
+            return false;
+        }
+
+        int cumulative = Integer.parseInt(cumulativeToken);
+        if (cumulative < context.lastVolunteerCumulative) {
+            context.volunteerSegmentIndex++;
+        }
+        context.lastVolunteerCumulative = cumulative;
+
+        if (context.volunteerSegmentIndex < context.volunteerTime.length) {
+            context.volunteerTime[context.volunteerSegmentIndex] = cumulative;
+        }
         return true;
     }
 
@@ -479,5 +599,11 @@ public class MiddleSchoolRecordParser {
         private final Integer[] absentDays = new Integer[3];
         private final Integer[] attendanceDays = new Integer[9];
         private final Integer[] volunteerTime = new Integer[3];
+        // 학기 열이 병합 셀이라 첫 과목 행에만 나올 때, 뒤이은 행들이 이어받을 학기입니다. 0이면 아직 모르는 상태입니다.
+        private int currentSemester;
+        private final Deque<Integer> pendingPerfectAttendanceGrades = new ArrayDeque<>();
+        private final Deque<PendingArtsPhysical> pendingArtsPhysical = new ArrayDeque<>();
+        private int volunteerSegmentIndex;
+        private int lastVolunteerCumulative;
     }
 }
