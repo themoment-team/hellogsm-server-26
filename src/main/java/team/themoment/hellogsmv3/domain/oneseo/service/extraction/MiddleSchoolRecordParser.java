@@ -329,10 +329,10 @@ public class MiddleSchoolRecordParser {
             return;
         }
 
-        String semesterGroup = matcher.group(1);
+        String semesterDigit = matcher.group(1);
         int semester;
-        if (semesterGroup != null) {
-            semester = Integer.parseInt(semesterGroup);
+        if (semesterDigit != null) {
+            semester = Integer.parseInt(semesterDigit);
             context.currentSemester = semester;
         } else if (context.currentSemester != 0) {
             semester = context.currentSemester;
@@ -467,6 +467,11 @@ public class MiddleSchoolRecordParser {
 
         if (context.volunteerSegmentIndex < context.volunteerTime.length) {
             context.volunteerTime[context.volunteerSegmentIndex] = cumulative;
+        } else if (!context.volunteerOverflowWarned) {
+            context.volunteerOverflowWarned = true;
+            context.warnings.add(
+                    ExtractionWarningResDto.builder().field("volunteerTime").type(ExtractionWarningType.OUT_OF_RANGE)
+                            .message("봉사활동 누계시간이 3개 학년보다 더 많은 구간으로 끊겨서 일부를 읽지 못했습니다. 직접 확인해주세요.").build());
         }
         return true;
     }
@@ -605,5 +610,6 @@ public class MiddleSchoolRecordParser {
         private final Deque<PendingArtsPhysical> pendingArtsPhysical = new ArrayDeque<>();
         private int volunteerSegmentIndex;
         private int lastVolunteerCumulative;
+        private boolean volunteerOverflowWarned;
     }
 }
