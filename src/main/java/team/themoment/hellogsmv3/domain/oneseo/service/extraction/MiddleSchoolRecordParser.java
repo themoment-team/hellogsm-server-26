@@ -77,7 +77,7 @@ public class MiddleSchoolRecordParser {
      * group1=학기, group2=과목, group3=성취도
      */
     private static final Pattern SUBJECT_ROW = Pattern.compile(
-            "^([12])\\s+.*(?<![가-힣ㆍ·])([가-힣][가-힣ㆍ·]*)\\s+(?:[\\d.\\s]+/[\\d.\\s]+\\s*(?:\\([^)]*\\))?\\s+)?([A-E])\\s*(?:\\(\\s*\\d+\\s*\\))?\\s*$");
+            "^([12])\\s+.*(?<![가-힣ㆍ·])([가-힣][가-힣ㆍ·]*)\\s+(?:[\\d.\\s]+/[\\d.\\s]+\\s*(?:\\([^)]*\\))?\\s+)?([A-EP])\\s*(?:\\(\\s*\\d+\\s*\\))?\\s*$");
 
     /**
      * 출결 행. {@code 학년 수업일수 결석(질병/미인정/기타) 지각(3) 조퇴(3) 결과(3)} = 학년 + 수업일수 + 숫자 12개
@@ -86,6 +86,8 @@ public class MiddleSchoolRecordParser {
      * group1=학년, group2=수업일수, group3=숫자 12개
      */
     private static final Pattern ATTENDANCE_ROW = Pattern.compile("^([123])\\s+(\\d+)((?:\\s+\\d+){12})\\s*$");
+
+    private static final Pattern ATTENDANCE_PERFECT_ROW = Pattern.compile("^([123])\\s+(\\d+)\\s+개근\\s*$");
 
     /** 봉사활동 행. 예: {@code 1 봉사활동 7} */
     private static final Pattern VOLUNTEER_ROW = Pattern.compile("^([123])\\s+봉사활동\\s+(\\d+)");
@@ -312,6 +314,16 @@ public class MiddleSchoolRecordParser {
     }
 
     private boolean readAttendance(String line, ParseContext context) {
+        Matcher perfectMatcher = ATTENDANCE_PERFECT_ROW.matcher(line);
+        if (perfectMatcher.find()) {
+            int grade = Integer.parseInt(perfectMatcher.group(1));
+            context.absentDays[grade - 1] = 0;
+            context.attendanceDays[(grade - 1) * 3] = 0;
+            context.attendanceDays[(grade - 1) * 3 + 1] = 0;
+            context.attendanceDays[(grade - 1) * 3 + 2] = 0;
+            return true;
+        }
+
         Matcher matcher = ATTENDANCE_ROW.matcher(line);
         if (!matcher.find()) {
             return false;

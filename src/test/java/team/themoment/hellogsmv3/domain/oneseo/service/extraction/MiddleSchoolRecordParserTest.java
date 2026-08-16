@@ -171,6 +171,53 @@ class MiddleSchoolRecordParserTest {
         }
 
         @Nested
+        @DisplayName("자유학기제 P 등급과 개근 출결이 섞인 생활기록부가 주어진 경우")
+        class Context_with_pass_grade_and_perfect_attendance {
+
+            private static final String TEXT_WITH_PASS_AND_PERFECT = """
+                    교과학습발달상황
+                    [1학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 국어 국어 P
+                    1 수학 수학 P
+                    1 영어 영어 P
+                    출결상황
+                    1 190 개근
+                    """;
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = new MiddleSchoolRecordParser(new SubjectNameNormalizer()).parse(
+                        new ExtractedTextDto(TEXT_WITH_PASS_AND_PERFECT, 1, true, ExtractionSource.TEXT_LAYER, 1.0),
+                        GraduationType.CANDIDATE,
+                        MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("P 등급 과목을 0점으로 채우고 누락 경고를 붙이지 않는다")
+            void it_treats_pass_grade_as_not_missing() {
+                assertThat(result.achievement().achievement1_1()).containsExactly(0, 0, 0, 0, 0, 0, 0, 0, 0);
+                assertThat(result.meta().warnings())
+                        .noneMatch(warning -> warning.type() == ExtractionWarningType.MISSING_SUBJECT
+                                && "achievement1_1".equals(warning.field())
+                                && List.of(0, 4, 8).contains(warning.index()));
+            }
+
+            @Test
+            @DisplayName("개근 출결을 전부 0으로 채운다")
+            void it_treats_perfect_attendance_as_zero() {
+                assertThat(result.achievement().absentDays()).containsExactly(0, null, null);
+                assertThat(result.achievement().attendanceDays())
+                        .containsExactly(0, 0, 0, null, null, null, null, null, null);
+                assertThat(result.meta().warnings())
+                        .noneMatch(warning -> warning.type() == ExtractionWarningType.MISSING_ATTENDANCE
+                                && warning.index() != null && warning.index() == 0);
+            }
+        }
+
+        @Nested
         @DisplayName("자유학기제 졸업예정자의 생활기록부가 주어진 경우")
         class Context_with_free_semester_candidate {
 
