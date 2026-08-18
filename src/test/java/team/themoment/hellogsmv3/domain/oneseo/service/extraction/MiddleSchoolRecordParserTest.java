@@ -218,6 +218,147 @@ class MiddleSchoolRecordParserTest {
         }
 
         @Nested
+        @DisplayName("학기 열이 병합 셀이라 첫 과목 행에만 있고 원점수에 쉼표 소수점이 섞인 경우")
+        class Context_with_merged_semester_cell_and_comma_decimal {
+
+            private static final String TEXT_WITH_MERGED_SEMESTER = """
+                    교과학습발달상황
+                    [1학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 국어 국어 91/77,8 A(168)
+                    사회(역사포함)/도 도덕 88/72.0 B(168) 덕
+                    수학 수학 85/70 5 C(168)
+                    """;
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = new MiddleSchoolRecordParser(new SubjectNameNormalizer()).parse(
+                        new ExtractedTextDto(TEXT_WITH_MERGED_SEMESTER, 1, true, ExtractionSource.TEXT_LAYER, 1.0),
+                        GraduationType.CANDIDATE,
+                        MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("학기 숫자가 없는 뒤 행들도 직전 학기로 채운다")
+            void it_carries_over_semester_to_rows_without_leading_digit() {
+                // 순서: 국어, 사회, 도덕, 역사, 수학, 과학, 기술가정, 정보, 영어
+                assertThat(result.achievement().achievement1_1()).containsExactly(5, 0, 4, 0, 3, 0, 0, 0, 0);
+            }
+        }
+
+        @Nested
+        @DisplayName("학년 · 수업일수와 개근이 서로 다른 줄로 떨어진 출결이 주어진 경우")
+        class Context_with_perfect_attendance_split_across_lines {
+
+            private static final String TEXT_WITH_SPLIT_PERFECT_ATTENDANCE = """
+                    교과학습발달상황
+                    [1학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 국어 국어 P
+                    출결상황
+                    1 190
+                    2 191
+                    개근
+                    개근
+                    """;
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = new MiddleSchoolRecordParser(new SubjectNameNormalizer())
+                        .parse(new ExtractedTextDto(TEXT_WITH_SPLIT_PERFECT_ATTENDANCE,
+                                1,
+                                true,
+                                ExtractionSource.TEXT_LAYER,
+                                1.0), GraduationType.CANDIDATE, MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("먼저 나온 학년부터 순서대로 개근을 짝지어 채운다")
+            void it_pairs_perfect_attendance_in_order() {
+                assertThat(result.achievement().absentDays()).containsExactly(0, 0, null);
+                assertThat(result.achievement().attendanceDays()).containsExactly(0, 0, 0, 0, 0, 0, null, null, null);
+            }
+        }
+
+        @Nested
+        @DisplayName("봉사활동이 요약 없이 날짜별 누계시간 기록으로만 주어진 경우")
+        class Context_with_volunteer_ledger_only {
+
+            private static final String TEXT_WITH_VOLUNTEER_LEDGER = """
+                    창의적 체험활동상황
+                    봉사활동실적
+                    일자 또는 기간 장소 또는 주관기관명 활동내용 시간 누계시간
+                    2021.03.02. 환경정화활동 1 1
+                    2021.04.03. 환경정화활동 1 2
+                    2022.03.02. 환경정화활동 1 1
+                    2022.04.03. 환경정화활동 4 5
+                    2023.03.02. 환경정화활동 1 1
+                    2023.04.03. 환경정화활동 8 9
+                    """;
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = new MiddleSchoolRecordParser(new SubjectNameNormalizer()).parse(
+                        new ExtractedTextDto(TEXT_WITH_VOLUNTEER_LEDGER, 1, true, ExtractionSource.TEXT_LAYER, 1.0),
+                        GraduationType.CANDIDATE,
+                        MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("누계시간이 앞줄보다 줄어드는 지점을 학년 경계로 보고 학년별 총 시간을 채운다")
+            void it_derives_volunteer_time_from_cumulative_resets() {
+                assertThat(result.achievement().volunteerTime()).containsExactly(2, 5, 9);
+            }
+        }
+
+        @Nested
+        @DisplayName("예체능 과목명 행들과 성취도 글자들이 서로 다른 줄 뭉치로 떨어진 경우")
+        class Context_with_arts_physical_split_from_achievement {
+
+            private static final String TEXT_WITH_SPLIT_ARTS_PHYSICAL = """
+                    교과학습발달상황
+                    [1학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 국어 국어 P
+                    과목 학기 교과 과목
+                    1 체육 체육
+                    1 예술(음악/미술) 음악
+                    2 체육 체육
+                    성취도
+                    A
+                    B
+                    C
+                    비고
+                    """;
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = new MiddleSchoolRecordParser(new SubjectNameNormalizer()).parse(
+                        new ExtractedTextDto(TEXT_WITH_SPLIT_ARTS_PHYSICAL, 1, true, ExtractionSource.TEXT_LAYER, 1.0),
+                        GraduationType.CANDIDATE,
+                        MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("과목명이 나온 순서대로 뒤에 몰린 성취도 글자와 짝지어 채운다")
+            void it_pairs_arts_physical_subjects_with_achievements_in_order() {
+                // 학기: 1-1, 1-2, 2-1, 2-2, 3-1. 1-1(체육 A, 음악 B) → 인덱스 0,1 / 1-2(체육 C) → 인덱스 3
+                List<Integer> arts = result.achievement().artsPhysicalAchievement();
+                assertThat(arts.get(0)).isEqualTo(5);
+                assertThat(arts.get(1)).isEqualTo(4);
+                assertThat(arts.get(3)).isEqualTo(3);
+            }
+        }
+
+        @Nested
         @DisplayName("자유학기제 졸업예정자의 생활기록부가 주어진 경우")
         class Context_with_free_semester_candidate {
 
