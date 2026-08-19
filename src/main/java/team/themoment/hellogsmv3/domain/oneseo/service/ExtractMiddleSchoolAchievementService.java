@@ -50,9 +50,10 @@ public class ExtractMiddleSchoolAchievementService {
 
         ExtractedAchievementResDto result = parser
                 .parse(extractedText, reqDto.graduationType(), reqDto.liberalSystem());
-        log.info("생활기록부 성적 추출 완료. memberId={}, source={}, confidence={}, warningCount={}",
+        log.info("생활기록부 성적 추출 완료. memberId={}, source={}, hasTextLayer={}, confidence={}, warningCount={}",
                 memberId,
                 extractedText.source(),
+                extractedText.hasTextLayer(),
                 result.meta().confidence(),
                 result.meta().warnings().size());
 
