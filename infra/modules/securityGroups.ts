@@ -1,4 +1,5 @@
 import * as aws from "@pulumi/aws";
+import { config } from "../config";
 
 export interface SecurityGroupsResult {
     albSg: aws.ec2.SecurityGroup;
@@ -20,9 +21,11 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]): SecurityGroupsRe
         tags: { Name: "hello-prod-alb-sg" },
     });
 
-    // 기존에 실제 운영 중인 NAT 인스턴스가 붙어 있는 보안그룹을 그대로 import한다
-    // (pulumi import, README 참고). 현재 룰이 0.0.0.0/0 전체 허용으로 다소 느슨하지만,
-    // "있는 그대로 흡수"가 목표이므로 임의로 좁히지 않고 실제 상태를 그대로 코드에 반영한다.
+    // 기존에 실제 운영 중인 NAT 인스턴스가 붙어 있는 보안그룹을 pulumi import로 흡수했다
+    // (README 참고). 원래는 0.0.0.0/0 전체 프로토콜 허용이었으나, 외부 포트스캔으로 실제
+    // 열려있는 포트가 22(SSH)뿐임을 확인 - 보안그룹은 stateful이라 NAT 포워딩(프라이빗
+    // 서브넷의 아웃바운드 리턴 트래픽)에는 인터넷발 인바운드 룰이 필요 없다. 인터넷 노출은
+    // SSH만 남기고, VPC 내부(172.16.0.0/24) 전체 허용은 NAT 포워딩용으로 유지한다.
     const bastionSg = new aws.ec2.SecurityGroup(
         "hellogsm-nat-sg",
         {
@@ -31,7 +34,8 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]): SecurityGroupsRe
             // 실제 값("hellogsm-nat-sg")과 정확히 동일하게 맞춘다.
             description: "hellogsm-nat-sg",
             ingress: [
-                { protocol: "-1", fromPort: 0, toPort: 0, cidrBlocks: ["0.0.0.0/0", "172.16.0.0/24"] },
+                { protocol: "tcp", fromPort: 22, toPort: 22, cidrBlocks: [config.adminSshCidr] },
+                { protocol: "-1", fromPort: 0, toPort: 0, cidrBlocks: ["172.16.0.0/24"] },
             ],
             egress: [{ protocol: "-1", fromPort: 0, toPort: 0, cidrBlocks: ["0.0.0.0/0"] }],
             tags: { Name: "hellogsm-nat-sg" },
