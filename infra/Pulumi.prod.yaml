@@ -17,7 +17,7 @@ config:
   hellogsm-infra:appAssetsBucketName: hello-26-prod-bucket
   hellogsm-infra:actuatorBasePath: /hello-management
   hellogsm-infra:githubOrg: themoment-team
-  hellogsm-infra:githubRepo: hellogsm-server-25
+  hellogsm-infra:githubRepo: hellogsm-server-26
   hellogsm-infra:codeDeployTagValue: hello-prod-springboot
   hellogsm-infra:logRetentionDays: "0"
   hellogsm-infra:dbPassword:

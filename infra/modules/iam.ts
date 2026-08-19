@@ -66,8 +66,8 @@ export function createIam(
                     Sid: "SnsPublish",
                     Effect: "Allow",
                     Action: ["sns:Publish"],
-                    // 앱이 사용하는 정확한 SNS 토픽이 코드베이스상 특정되지 않아 우선 광범위 허용.
-                    // 실제 사용 토픽이 확인되면 Resource를 해당 ARN으로 축소할 것.
+                    // SnsSmsTemplate로 전화번호 지정 직접 SMS 발송(SendSmsServiceImpl)만 사용 -
+                    // Topic ARN이 존재하지 않는 발행 방식이라 리소스 레벨로 좁힐 수 없음(AWS 제약).
                     Resource: "*",
                 },
             ],

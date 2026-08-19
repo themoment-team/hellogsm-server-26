@@ -138,3 +138,4 @@ dnsCert(ACM DNS 검증 대기) → alb → codeDeploy(설정 갱신) → monitor
 - Stage/Monitoring 환경, `hellogsm-prod-ci.yml`, stage 워크플로는 별도 과제
 - 앱의 `AWS_ACCESS_KEY`/`AWS_SECRET_KEY` 정적 키 → 인스턴스 프로파일 전환은 후속 과제로 남김
 - `hellogsm-nat-sg`가 현재 0.0.0.0/0 전체 허용으로 다소 느슨하게 설정되어 있음 (기존 상태 그대로 흡수) — 보안 강화는 별도 논의 필요
+- RDS `multiAz: false` — 비용 절감을 위한 의도적 선택 (Multi-AZ 전환 시 RDS 비용 약 2배). 고가용성이 필요해지면 별도 논의 후 전환
