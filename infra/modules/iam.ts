@@ -20,7 +20,10 @@ export function createIam(
     const accountId = identity.accountId;
     const region = config.region;
 
-    const logGroupArn = pulumi.interpolate`arn:aws:logs:${region}:${accountId}:log-group:${LOG_GROUP_NAME}:*`;
+    // CloudWatchAppender가 기동 시 무조건 CreateLogGroup을 호출한다(그룹이 이미 있어도).
+    // CreateLogGroup은 ":*" 없는 로그그룹 ARN 형태로 평가될 수 있어 두 형태 모두 허용한다.
+    const logGroupArnBase = pulumi.interpolate`arn:aws:logs:${region}:${accountId}:log-group:${LOG_GROUP_NAME}`;
+    const logGroupArn = pulumi.interpolate`${logGroupArnBase}:*`;
     const codeDeployApplicationArn = pulumi.interpolate`arn:aws:codedeploy:${region}:${accountId}:application:${CODEDEPLOY_APPLICATION_NAME}`;
     const codeDeployDeploymentGroupArn = pulumi.interpolate`arn:aws:codedeploy:${region}:${accountId}:deploymentgroup:${CODEDEPLOY_APPLICATION_NAME}/${CODEDEPLOY_DEPLOYMENT_GROUP_NAME}`;
 
@@ -59,8 +62,13 @@ export function createIam(
                 {
                     Sid: "CloudWatchLogs",
                     Effect: "Allow",
-                    Action: ["logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"],
-                    Resource: logGroupArn,
+                    Action: [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents",
+                        "logs:DescribeLogStreams",
+                    ],
+                    Resource: [logGroupArnBase, logGroupArn],
                 },
                 {
                     Sid: "SnsPublish",
@@ -74,22 +82,20 @@ export function createIam(
         }),
     });
 
-    // CodeDeploy agent가 배포 상태를 보고하기 위해 필요한 최소 권한(AWS 관리형 정책 없음 - 인라인으로 부여)
+    // CodeDeploy agent 설치 스크립트(userdata/springboot-ec2.sh)가 리전별 AWS 관리 버킷에서
+    // 설치 파일을 wget으로 받아온다. "codedeploy:PollHostCommand" 등은 실제로 존재하지 않는
+    // IAM 액션(agent의 host command API는 codedeploy-commands-secure: 네임스페이스)이라 삭제하고,
+    // 대신 AWS 공식 가이드가 요구하는 이 S3 읽기 권한을 부여한다.
     new aws.iam.RolePolicy("hello-prod-springboot-codedeploy-agent-policy", {
         role: springbootEc2Role.id,
         policy: JSON.stringify({
             Version: "2012-10-17",
             Statement: [
                 {
-                    Sid: "CodeDeployAgent",
+                    Sid: "CodeDeployAgentInstaller",
                     Effect: "Allow",
-                    Action: [
-                        "codedeploy:PollHostCommand",
-                        "codedeploy:PutHostCommandComplete",
-                        "codedeploy:GetDeployment",
-                        "codedeploy:GetApplicationRevision",
-                    ],
-                    Resource: "*",
+                    Action: ["s3:GetObject"],
+                    Resource: "arn:aws:s3:::aws-codedeploy-ap-northeast-2/*",
                 },
             ],
         }),
@@ -123,7 +129,9 @@ export function createIam(
     const githubOidcProvider = new aws.iam.OpenIdConnectProvider("github-actions-oidc", {
         url: "https://token.actions.githubusercontent.com",
         clientIdLists: ["sts.amazonaws.com"],
-        // GitHub Actions OIDC 루트 CA 지문 (2023년 기준 공개된 값)
+        // aws.iam.OpenIdConnectProvider는 thumbprintLists를 필수로 요구하지만, 2024-12-12부터
+        // AWS는 token.actions.githubusercontent.com 같은 신뢰된 IdP에 대해 이 값을 실제로는
+        // 무시한다. 갱신이 필요한 값이 아니므로 이후 값을 최신화할 필요 없음.
         thumbprintLists: ["6938fd4d98bab03faadb97b34396831e3780aea1"],
     });
 

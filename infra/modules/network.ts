@@ -88,37 +88,69 @@ export function createNetwork(): NetworkResult {
         { protect: true },
     );
 
+    // 4개 라우트테이블 모두 인라인 routes를 쓰지 않는다. aws.ec2.RouteTable.routes를
+    // 명시하면 그 목록이 authoritative가 되어, 코드에 없는 라우트는 다음 pulumi up 때
+    // 삭제된다. hello-pub-rtb는 stage(hello-dev-public-2a)와 공유되는 테이블이라 stage
+    // 쪽에서 라우트를 추가/변경해도 prod 스택이 그걸 모른 채 조용히 지우면 안 되므로,
+    // 모든 인터넷 라우트를 별도 aws.ec2.Route 리소스로 선언해 non-authoritative하게 관리한다.
+
     // 2a 퍼블릭 전용 라우트테이블
     const prodPublicRouteTable2a = new aws.ec2.RouteTable(
         "hello-prod-pub-rtb-a",
         {
             vpcId: vpc.id,
-            routes: [{ cidrBlock: "0.0.0.0/0", gatewayId: igw.id }],
             tags: { Name: "hello-prod-pub-rtb-a" },
         },
         { protect: true },
     );
 
-    new aws.ec2.RouteTableAssociation("hello-prod-public-2a-assoc", {
-        subnetId: prodPublicSubnet2a.id,
-        routeTableId: prodPublicRouteTable2a.id,
-    });
+    new aws.ec2.Route(
+        "hello-prod-pub-rtb-a-igw-route",
+        {
+            routeTableId: prodPublicRouteTable2a.id,
+            destinationCidrBlock: "0.0.0.0/0",
+            gatewayId: igw.id,
+        },
+        { protect: true },
+    );
+
+    new aws.ec2.RouteTableAssociation(
+        "hello-prod-public-2a-assoc",
+        {
+            subnetId: prodPublicSubnet2a.id,
+            routeTableId: prodPublicRouteTable2a.id,
+        },
+        { protect: true },
+    );
 
     // 2b 퍼블릭 라우트테이블 - hello-dev-public-2a(stage NAT)와 공유되므로 절대 삭제 금지
     const publicRouteTable2b = new aws.ec2.RouteTable(
         "hello-pub-rtb",
         {
             vpcId: vpc.id,
-            routes: [{ cidrBlock: "0.0.0.0/0", gatewayId: igw.id }],
             tags: { Name: "hello-pub-rtb" },
         },
         { protect: true },
     );
 
-    new aws.ec2.RouteTableAssociation("hello-public-subnet-2b-assoc", {
-        subnetId: publicSubnet2b.id,
-        routeTableId: publicRouteTable2b.id,
-    });
+    new aws.ec2.Route(
+        "hello-pub-rtb-igw-route",
+        {
+            routeTableId: publicRouteTable2b.id,
+            destinationCidrBlock: "0.0.0.0/0",
+            gatewayId: igw.id,
+        },
+        { protect: true },
+    );
+
+    new aws.ec2.RouteTableAssociation(
+        "hello-public-subnet-2b-assoc",
+        {
+            subnetId: publicSubnet2b.id,
+            routeTableId: publicRouteTable2b.id,
+        },
+        { protect: true },
+    );
 
     // 프라이빗 라우트테이블 2개 모두 인터넷 라우트(0.0.0.0/0)는 NAT 인스턴스 ENI로 향한다.
     // NAT 인스턴스는 index.ts에서 생성/조합되므로 여기서는 로컬 라우트만 두고,
@@ -132,10 +164,14 @@ export function createNetwork(): NetworkResult {
         { protect: true },
     );
 
-    new aws.ec2.RouteTableAssociation("hello-prod-private-2a-assoc", {
-        subnetId: prodPrivateSubnet2a.id,
-        routeTableId: prodPrivateRouteTable2a.id,
-    });
+    new aws.ec2.RouteTableAssociation(
+        "hello-prod-private-2a-assoc",
+        {
+            subnetId: prodPrivateSubnet2a.id,
+            routeTableId: prodPrivateRouteTable2a.id,
+        },
+        { protect: true },
+    );
 
     const prodPrivateRouteTable2b = new aws.ec2.RouteTable(
         "hello-prod-priv-rtb-b",
@@ -146,10 +182,14 @@ export function createNetwork(): NetworkResult {
         { protect: true },
     );
 
-    new aws.ec2.RouteTableAssociation("hello-private-subnet-2b-assoc", {
-        subnetId: privateSubnet2b.id,
-        routeTableId: prodPrivateRouteTable2b.id,
-    });
+    new aws.ec2.RouteTableAssociation(
+        "hello-private-subnet-2b-assoc",
+        {
+            subnetId: privateSubnet2b.id,
+            routeTableId: prodPrivateRouteTable2b.id,
+        },
+        { protect: true },
+    );
 
     return {
         vpc,
