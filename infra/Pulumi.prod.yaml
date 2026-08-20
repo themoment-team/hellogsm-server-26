@@ -4,7 +4,6 @@ config:
   hellogsm-infra:keyPairName: hello-prod-ec2-key
   hellogsm-infra:dbUsername: hellogsm
   # dbPassword는 pulumi config set --secret으로 암호화 저장됨 (아래 secure 값)
-
   hellogsm-infra:dbName: hellogsm
   hellogsm-infra:dbInstanceClass: db.t3.micro
   hellogsm-infra:dbAllocatedStorage: "20"
@@ -22,3 +21,4 @@ config:
   hellogsm-infra:logRetentionDays: "0"
   hellogsm-infra:dbPassword:
     secure: AAABAHOa9yIeOGffhDi/82FbBzystjW7ulSmhQbwQ1BrsQHHn1hlyBSag8DPEg1L38tF34t0R8Iev/tS5xohVw==
+  hellogsm-infra:snsAlarmEmail: themoment.hellogsm@gmail.com
