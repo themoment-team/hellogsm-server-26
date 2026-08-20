@@ -59,7 +59,7 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]): SecurityGroupsRe
 
     const rdsSg = new aws.ec2.SecurityGroup("hello-prod-rds-sg", {
         vpcId,
-        description: "RDS MySQL - allow 3306 from Spring Boot",
+        description: "RDS MySQL - allow 3306 from Spring Boot and Bastion",
         egress: [{ protocol: "-1", fromPort: 0, toPort: 0, cidrBlocks: ["0.0.0.0/0"] }],
         tags: { Name: "hello-prod-rds-sg" },
     });
@@ -105,6 +105,17 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]): SecurityGroupsRe
         type: "ingress",
         securityGroupId: rdsSg.id,
         sourceSecurityGroupId: springbootSg.id,
+        protocol: "tcp",
+        fromPort: 3306,
+        toPort: 3306,
+    });
+
+    // 아키텍처 다이어그램상 Bastion+NAT -> db -> MySQL 경로 - 관리자가 Bastion을 경유해
+    // SSH 터널링으로 RDS에 직접 접근(점검/마이그레이션 등)할 수 있도록 허용
+    new aws.ec2.SecurityGroupRule("rds-from-bastion-3306", {
+        type: "ingress",
+        securityGroupId: rdsSg.id,
+        sourceSecurityGroupId: bastionSg.id,
         protocol: "tcp",
         fromPort: 3306,
         toPort: 3306,
