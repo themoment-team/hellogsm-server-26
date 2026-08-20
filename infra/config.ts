@@ -7,6 +7,9 @@ export const config = {
     region: awsCfg.require("region"),
 
     adminSshCidr: cfg.require("adminSshCidr"),
+    // springboot/redis(신규 생성) 인스턴스에만 쓰인다. Bastion+NAT는 기존 운영 인스턴스를
+    // import한 것이라 실제 키페어("hello-prod-bastion")가 compute/bastionNat.ts에
+    // 하드코딩되어 있고 이 값을 쓰지 않는다.
     keyPairName: cfg.require("keyPairName"),
 
     dbUsername: cfg.require("dbUsername"),
@@ -16,7 +19,6 @@ export const config = {
     dbAllocatedStorage: cfg.getNumber("dbAllocatedStorage") ?? 20,
     dbEngineVersion: cfg.get("dbEngineVersion") ?? "8.0",
 
-    bastionInstanceType: cfg.get("bastionInstanceType") ?? "t3.micro",
     springbootInstanceType: cfg.get("springbootInstanceType") ?? "t3.small",
     redisInstanceType: cfg.get("redisInstanceType") ?? "t3.micro",
 

@@ -4,11 +4,11 @@ config:
   hellogsm-infra:keyPairName: hello-prod-ec2-key
   hellogsm-infra:dbUsername: hellogsm
   # dbPassword는 pulumi config set --secret으로 암호화 저장됨 (아래 secure 값)
+
   hellogsm-infra:dbName: hellogsm
   hellogsm-infra:dbInstanceClass: db.t3.micro
   hellogsm-infra:dbAllocatedStorage: "20"
   hellogsm-infra:dbEngineVersion: "8.0"
-  hellogsm-infra:bastionInstanceType: t3.micro
   hellogsm-infra:springbootInstanceType: t3.small
   hellogsm-infra:redisInstanceType: t3.micro
   hellogsm-infra:domainName: hellogsm.kr

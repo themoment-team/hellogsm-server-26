@@ -64,7 +64,10 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]): SecurityGroupsRe
         tags: { Name: "hello-prod-rds-sg" },
     });
 
-    // 순환 참조(springboot <-> redis/rds) 회피를 위해 SG 룰은 별도 리소스로 분리 생성
+    // 순환 참조(springboot <-> redis/rds) 회피를 위해 SG 룰은 별도 리소스로 분리 생성.
+    // 주의: springbootSg/redisSg/rdsSg는 인라인 ingress를 쓰지 않는다 - AWS 프로바이더는
+    // 한 SG에 인라인 룰과 독립 SecurityGroupRule 리소스를 섞어 쓰는 걸 금지하며, 섞이면
+    // 아래 독립 룰들이 조용히 덮어써진다. 이 SG들에는 절대 인라인 ingress를 추가하지 말 것.
     new aws.ec2.SecurityGroupRule("springboot-from-alb-8080", {
         type: "ingress",
         securityGroupId: springbootSg.id,

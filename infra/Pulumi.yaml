@@ -1,3 +1,3 @@
 name: hellogsm-infra
 runtime: nodejs
-description: hellogsm-server-25 production AWS infrastructure (Pulumi IaC)
+description: hellogsm-server-26 production AWS infrastructure (Pulumi IaC)

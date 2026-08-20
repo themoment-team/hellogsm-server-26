@@ -1,6 +1,6 @@
 # hellogsm-infra
 
-hellogsm-server-25 **상용(production)** AWS 인프라를 관리하는 Pulumi(TypeScript) 프로젝트.
+hellogsm-server-26 **상용(production)** AWS 인프라를 관리하는 Pulumi(TypeScript) 프로젝트.
 State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한다. 이 스코프는 Production
 환경만 다루며, Stage/Monitoring 환경과 `hellogsm-prod-ci.yml`, stage 워크플로는 포함하지 않는다.
 
@@ -84,9 +84,35 @@ pulumi import aws:s3/bucketV2:BucketV2 deploymentBucket hellogsm-cicd-bucket
 pulumi import aws:s3/bucketV2:BucketV2 appAssetsBucket hello-26-prod-bucket
 ```
 
+위 목록은 "기존에 살아있던" 리소스만 다룬다. 아래는 이 스택이 **새로 만들면서 이름을 고정**해둔
+리소스들이라, 계정에 동일 이름이 이미 있으면(예: 이전 시도의 잔재) `pulumi up`이 아니라
+`pulumi import`부터 해야 충돌하지 않는다. 특히 OIDC provider는 계정당 URL별 1개만 허용되므로
+반드시 먼저 확인할 것.
+
+```bash
+# 같은 URL의 OIDC provider가 계정에 이미 있으면 EntityAlreadyExists로 실패한다
+aws iam list-open-id-connect-providers
+pulumi import aws:iam/openIdConnectProvider:OpenIdConnectProvider github-actions-oidc <provider-arn>
+
+pulumi import aws:iam/role:Role hello-prod-springboot-ec2-role hello-prod-springboot-ec2-role
+pulumi import aws:iam/role:Role hello-prod-codedeploy-service-role hello-prod-codedeploy-service-role
+pulumi import aws:iam/role:Role hello-prod-github-actions-deploy-role hello-prod-github-actions-deploy-role
+
+pulumi import aws:rds/subnetGroup:SubnetGroup hello-prod-rds-subnet-group hello-prod-rds-subnet-group
+pulumi import aws:sns/topic:Topic hello-prod-alerts <topic-arn>
+pulumi import aws:lb/loadBalancer:LoadBalancer hello-prod-alb <alb-arn>
+pulumi import aws:lb/targetGroup:TargetGroup hello-prod-tg <target-group-arn>
+```
+
 각 import 후 `pulumi preview`로 diff를 확인하고, **`replace`/`delete-create`가 뜨면 절대 `pulumi up`하지 말고**
 코드의 해당 속성(특히 `description`처럼 변경 시 교체가 발생하는 불변 필드)을 실제 값에 맞게 고친다.
 (`hellogsm-nat-sg`의 `description`이 이 문제로 한 번 걸렸던 전례가 있다 — 반드시 실제 값과 동일하게 맞출 것.)
+
+`infra/userdata/bastion-nat.sh`는 어떤 코드에서도 참조되지 않는다 - `compute/bastionNat.ts`는
+기존 NAT 인스턴스를 import만 할 뿐 userData를 지정하지 않는다(지정하면 stop/start가 발생해
+오히려 위험하므로 의도적). DR 절차로 NAT 인스턴스를 **새로** 만드는 경우에만 이 스크립트를
+수동으로 적용해야 한다 - 안 하면 iptables MASQUERADE가 설정되지 않아 프라이빗 서브넷에
+라우트는 있어도 실제 인터넷 접근이 안 된다.
 
 ## 배포
 
@@ -103,6 +129,12 @@ dnsCert(ACM DNS 검증 대기) → alb → codeDeploy(설정 갱신) → monitor
 지워지는 게 기본 동작이 아니라, protect:true 리소스를 만나면 에러로 막힐 뿐 나머지가 지워지는 걸
 막지 못한다. 새로 만든 리소스만 걷어내려면 반드시 `pulumi destroy --exclude-protected`를 사용한다.
 
+RDS(`hello-prod-mysql`)는 `protect:true` 외에 `deletionProtection:true`도 걸려있어, 의도적으로
+지우려면 `pulumi state unprotect`로 protect를 해제한 뒤 **먼저 `deletionProtection: false`로
+코드/config를 바꿔 `pulumi up`을 한 번 돌려야** 실제 삭제가 가능하다(AWS API 레벨 보호라
+Pulumi만으로는 우회할 수 없음). `finalSnapshotIdentifier`가 고정값이라 이전에 같은 이름
+스냅샷을 남긴 적이 있다면 삭제 전에 그 스냅샷부터 지워야 한다.
+
 ## 인프라 생성 후 운영 절차
 
 1. `pulumi stack output rdsEndpointAddress`, `pulumi stack output redisPrivateIp` 확인
@@ -115,8 +147,12 @@ dnsCert(ACM DNS 검증 대기) → alb → codeDeploy(설정 갱신) → monitor
    - `AWS_BUCKET_NAME=hello-26-prod-bucket`, `AWS_REGION`/`AWS_SNS_REGION=ap-northeast-2`
 3. GitHub Repository Variable `AWS_PROD_DEPLOY_ROLE_ARN` = `pulumi stack output githubActionsRoleArn`
 4. `.github/workflows/hellogsm-prod-cd.yml`의 OIDC 전환이 머지되어 있는지 확인
-5. main 브랜치 push 또는 `workflow_dispatch`로 CD 워크플로 실행 → 첫 배포
-6. 검증 통과 후 `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` GitHub Secret을 GitHub UI에서 수동 삭제
+5. main 브랜치 push 또는 `workflow_dispatch`로 CD 워크플로 실행 → 첫 배포. OIDC trust policy의
+   `sub` 조건이 `ref:refs/heads/main`으로 고정되어 있으므로, `workflow_dispatch`도 반드시
+   main 브랜치를 대상으로 실행할 것 — 다른 브랜치로 실행하면 `AssumeRoleWithWebIdentity`가 거부된다
+6. **정적 액세스키 삭제는 stage CD가 OIDC로 전환된 뒤에만 진행한다** — `hellogsm-stage-cd.yml`이
+   아직 같은 `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` Secret을 쓰고 있어서, 이 PR의 검증만
+   보고 지금 삭제하면 stage CD가 즉시 깨진다. stage도 OIDC로 전환한 뒤 GitHub UI에서 수동 삭제할 것
 
 ## 검증
 
@@ -126,7 +162,7 @@ dnsCert(ACM DNS 검증 대기) → alb → codeDeploy(설정 갱신) → monitor
 - Redis 인스턴스에서 `docker ps` 확인, Spring Boot 인스턴스에서 `redis-cli -h <redisPrivateIp> ping` → `PONG`
 - CD 워크플로 실행 후 `aws deploy get-deployment --deployment-id <id>` 상태 `Succeeded`
 - `aws elbv2 describe-target-health --target-group-arn <arn>` → `healthy`
-- `curl -I https://api-prod.hellogsm.kr<actuatorBasePath>/health` → `200`
+- `curl -I https://api-prod.hellogsm.kr<actuatorBasePath>/health/liveness` → `200` (ALB 타겟그룹이 보는 것과 동일한 경로)
 - `curl -I http://api-prod.hellogsm.kr` → `301`
 - `aws logs describe-log-streams --log-group-name hellogsm-prod-log`로 로그 유입 확인
 - Spring Boot 컨테이너를 의도적으로 중지해 ALB Unhealthy 알람이 SNS로 발행되는지 확인 후 재기동
