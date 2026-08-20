@@ -35,7 +35,10 @@ export function createAlb(
         vpcId,
         healthCheck: {
             enabled: true,
-            path: `${config.actuatorBasePath}/health`,
+            // 기본 집계 /health는 db/redis/diskSpace 인디케이터를 전부 포함해 하나만 DOWN이어도
+            // 503이 되고, 인스턴스가 1대뿐이라 곧바로 전체 장애로 이어진다. liveness 그룹으로
+            // 앱 프로세스 생존 여부만 체크한다 (application.yml의 management.endpoint.health.group.liveness).
+            path: `${config.actuatorBasePath}/health/liveness`,
             protocol: "HTTP",
             matcher: "200",
             interval: 15,
@@ -46,8 +49,9 @@ export function createAlb(
         tags: { Name: "hello-prod-tg" },
     });
 
-    // 단일 인스턴스 정적 등록 (Auto Scaling Group 아님). CodeDeploy 배포 중
-    // 컨테이너가 stop/start되는 동안 짧은 다운타임이 발생할 수 있음 - 기존 방식과 동일한 트레이드오프.
+    // 단일 인스턴스 정적 등록 (Auto Scaling Group 아님). CodeDeploy가 WITH_TRAFFIC_CONTROL로
+    // 배포 중 이 타겟을 등록 해제/재등록하지만, 인스턴스가 1대뿐이라 배포 중 다운타임 자체는
+    // 여전히 존재한다(502가 아닌 연결 거부/503으로 바뀌는 정도).
     new aws.lb.TargetGroupAttachment("hello-prod-tg-attachment", {
         targetGroupArn: targetGroup.arn,
         targetId: springbootInstanceId,
@@ -79,6 +83,7 @@ export function createAlb(
         zoneId,
         name: fqdn,
         type: "A",
+        allowOverwrite: true,
         aliases: [
             {
                 name: alb.dnsName,
