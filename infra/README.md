@@ -75,6 +75,11 @@ pulumi import aws:ec2/routeTableAssociation:RouteTableAssociation hello-private-
 pulumi import aws:ec2/securityGroup:SecurityGroup hellogsm-nat-sg <sg-id>
 pulumi import aws:ec2/instance:Instance hello-prod-nat <instance-id>
 pulumi import aws:ec2/eip:Eip hello-prod-eip <allocation-id>
+# 퍼블릭 라우트테이블의 IGW 라우트 - RouteTable에서 인라인 routes를 빼고 분리형 Route로
+# 관리하면서 새로 생긴 리소스. AWS에는 이미 있는 라우트라 import 없이 pulumi up하면
+# RouteAlreadyExists로 실패한다.
+pulumi import aws:ec2/route:Route hello-prod-pub-rtb-a-igw-route '<rtb-id>_0.0.0.0/0'
+pulumi import aws:ec2/route:Route hello-pub-rtb-igw-route '<rtb-id>_0.0.0.0/0'
 pulumi import aws:ec2/route:Route hello-prod-priv-rtb-a-nat-route '<rtb-id>_0.0.0.0/0'
 pulumi import aws:ec2/route:Route hello-prod-priv-rtb-b-nat-route '<rtb-id>_0.0.0.0/0'
 pulumi import aws:cloudwatch/logGroup:LogGroup hellogsm-prod-log hellogsm-prod-log
