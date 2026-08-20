@@ -1,3 +1,13 @@
+# kordoc(생기부 스캔 페이지 서버 OCR)을 빌드 시점에 설치합니다.
+# TODO: kordoc은 최초 사용 시 OCR 모델(~18MB)을 자동 다운로드합니다. 런타임에 매번 네트워크가 필요하지 않도록
+# 빌드 시점에 모델을 미리 받아 COPY하는 워밍업 단계가 필요하지만, 정확한 모델 캐시 경로를 실제 kordoc 실행으로
+# 확인하지 못해 이번 변경에서는 보류했습니다. 실제 Node 환경에서 --ocr 플래그로 한 번 실행해 캐시 경로를 확인한 뒤
+# 이 스테이지에 워밍업 RUN과 COPY를 추가해주세요. 그 전까지는 컨테이너의 첫 OCR 요청에서 모델 다운로드 네트워크
+# 호출이 한 번 발생합니다.
+FROM node:22-slim AS ocr-tools
+
+RUN npm install -g @clazic/kordoc
+
 FROM eclipse-temurin:25-jre
 
 EXPOSE 8080
@@ -5,6 +15,8 @@ EXPOSE 8080
 WORKDIR /hellogsm-server-v3
 
 ARG JAR_FILE=build/libs/*.jar
+
+COPY --from=ocr-tools /usr/local /usr/local
 
 COPY ${JAR_FILE} hellogsm-stage-server.jar
 
