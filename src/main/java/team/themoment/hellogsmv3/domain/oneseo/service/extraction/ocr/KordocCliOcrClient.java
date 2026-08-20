@@ -1,9 +1,13 @@
 package team.themoment.hellogsmv3.domain.oneseo.service.extraction.ocr;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -46,9 +50,13 @@ public class KordocCliOcrClient implements KordocOcrClient {
         try {
             stdoutFile = Files.createTempFile("kordoc-out-", ".json");
             stderrFile = Files.createTempFile("kordoc-err-", ".log");
+            restrictToOwner(stdoutFile);
+            restrictToOwner(stderrFile);
 
             Process process = new ProcessBuilder("npx", "kordoc", imagePath.toString(), "--format", "json", "--ocr")
                     .redirectOutput(stdoutFile.toFile()).redirectError(stderrFile.toFile()).start();
+            // 기본 표준 입력(PIPE)을 그대로 두면 kordoc이 입력을 기다릴 때 무한정 블록될 수 있어 즉시 EOF를 보냅니다.
+            closeQuietly(process.getOutputStream());
 
             boolean finished = process.waitFor(processTimeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
@@ -87,6 +95,30 @@ public class KordocCliOcrClient implements KordocOcrClient {
             return Files.readString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
             return "";
+        }
+    }
+
+    /**
+     * kordoc의 출력에는 생활기록부에서 인식한 실제 내용(개인정보)이 담기므로, 임시 파일을 소유자만 읽고 쓸 수 있게 제한합니다.
+     * POSIX를 지원하지 않는 파일 시스템(로컬 Windows 개발 환경 등)에서는 건너뜁니다.
+     */
+    private void restrictToOwner(Path file) {
+        if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            return;
+        }
+        try {
+            Files.setPosixFilePermissions(file,
+                    Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+        } catch (IOException e) {
+            log.warn("kordoc 임시 파일 권한 설정 실패. path={}", file);
+        }
+    }
+
+    private void closeQuietly(OutputStream stream) {
+        try {
+            stream.close();
+        } catch (IOException e) {
+            log.warn("kordoc 표준 입력 스트림 종료 실패");
         }
     }
 

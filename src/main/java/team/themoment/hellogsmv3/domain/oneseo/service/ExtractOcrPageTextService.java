@@ -1,9 +1,12 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -74,10 +77,24 @@ public class ExtractOcrPageTextService {
         String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
         try {
             Path tempFile = Files.createTempFile("ocr-page-", "." + extension);
+            restrictToOwner(tempFile);
             file.transferTo(tempFile);
             return tempFile;
         } catch (IOException e) {
             throw new ExpectedException("업로드된 이미지를 처리하지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /** 업로드된 스캔 이미지는 생활기록부 실물이므로, 임시 파일을 소유자만 읽고 쓸 수 있게 제한합니다. */
+    private void restrictToOwner(Path file) {
+        if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            return;
+        }
+        try {
+            Files.setPosixFilePermissions(file,
+                    Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+        } catch (IOException e) {
+            log.warn("업로드 임시 이미지 권한 설정 실패. path={}", file);
         }
     }
 

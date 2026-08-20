@@ -62,6 +62,8 @@ public class KordocSubjectTokenizer {
             return memo.get(start);
         }
 
+        // 가장 긴 과목명부터 시도하되, 그 뒤가 막히면(rest == null) 되돌아가 다음 후보를 시도합니다(백트래킹).
+        // 표준 과목 9개는 서로 접두사 관계가 없어 실제로는 되돌아갈 일이 없지만, 사전이 바뀌어도 안전하도록 남겨둡니다.
         for (String subject : DICTIONARY_BY_LENGTH_DESC) {
             if (text.startsWith(subject, start)) {
                 List<String> rest = segment(text, start + subject.length(), memo);

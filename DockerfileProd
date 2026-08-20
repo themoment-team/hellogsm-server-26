@@ -16,7 +16,10 @@ WORKDIR /app
 
 ARG JAR_FILE=build/libs/*.jar
 
-COPY --from=ocr-tools /usr/local /usr/local
+# /usr/local 전체를 복사하지 않고 node/npm/npx 실행 파일과 전역 설치된 kordoc 패키지 경로만 가져와,
+# eclipse-temurin 이미지에 이미 있는 /usr/local 하위 파일과 충돌할 여지를 줄입니다.
+COPY --from=ocr-tools /usr/local/bin /usr/local/bin
+COPY --from=ocr-tools /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 COPY ${JAR_FILE} hellogsm-prod-server.jar
 

@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.service.extraction.ocr;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -35,8 +36,10 @@ public class KordocAchievementTextConverter {
 
     private static final Pattern GRADE_MENTION = Pattern.compile("(\\d)?\\s*학년");
     private static final Pattern BARE_SEMESTER = Pattern.compile("^[12]$");
+    // 원점수/과목평균 부분은 SUBJECT_ROW와 동일하게 선택 사항입니다. 예체능처럼 성취도만 있는 과목이 이 표에 섞여
+    // 나올 가능성을 배제할 수 없어, 점수 없이 성취도 글자만 있는 줄도 원점수/성취도 열로 인식합니다.
     private static final Pattern SCORE_LINE = Pattern
-            .compile("^[\\d.,\\s]+/[\\d.,\\s]+\\s*(?:\\([^)]*\\))?\\s+[A-EP]\\s*(?:\\(\\s*\\d+\\s*\\))?$");
+            .compile("^(?:[\\d.,\\s]+/[\\d.,\\s]+\\s*(?:\\([^)]*\\))?\\s+)?[A-EP]\\s*(?:\\(\\s*\\d+\\s*\\))?$");
     private static final Pattern HANGUL = Pattern.compile("[가-힣]");
 
     private final KordocSubjectTokenizer subjectTokenizer;
@@ -106,8 +109,8 @@ public class KordocAchievementTextConverter {
     /** 과목명 열: 원점수 셀도, 학기 숫자 하나짜리 셀도 아니면서 한글이 가장 많이 포함된 셀입니다. */
     private Optional<KordocTableCell> findSubjectCell(List<KordocTableCell> cells, KordocTableCell scoreCell) {
         return cells.stream().filter(cell -> cell != scoreCell)
-                .filter(cell -> !BARE_SEMESTER.matcher(cell.textOrEmpty().strip()).matches()).max((first,
-                        second) -> Integer.compare(countHangul(first.textOrEmpty()), countHangul(second.textOrEmpty())))
+                .filter(cell -> !BARE_SEMESTER.matcher(cell.textOrEmpty().strip()).matches())
+                .max(Comparator.comparingInt(cell -> countHangul(cell.textOrEmpty())))
                 .filter(cell -> countHangul(cell.textOrEmpty()) > 0);
     }
 
