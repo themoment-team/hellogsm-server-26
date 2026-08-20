@@ -111,5 +111,21 @@ class KordocAchievementTextConverterTest {
                 assertThat(conversion.rawText()).contains("1 190");
             }
         }
+
+        @Nested
+        @DisplayName("학년을 언급할 뿐인 제목 블록이 주어진 경우")
+        class Context_with_heading_merely_mentioning_grade {
+
+            @Test
+            @DisplayName("학년 표시로 오인하지 않는다")
+            void it_does_not_misread_as_grade_marker() {
+                KordocBlock title = new KordocBlock("heading", "2024학년도 생활기록부", null, 1);
+                KordocBlock caption = new KordocBlock("text", "학년별 출결현황", null, 1);
+
+                KordocConversionResult conversion = converter.convert(new KordocParseResult(List.of(title, caption)));
+
+                assertThat(conversion.rawText()).doesNotContain("[").doesNotContain("학년]");
+            }
+        }
     }
 }

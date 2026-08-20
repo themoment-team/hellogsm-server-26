@@ -46,11 +46,17 @@ public class KordocSubjectTokenizer {
         return Optional.of(tokens);
     }
 
+    /**
+     * 공백 · 중점 등 표기 장식과 함께, "사회(역사포함)"처럼 과목명에 덧붙는 괄호 설명도 제거합니다. 괄호를 남겨두면 그 과목 하나만이
+     * 아니라 사전 매칭이 막힌 지점부터 행 전체의 분해가 실패합니다.
+     * {@link team.themoment.hellogsmv3.domain.oneseo.service.extraction.SubjectNameNormalizer#normalize}가
+     * 개별 과목명에 대해 하는 것과 같은 처리입니다.
+     */
     private String stripDecorations(String raw) {
         if (raw == null) {
             return "";
         }
-        return raw.replaceAll("[\\s·・ㆍ/,~-]", "").strip();
+        return raw.replaceAll("\\([^)]*\\)", "").replaceAll("[\\s·・ㆍ/,~-]", "").strip();
     }
 
     /** 표준 과목 사전으로 문자열 전체를 빈틈없이 나누는 하나의 경로를 찾습니다. 매 위치에서 가장 긴 과목명을 먼저 시도합니다. */

@@ -34,7 +34,9 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocTableRo
 @RequiredArgsConstructor
 public class KordocAchievementTextConverter {
 
-    private static final Pattern GRADE_MENTION = Pattern.compile("(\\d)?\\s*학년");
+    // 블록 텍스트 전체가 학년 표시 그 자체일 때만 인정합니다. 부분 일치를 허용하면 "2024학년도 생활기록부" 같은 제목이나
+    // "학년별 출결현황" 같은 캡션에도 반응해 엉뚱한 [N학년] 줄을 끼워 넣고, 문서 전체의 학년 판정을 틀어지게 합니다.
+    private static final Pattern GRADE_HEADING = Pattern.compile("^\\[?\\s*([1-3])?\\s*학년\\s*]?$");
     private static final Pattern BARE_SEMESTER = Pattern.compile("^[12]$");
     // 원점수/과목평균 부분은 SUBJECT_ROW와 동일하게 선택 사항입니다. 예체능처럼 성취도만 있는 과목이 이 표에 섞여
     // 나올 가능성을 배제할 수 없어, 점수 없이 성취도 글자만 있는 줄도 원점수/성취도 열로 인식합니다.
@@ -59,11 +61,14 @@ public class KordocAchievementTextConverter {
         return new KordocConversionResult(String.join("\n", lines), unrecognizedSubjectBlobs);
     }
 
-    /** 표가 아닌 블록에서 학년 표시(예: "1학년")를 찾아 파서가 요구하는 {@code [N학년]} 줄로 되살립니다. */
+    /**
+     * 표가 아닌 블록의 전체 텍스트가 학년 표시(예: "1학년", "[1학년]")뿐일 때만 파서가 요구하는 {@code [N학년]} 줄로
+     * 되살립니다.
+     */
     private void convertHeadingOrText(KordocBlock block, List<String> lines) {
-        String text = block.textOrEmpty();
-        Matcher matcher = GRADE_MENTION.matcher(text);
-        if (!matcher.find()) {
+        String text = block.textOrEmpty().strip();
+        Matcher matcher = GRADE_HEADING.matcher(text);
+        if (!matcher.matches()) {
             return;
         }
         String digit = matcher.group(1);

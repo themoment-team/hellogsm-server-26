@@ -75,12 +75,19 @@ public class ExtractOcrPageTextService {
 
     private Path writeToTempFile(MultipartFile file) {
         String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        Path tempFile;
         try {
-            Path tempFile = Files.createTempFile("ocr-page-", "." + extension);
-            restrictToOwner(tempFile);
+            tempFile = Files.createTempFile("ocr-page-", "." + extension);
+        } catch (IOException e) {
+            throw new ExpectedException("업로드된 이미지를 처리하지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        restrictToOwner(tempFile);
+        try {
             file.transferTo(tempFile);
             return tempFile;
         } catch (IOException e) {
+            deleteQuietly(tempFile);
             throw new ExpectedException("업로드된 이미지를 처리하지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

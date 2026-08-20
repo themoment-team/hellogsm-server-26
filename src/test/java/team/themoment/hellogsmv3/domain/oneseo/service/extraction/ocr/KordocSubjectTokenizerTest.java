@@ -53,6 +53,20 @@ class KordocSubjectTokenizerTest {
         }
 
         @Nested
+        @DisplayName("과목명에 괄호 설명이 붙어 있는 경우")
+        class Context_with_parenthetical_annotation {
+
+            @Test
+            @DisplayName("괄호 내용을 제거하고 분리한다")
+            void it_strips_parenthetical_annotation() {
+                Optional<List<String>> result = tokenizer.tokenize("국어사회(역사포함)도덕", 3);
+
+                assertThat(result).isPresent();
+                assertThat(result.get()).containsExactly("국어", "사회", "도덕");
+            }
+        }
+
+        @Nested
         @DisplayName("사전에 없는 과목명(선택 과목 등)이 섞여 있는 경우")
         class Context_with_unknown_subject {
 
