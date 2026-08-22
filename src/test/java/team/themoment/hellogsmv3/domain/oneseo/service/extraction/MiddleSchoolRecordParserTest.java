@@ -420,6 +420,9 @@ class MiddleSchoolRecordParserTest {
                 assertThat(result.achievement().artsPhysicalAchievement()).hasSize(18);
                 // 1-2의 체육 A가 두 번째 학기 블록의 첫 칸에 들어간다
                 assertThat(result.achievement().artsPhysicalAchievement().get(3)).isEqualTo(5);
+                // 예체능 성적을 찾지 못한 과목은 0으로 채워진다 (1-1·2-2·3-2 전체 누락 9칸 + 1-2·3-1의 음악·미술 누락 4칸)
+                assertThat(result.achievement().artsPhysicalAchievement().stream().filter(score -> score == 0))
+                        .hasSize(13);
             }
 
             @Test
