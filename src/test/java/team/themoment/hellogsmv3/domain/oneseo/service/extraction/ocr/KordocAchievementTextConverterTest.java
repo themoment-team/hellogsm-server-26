@@ -13,8 +13,8 @@ import team.themoment.hellogsmv3.domain.oneseo.dto.internal.ExtractedTextDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.ExtractionSource;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocBlock;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocParseResult;
+import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocTable;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocTableCell;
-import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocTableRow;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.ExtractedAchievementResDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
 import team.themoment.hellogsmv3.domain.oneseo.service.extraction.MiddleSchoolRecordParser;
@@ -59,10 +59,10 @@ class KordocAchievementTextConverterTest {
                         "78/68.0 C(168)",
                         "65/64.0 D(168)",
                         "90/72.0 A(168)"), 1, 1);
-                KordocTableRow row = new KordocTableRow(List.of(semesterCell, subjectCell, scoreCell));
-                KordocBlock table = new KordocBlock("table", null, List.of(row), 1);
+                KordocTable table = new KordocTable(List.of(List.of(semesterCell, subjectCell, scoreCell)));
+                KordocBlock tableBlock = new KordocBlock("table", null, table, 1);
 
-                KordocParseResult parseResult = new KordocParseResult(List.of(heading, table));
+                KordocParseResult parseResult = new KordocParseResult(List.of(heading, tableBlock));
 
                 KordocConversionResult conversion = converter.convert(parseResult);
                 assertThat(conversion.unrecognizedSubjectBlobs()).isEmpty();
@@ -86,10 +86,10 @@ class KordocAchievementTextConverterTest {
                 KordocTableCell subjectCell = new KordocTableCell("국어한문수학", 1, 1);
                 KordocTableCell scoreCell = new KordocTableCell(String
                         .join("\n", "91/77.8 A(168)", "88/70.2 B(168)", "75/65.0 C(168)"), 1, 1);
-                KordocTableRow row = new KordocTableRow(List.of(subjectCell, scoreCell));
-                KordocBlock table = new KordocBlock("table", null, List.of(row), 1);
+                KordocTable table = new KordocTable(List.of(List.of(subjectCell, scoreCell)));
+                KordocBlock tableBlock = new KordocBlock("table", null, table, 1);
 
-                KordocConversionResult conversion = converter.convert(new KordocParseResult(List.of(table)));
+                KordocConversionResult conversion = converter.convert(new KordocParseResult(List.of(tableBlock)));
 
                 assertThat(conversion.unrecognizedSubjectBlobs()).containsExactly("국어한문수학");
             }
@@ -102,11 +102,11 @@ class KordocAchievementTextConverterTest {
             @Test
             @DisplayName("셀을 그대로 이어붙인 줄로 지나간다")
             void it_passes_through_joined_cells() {
-                KordocTableRow row = new KordocTableRow(
-                        List.of(new KordocTableCell("1", 1, 1), new KordocTableCell("190", 1, 1)));
-                KordocBlock table = new KordocBlock("table", null, List.of(row), 1);
+                KordocTable table = new KordocTable(
+                        List.of(List.of(new KordocTableCell("1", 1, 1), new KordocTableCell("190", 1, 1))));
+                KordocBlock tableBlock = new KordocBlock("table", null, table, 1);
 
-                KordocConversionResult conversion = converter.convert(new KordocParseResult(List.of(table)));
+                KordocConversionResult conversion = converter.convert(new KordocParseResult(List.of(tableBlock)));
 
                 assertThat(conversion.rawText()).contains("1 190");
             }

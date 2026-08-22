@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocBlock;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocParseResult;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocTableCell;
-import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocTableRow;
 
 /**
  * kordoc {@code --format json} 표 재구성 결과를
@@ -76,8 +75,7 @@ public class KordocAchievementTextConverter {
     }
 
     private void convertTable(KordocBlock block, List<String> lines, List<String> unrecognizedSubjectBlobs) {
-        for (KordocTableRow row : block.rowsOrEmpty()) {
-            List<KordocTableCell> cells = row.cellsOrEmpty();
+        for (List<KordocTableCell> cells : block.tableRowsOrEmpty()) {
             Optional<KordocTableCell> scoreCell = findScoreCell(cells);
             if (scoreCell.isEmpty()) {
                 convertPassthroughRow(cells, lines);

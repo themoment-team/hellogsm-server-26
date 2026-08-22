@@ -53,8 +53,14 @@ public class KordocCliOcrClient implements KordocOcrClient {
             restrictToOwner(stdoutFile);
             restrictToOwner(stderrFile);
 
-            Process process = new ProcessBuilder("npx", "kordoc", imagePath.toString(), "--format", "json", "--ocr")
-                    .redirectOutput(stdoutFile.toFile()).redirectError(stderrFile.toFile()).start();
+            // npx가 로컬에 kordoc을 찾지 못하면(주로 개발 환경) 설치 여부를 묻는 프롬프트로 멈출 수 있어 -y로 자동 동의합니다.
+            Process process = new ProcessBuilder("npx",
+                    "-y",
+                    "kordoc",
+                    imagePath.toString(),
+                    "--format",
+                    "json",
+                    "--ocr").redirectOutput(stdoutFile.toFile()).redirectError(stderrFile.toFile()).start();
             // 기본 표준 입력(PIPE)을 그대로 두면 kordoc이 입력을 기다릴 때 무한정 블록될 수 있어 즉시 EOF를 보냅니다.
             closeQuietly(process.getOutputStream());
 
