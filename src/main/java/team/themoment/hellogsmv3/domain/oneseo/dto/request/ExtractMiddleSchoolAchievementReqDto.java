@@ -30,6 +30,6 @@ public record ExtractMiddleSchoolAchievementReqDto(
 
         @Schema(description = "졸업 구분. 졸업예정자는 3학년 2학기 성적이 없습니다.") @NotNull GraduationType graduationType,
 
-        @Schema(description = "자유학기제 또는 자유학년제. 예체능 성취점수 배열의 길이를 결정하므로 졸업예정자는 필수입니다.", allowableValues = {
+        @Schema(description = "자유학기제 또는 자유학년제. 예체능 성취점수 배열의 길이를 결정하므로 졸업예정자와 졸업자 모두 필수입니다.", allowableValues = {
                 "자유학기제", "자유학년제"}, nullable = true) String liberalSystem){
 }

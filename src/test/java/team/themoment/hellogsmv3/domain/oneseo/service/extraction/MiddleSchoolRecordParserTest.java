@@ -376,8 +376,8 @@ class MiddleSchoolRecordParserTest {
         }
 
         @Nested
-        @DisplayName("졸업자의 생활기록부가 주어진 경우")
-        class Context_with_graduate {
+        @DisplayName("자유학년제 졸업자의 생활기록부가 주어진 경우")
+        class Context_with_free_year_graduate {
 
             private ExtractedAchievementResDto result;
 
@@ -397,6 +397,35 @@ class MiddleSchoolRecordParserTest {
             @DisplayName("찾지 못한 3학년 2학기를 누락 학기로 보고한다")
             void it_reports_missing_semester() {
                 assertThat(result.meta().missingSemesters()).containsExactly("3-2");
+                assertThat(result.meta().warnings())
+                        .anyMatch(warning -> warning.type() == ExtractionWarningType.MISSING_SEMESTER);
+            }
+        }
+
+        @Nested
+        @DisplayName("자유학기제 졸업자의 생활기록부가 주어진 경우")
+        class Context_with_free_semester_graduate {
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = parseSample(GraduationType.GRADUATE, MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("1학년을 포함한 6개 학기 분량의 예체능 배열을 반환한다")
+            void it_returns_six_semesters_of_arts_physical() {
+                // 학기: 1-1, 1-2, 2-1, 2-2, 3-1, 3-2 → 6 * 3 = 18
+                assertThat(result.achievement().artsPhysicalAchievement()).hasSize(18);
+                // 1-2의 체육 A가 두 번째 학기 블록의 첫 칸에 들어간다
+                assertThat(result.achievement().artsPhysicalAchievement().get(3)).isEqualTo(5);
+            }
+
+            @Test
+            @DisplayName("찾지 못한 1학년 1학기와 3학년 2학기를 누락 학기로 보고한다")
+            void it_reports_missing_semesters() {
+                assertThat(result.meta().missingSemesters()).containsExactly("1-1", "3-2");
                 assertThat(result.meta().warnings())
                         .anyMatch(warning -> warning.type() == ExtractionWarningType.MISSING_SEMESTER);
             }
