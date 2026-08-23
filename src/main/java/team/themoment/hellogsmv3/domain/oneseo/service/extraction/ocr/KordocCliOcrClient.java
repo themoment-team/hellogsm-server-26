@@ -22,7 +22,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * kordoc(Node.js CLI, {@code @clazic/kordoc})을 subprocess로 실행합니다.
+ * kordoc(Node.js CLI, {@code kordoc})을 subprocess로 실행합니다.
  *
  * <p>
  * 별도 서비스를 두지 않고 {@link ProcessBuilder}로 직접 실행하는 방식(연동 방식 A)입니다. 트래픽이 늘어 프로세스 기동

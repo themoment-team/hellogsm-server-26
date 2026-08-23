@@ -6,7 +6,7 @@
 # 호출이 한 번 발생합니다.
 FROM node:22-slim AS ocr-tools
 
-RUN npm install -g @clazic/kordoc
+RUN npm install -g kordoc@4.9.1
 
 FROM eclipse-temurin:25-jre
 
