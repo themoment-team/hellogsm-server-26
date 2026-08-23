@@ -14,13 +14,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.kordoc.KordocParseResult;
 import team.themoment.sdk.exception.ExpectedException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * kordoc(Node.js CLI, {@code @clazic/kordoc})을 subprocess로 실행합니다.
@@ -90,7 +89,7 @@ public class KordocCliOcrClient implements KordocOcrClient {
     KordocParseResult parseJson(String json) {
         try {
             return objectMapper.readValue(json, KordocParseResult.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("kordoc 출력 JSON 파싱 실패", e);
             throw new ExpectedException("OCR 결과를 해석하지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
