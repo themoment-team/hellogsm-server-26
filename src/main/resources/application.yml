@@ -93,8 +93,10 @@ oneseo:
     # 개인정보가 그대로 노출되므로 운영 환경에서는 반드시 false여야 합니다.
     expose-raw-text: ${EXTRACTION_EXPOSE_RAW_TEXT:false}
     ocr:
-      # kordoc subprocess 동시 실행 최대 개수. 트래픽이 늘면 조정하고, 필요하면 방식 B(별도 마이크로서비스)로 전환합니다.
-      max-concurrent-jobs: ${EXTRACTION_OCR_MAX_CONCURRENT_JOBS:2}
+      # kordoc subprocess 동시 실행 최대 개수. kordoc 프로세스 1개당 ~200-400MB를 쓰는데 스테이지
+      # 인스턴스 메모리가 1.8GB뿐이라 2로 두면 OOM이 난다(2026-08-23 스테이지 장애). 인스턴스 메모리를
+      # 늘리기 전까지는 1로 유지하고, 트래픽이 늘면 방식 B(별도 마이크로서비스)로 전환을 검토합니다.
+      max-concurrent-jobs: ${EXTRACTION_OCR_MAX_CONCURRENT_JOBS:1}
       # 동시 실행 한도가 찼을 때 자리가 날 때까지 기다리는 시간
       acquire-timeout-seconds: ${EXTRACTION_OCR_ACQUIRE_TIMEOUT_SECONDS:5}
       # kordoc 프로세스 자체의 실행 제한 시간

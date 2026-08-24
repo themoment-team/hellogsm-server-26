@@ -7,9 +7,15 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -109,6 +115,39 @@ class ExtractOcrPageTextServiceTest {
                 ArgumentCaptor<Path> pathCaptor = ArgumentCaptor.forClass(Path.class);
                 verify(kordocOcrClient).recognize(pathCaptor.capture());
                 assertThat(Files.exists(pathCaptor.getValue())).isFalse();
+            }
+        }
+
+        @Nested
+        @DisplayName("긴 변이 2000px을 넘는 이미지가 주어진 경우")
+        class Context_with_oversized_image {
+
+            @Test
+            @DisplayName("kordoc에 전달하기 전 긴 변을 2000px로 축소한다")
+            void it_downscales_before_passing_to_kordoc() throws IOException {
+                byte[] oversizedJpeg = createJpeg(3000, 1500);
+                MultipartFile file = new MockMultipartFile("file", "page.jpg", "image/jpeg", oversizedJpeg);
+                KordocParseResult parseResult = new KordocParseResult(List.of());
+                AtomicInteger capturedLongestSide = new AtomicInteger();
+
+                given(kordocOcrClient.recognize(any())).willAnswer(invocation -> {
+                    Path path = invocation.getArgument(0);
+                    BufferedImage image = ImageIO.read(path.toFile());
+                    capturedLongestSide.set(Math.max(image.getWidth(), image.getHeight()));
+                    return parseResult;
+                });
+                given(converter.convert(parseResult)).willReturn(new KordocConversionResult("", List.of()));
+
+                service.execute(file);
+
+                assertThat(capturedLongestSide.get()).isEqualTo(2000);
+            }
+
+            private byte[] createJpeg(int width, int height) throws IOException {
+                BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                ImageIO.write(image, "jpg", out);
+                return out.toByteArray();
             }
         }
     }
