@@ -29,8 +29,8 @@ import tools.jackson.databind.ObjectMapper;
  * 오버헤드가 문제가 되면 별도 Node 마이크로서비스(방식 B)로 전환을 검토합니다.
  *
  * <p>
- * <b>검증 한계:</b> 실행 환경에 kordoc이 설치되어 있지 않아 이 클래스는 실제 kordoc 실행으로 검증하지 못했습니다. 배포
- * 전 실제 Node 환경에서 한 번 실행해 CLI 인자 · 종료 코드 · JSON 출력 형태를 확인해야 합니다.
+ * 2026-08-24 스테이지 환경에서 실제 kordoc 실행(CLI 인자 · 종료 코드 · JSON 출력 형태 · 타임아웃 동작)으로
+ * 검증했습니다.
  */
 @Slf4j
 @Component
@@ -65,7 +65,7 @@ public class KordocCliOcrClient implements KordocOcrClient {
 
             boolean finished = process.waitFor(processTimeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
-                process.destroyForcibly();
+                destroyProcessTree(process);
                 throw new ExpectedException("OCR 처리 시간이 너무 오래 걸려 중단했습니다. 다시 시도해주세요.", HttpStatus.GATEWAY_TIMEOUT);
             }
             if (process.exitValue() != 0) {
@@ -84,6 +84,16 @@ public class KordocCliOcrClient implements KordocOcrClient {
             deleteQuietly(stdoutFile);
             deleteQuietly(stderrFile);
         }
+    }
+
+    /**
+     * npx는 실제 OCR 작업을 자식(node) 프로세스에 위임하므로, npx 프로세스만 죽이면 그 자식은 고아 프로세스로 남아 CPU를 계속
+     * 점유한다. 2026-08-24 스테이지에서 이 때문에 30초 타임아웃 처리가 실제 응답까지는 242초나 걸린 사례가 있었다. 자손
+     * 프로세스까지 전부 강제 종료한다.
+     */
+    private void destroyProcessTree(Process process) {
+        process.descendants().forEach(ProcessHandle::destroyForcibly);
+        process.destroyForcibly();
     }
 
     KordocParseResult parseJson(String json) {
