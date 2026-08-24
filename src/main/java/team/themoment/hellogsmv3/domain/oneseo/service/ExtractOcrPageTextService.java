@@ -130,12 +130,16 @@ public class ExtractOcrPageTextService {
         graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         graphics.drawImage(original, 0, 0, scaledWidth, scaledHeight, null);
         graphics.dispose();
+        // 원본 해상도 래스터는 여기서부터 더 이상 필요 없으므로, GC를 기다리지 않고 즉시 반환합니다.
+        original.flush();
 
         String formatName = "png".equalsIgnoreCase(extension) ? "png" : "jpg";
         try {
             ImageIO.write(scaled, formatName, imagePath.toFile());
         } catch (IOException e) {
             log.warn("스캔 이미지 다운스케일 결과 저장 실패, 원본 해상도로 진행합니다. path={}", imagePath);
+        } finally {
+            scaled.flush();
         }
     }
 
