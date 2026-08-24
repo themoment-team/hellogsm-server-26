@@ -96,6 +96,32 @@ class KordocAchievementTextConverterTest {
         }
 
         @Nested
+        @DisplayName("교과(대분류)와 과목(실제 과목명)이 별도 열로 나뉜 표가 주어진 경우")
+        class Context_with_separate_category_and_subject_columns {
+
+            @Test
+            @DisplayName("한글이 더 많은 대분류 열이 아니라 실제로 토큰화에 성공하는 과목 열을 사용한다")
+            void it_picks_the_column_that_actually_tokenizes() {
+                // 실제 kordoc 출력에서 확인된 형태: rowSpan 병합 셀이 줄바꿈 없이 반복되어 "1"이 "111111"로,
+                // "교과" 열은 "(역사포함)" 같은 부가 설명과 "/" 구분자가 섞인 채로 재구성됩니다.
+                KordocTableCell semesterCell = new KordocTableCell("111111", 1, 1);
+                KordocTableCell categoryCell = new KordocTableCell(String
+                        .join("\n", "사회(역사포함)/도덕", "사회(역사포함)/도덕수학", "과학/기술·가정/정보", "과학/기술·가정/정보영어"), 1, 1);
+                KordocTableCell subjectCell = new KordocTableCell(String.join("\n", "사회도덕수학과학", "기술·가정영어"), 1, 1);
+                KordocTableCell scoreCell = new KordocTableCell(String.join("\n", "P", "P", "P", "P", "P", "P"), 1, 1);
+                KordocTable table = new KordocTable(
+                        List.of(List.of(semesterCell, categoryCell, subjectCell, scoreCell)));
+                KordocBlock tableBlock = new KordocBlock("table", null, table, 1);
+
+                KordocConversionResult conversion = converter.convert(new KordocParseResult(List.of(tableBlock)));
+
+                assertThat(conversion.unrecognizedSubjectBlobs()).isEmpty();
+                assertThat(conversion.rawText().lines())
+                        .contains("1", "사회 P", "도덕 P", "수학 P", "과학 P", "기술가정 P", "영어 P");
+            }
+        }
+
+        @Nested
         @DisplayName("원점수/성취도 열을 찾을 수 없는 행(출결 등으로 추정)이 주어진 경우")
         class Context_with_non_achievement_row {
 

@@ -36,7 +36,9 @@ public class KordocAchievementTextConverter {
     // 블록 텍스트 전체가 학년 표시 그 자체일 때만 인정합니다. 부분 일치를 허용하면 "2024학년도 생활기록부" 같은 제목이나
     // "학년별 출결현황" 같은 캡션에도 반응해 엉뚱한 [N학년] 줄을 끼워 넣고, 문서 전체의 학년 판정을 틀어지게 합니다.
     private static final Pattern GRADE_HEADING = Pattern.compile("^\\[?\\s*([1-3])?\\s*학년\\s*]?$");
-    private static final Pattern BARE_SEMESTER = Pattern.compile("^[12]$");
+    // rowSpan으로 병합된 학기 셀을 kordoc이 펼치면서 "1"이 아니라 "111111"처럼 같은 숫자가 줄바꿈 없이 반복되는
+    // 경우가 있어, 단일 숫자뿐 아니라 같은 숫자의 반복도 학기 표시로 인정합니다.
+    private static final Pattern BARE_SEMESTER = Pattern.compile("^([12])\\1*$");
     // 원점수/과목평균 부분은 SUBJECT_ROW와 동일하게 선택 사항입니다. 예체능처럼 성취도만 있는 과목이 이 표에 섞여
     // 나올 가능성을 배제할 수 없어, 점수 없이 성취도 글자만 있는 줄도 원점수/성취도 열로 인식합니다.
     private static final Pattern SCORE_LINE = Pattern
@@ -85,12 +87,14 @@ public class KordocAchievementTextConverter {
             List<String> scoreLines = scoreCell.get().textOrEmpty().lines().map(String::strip)
                     .filter(line -> !line.isEmpty()).toList();
 
-            Optional<KordocTableCell> subjectCell = findSubjectCell(cells, scoreCell.get());
-            Optional<List<String>> subjects = subjectCell
-                    .flatMap(cell -> subjectTokenizer.tokenize(cell.textOrEmpty(), scoreLines.size()));
+            List<KordocTableCell> subjectCandidates = findSubjectCandidates(cells, scoreCell.get());
+            Optional<List<String>> subjects = subjectCandidates.stream()
+                    .map(cell -> subjectTokenizer.tokenize(cell.textOrEmpty(), scoreLines.size()))
+                    .filter(Optional::isPresent).map(Optional::get).findFirst();
 
             if (subjects.isEmpty()) {
-                subjectCell.ifPresent(cell -> unrecognizedSubjectBlobs.add(cell.textOrEmpty()));
+                mostLikelySubjectCell(subjectCandidates)
+                        .ifPresent(cell -> unrecognizedSubjectBlobs.add(cell.textOrEmpty()));
                 continue;
             }
 
@@ -109,17 +113,26 @@ public class KordocAchievementTextConverter {
         }).findFirst();
     }
 
-    /** 과목명 열: 원점수 셀도, 학기 숫자 하나짜리 셀도 아니면서 한글이 가장 많이 포함된 셀입니다. */
-    private Optional<KordocTableCell> findSubjectCell(List<KordocTableCell> cells, KordocTableCell scoreCell) {
+    /**
+     * 과목명 열 후보: 원점수 셀도, 학기 숫자 셀도 아니면서 한글을 포함한 셀들입니다. "교과"(대분류)와 "과목"(실제 과목명)이 별도 열로
+     * 나뉜 표에서는 두 열 모두 한글을 포함하므로, 어느 쪽이 진짜 과목명 열인지는 여기서 미리 정하지 않고 호출자가 각 후보에 실제로 토큰화를
+     * 시도해 성공하는 셀을 채택합니다. 대분류 열은 "(역사포함)" 같은 부가 설명이 섞여 있어 표준 과목 사전만으로는 절대 빈틈없이 분해되지
+     * 않으므로, 이렇게 하면 자연히 걸러집니다.
+     */
+    private List<KordocTableCell> findSubjectCandidates(List<KordocTableCell> cells, KordocTableCell scoreCell) {
         return cells.stream().filter(cell -> cell != scoreCell)
                 .filter(cell -> !BARE_SEMESTER.matcher(cell.textOrEmpty().strip()).matches())
-                .max(Comparator.comparingInt(cell -> countHangul(cell.textOrEmpty())))
-                .filter(cell -> countHangul(cell.textOrEmpty()) > 0);
+                .filter(cell -> countHangul(cell.textOrEmpty()) > 0).toList();
+    }
+
+    /** 후보 중 어느 것도 토큰화에 성공하지 못했을 때, 검수 대상으로 보여줄 셀 — 한글이 가장 많은 셀을 그대로 돌려줍니다. */
+    private Optional<KordocTableCell> mostLikelySubjectCell(List<KordocTableCell> candidates) {
+        return candidates.stream().max(Comparator.comparingInt(cell -> countHangul(cell.textOrEmpty())));
     }
 
     private Optional<String> findSemesterDigit(List<KordocTableCell> cells) {
-        return cells.stream().map(cell -> cell.textOrEmpty().strip())
-                .filter(text -> BARE_SEMESTER.matcher(text).matches()).findFirst();
+        return cells.stream().map(cell -> cell.textOrEmpty().strip()).map(BARE_SEMESTER::matcher)
+                .filter(Matcher::matches).map(matcher -> matcher.group(1)).findFirst();
     }
 
     private int countHangul(String text) {
