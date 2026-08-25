@@ -74,9 +74,8 @@ spring:
 
   servlet:
     multipart:
-      # 생기부 스캔 페이지 이미지 업로드(OCR)를 수용하기 위해 5MB에서 상향
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 5MB
+      max-request-size: 5MB
     encoding:
       charset: UTF-8
       enabled: true
