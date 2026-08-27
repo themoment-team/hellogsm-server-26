@@ -28,7 +28,8 @@ public class AuthorizeOcrService {
         String key = REDIS_KEY_PREFIX + memberId;
 
         Long count = redisTemplate.opsForValue().increment(key);
-        if (count != null && count == 1L) {
+        Long ttl = redisTemplate.getExpire(key);
+        if (ttl != null && ttl < 0) {
             redisTemplate.expire(key, Duration.ofMinutes(windowMinutes));
         }
 

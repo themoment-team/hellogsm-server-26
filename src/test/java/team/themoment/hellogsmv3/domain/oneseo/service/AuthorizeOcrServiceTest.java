@@ -38,6 +38,7 @@ class AuthorizeOcrServiceTest {
         service = new AuthorizeOcrService(redisTemplate);
         ReflectionTestUtils.setField(service, "maxRequests", 3);
         ReflectionTestUtils.setField(service, "windowMinutes", 10L);
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
     }
 
     @Nested
@@ -45,34 +46,34 @@ class AuthorizeOcrServiceTest {
     class Describe_execute {
 
         @Nested
-        @DisplayName("회원의 최근 요청 횟수가 한도 이내인 경우")
-        class Context_within_limit {
-
-            @Test
-            @DisplayName("예외를 던지지 않는다")
-            void it_does_not_throw() {
-                given(redisTemplate.opsForValue()).willReturn(valueOperations);
-                given(valueOperations.increment("ocr-rate-limit:1")).willReturn(2L);
-
-                service.execute(1L);
-
-                verify(redisTemplate, never()).expire("ocr-rate-limit:1", Duration.ofMinutes(10));
-            }
-        }
-
-        @Nested
-        @DisplayName("이번 요청이 해당 회원의 첫 요청인 경우")
-        class Context_first_request {
+        @DisplayName("키에 만료 시간이 설정되어 있지 않은 경우 (첫 요청이거나, 이전 요청이 만료 설정 전에 중단된 경우)")
+        class Context_without_ttl {
 
             @Test
             @DisplayName("만료 시간을 설정한다")
             void it_sets_expiration() {
-                given(redisTemplate.opsForValue()).willReturn(valueOperations);
-                given(valueOperations.increment("ocr-rate-limit:1")).willReturn(1L);
+                given(valueOperations.increment("ocr-rate-limit:1")).willReturn(2L);
+                given(redisTemplate.getExpire("ocr-rate-limit:1")).willReturn(-1L);
 
                 service.execute(1L);
 
                 verify(redisTemplate).expire("ocr-rate-limit:1", Duration.ofMinutes(10));
+            }
+        }
+
+        @Nested
+        @DisplayName("키에 만료 시간이 이미 설정되어 있는 경우")
+        class Context_with_ttl {
+
+            @Test
+            @DisplayName("만료 시간을 다시 설정하지 않는다")
+            void it_does_not_reset_expiration() {
+                given(valueOperations.increment("ocr-rate-limit:1")).willReturn(2L);
+                given(redisTemplate.getExpire("ocr-rate-limit:1")).willReturn(300L);
+
+                service.execute(1L);
+
+                verify(redisTemplate, never()).expire("ocr-rate-limit:1", Duration.ofMinutes(10));
             }
         }
 
@@ -83,8 +84,8 @@ class AuthorizeOcrServiceTest {
             @Test
             @DisplayName("ExpectedException(429)을 던진다")
             void it_throws_too_many_requests() {
-                given(redisTemplate.opsForValue()).willReturn(valueOperations);
                 given(valueOperations.increment("ocr-rate-limit:1")).willReturn(4L);
+                given(redisTemplate.getExpire("ocr-rate-limit:1")).willReturn(300L);
 
                 assertThatThrownBy(() -> service.execute(1L)).isInstanceOf(ExpectedException.class)
                         .extracting(e -> ((ExpectedException) e).getStatusCode())
