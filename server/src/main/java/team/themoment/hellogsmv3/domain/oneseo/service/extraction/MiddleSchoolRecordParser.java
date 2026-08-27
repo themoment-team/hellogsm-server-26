@@ -123,8 +123,12 @@ public class MiddleSchoolRecordParser {
     public static final String FREE_YEAR_SYSTEM = "자유학년제";
     public static final String FREE_SEMESTER_SYSTEM = "자유학기제";
 
-    /** 졸업자가 입력하는 학기. 프론트엔드 {@code artPhysicalGraduationArray}와 일치합니다. */
+    /** 자유학년제 졸업자가 입력하는 학기. 프론트엔드 {@code artPhysicalGraduationArray}와 일치합니다. */
     private static final List<String> GRADUATE_SEMESTERS = List.of("2-1", "2-2", "3-1", "3-2");
+
+    /** 자유학기제 졸업자가 입력하는 학기. 1학년 전체를 포함한 전 학년입니다. */
+    private static final List<String> GRADUATE_FREE_SEMESTER_SEMESTERS = List
+            .of("1-1", "1-2", "2-1", "2-2", "3-1", "3-2");
 
     /** 자유학년제 졸업예정자가 입력하는 학기. 1학년 전체가 제외됩니다. */
     private static final List<String> CANDIDATE_FREE_YEAR_SEMESTERS = List.of("2-1", "2-2", "3-1");
@@ -141,7 +145,7 @@ public class MiddleSchoolRecordParser {
      * @param graduationType
      *            졸업 구분
      * @param liberalSystem
-     *            자유학기제 또는 자유학년제. 예체능 배열의 길이를 결정하므로 졸업예정자에게는 필수입니다.
+     *            자유학기제 또는 자유학년제. 예체능 배열의 길이를 결정하므로 졸업예정자와 졸업자 모두에게 필수입니다.
      */
     public ExtractedAchievementResDto parse(ExtractedTextDto extractedText,
             GraduationType graduationType,
@@ -191,12 +195,11 @@ public class MiddleSchoolRecordParser {
      * 프론트엔드의 {@code artPhysicalGraduationArray} 등과 일치해야 합니다.
      */
     private List<String> resolveSemesters(GraduationType graduationType, String liberalSystem) {
+        boolean isFreeSemester = FREE_SEMESTER_SYSTEM.equals(liberalSystem);
         if (graduationType == GraduationType.GRADUATE) {
-            return GRADUATE_SEMESTERS;
+            return isFreeSemester ? GRADUATE_FREE_SEMESTER_SEMESTERS : GRADUATE_SEMESTERS;
         }
-        return FREE_SEMESTER_SYSTEM.equals(liberalSystem)
-                ? CANDIDATE_FREE_SEMESTER_SEMESTERS
-                : CANDIDATE_FREE_YEAR_SEMESTERS;
+        return isFreeSemester ? CANDIDATE_FREE_SEMESTER_SEMESTERS : CANDIDATE_FREE_YEAR_SEMESTERS;
     }
 
     private void readLines(String rawText, ParseContext context) {
