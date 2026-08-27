@@ -49,6 +49,7 @@ jobs:
           cp build/libs/*.jar deploy/build/libs/
           cp appspec.yml deploy/
           cp DockerfileStage deploy/
+          cp docker-compose.stage.yml deploy/
           cp -r scripts deploy/
           cd deploy && zip -r ../$GITHUB_SHA.zip .
         shell: bash
