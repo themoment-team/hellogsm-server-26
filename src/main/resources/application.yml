@@ -92,7 +92,6 @@ oneseo:
     # 개인정보가 그대로 노출되므로 운영 환경에서는 반드시 false여야 합니다.
     expose-raw-text: ${EXTRACTION_EXPOSE_RAW_TEXT:false}
     ocr-rate-limit:
-      # 프론트에서 OCR을 실행하기 전 인증 API를 호출할 때, 회원 1명이 이 시간(분) 안에 호출할 수 있는 최대 횟수
       max-requests: ${EXTRACTION_OCR_RATE_LIMIT_MAX:30}
       window-minutes: ${EXTRACTION_OCR_RATE_LIMIT_WINDOW_MINUTES:10}
 schedule:
