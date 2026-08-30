@@ -126,6 +126,13 @@ management:
   endpoint:
     prometheus:
       access: read_only
+    health:
+      group:
+        # ALB 타겟그룹 헬스체크 전용. 기본 집계 health는 db/redis/diskSpace를 전부 포함해
+        # 인스턴스 1대 구성에서 캐시/디스크 경고만으로도 서비스 전체가 ALB에서 빠지므로,
+        # 앱 프로세스 생존 여부(ping)만 보는 별도 그룹을 둔다.
+        liveness:
+          include: ping
 discord-alarm:
   url: ${DISCORD_RELAY_SERVER_URL}
   api-key: ${DISCORD_RELAY_SERVER_API_KEY}

@@ -1,0 +1,24 @@
+config:
+  aws:region: ap-northeast-2
+  hellogsm-infra:adminSshCidr: 210.218.52.13/32 # 관리자 접속 IP - 필요 시 교체
+  hellogsm-infra:keyPairName: hello-prod-ec2-key
+  hellogsm-infra:dbUsername: hellogsm
+  # dbPassword는 pulumi config set --secret으로 암호화 저장됨 (아래 secure 값)
+  hellogsm-infra:dbName: hellogsm
+  hellogsm-infra:dbInstanceClass: db.t3.micro
+  hellogsm-infra:dbAllocatedStorage: "20"
+  hellogsm-infra:dbEngineVersion: "8.0"
+  hellogsm-infra:springbootInstanceType: t3.small
+  hellogsm-infra:redisInstanceType: t3.micro
+  hellogsm-infra:domainName: hellogsm.kr
+  hellogsm-infra:subdomain: api-prod
+  hellogsm-infra:deploymentBucketName: hellogsm-cicd-bucket
+  hellogsm-infra:appAssetsBucketName: hello-26-prod-bucket
+  hellogsm-infra:actuatorBasePath: /hello-management
+  hellogsm-infra:githubOrg: themoment-team
+  hellogsm-infra:githubRepo: hellogsm-server-26
+  hellogsm-infra:codeDeployTagValue: hello-prod-springboot
+  hellogsm-infra:logRetentionDays: "0"
+  hellogsm-infra:dbPassword:
+    secure: AAABAHOa9yIeOGffhDi/82FbBzystjW7ulSmhQbwQ1BrsQHHn1hlyBSag8DPEg1L38tF34t0R8Iev/tS5xohVw==
+  hellogsm-infra:snsAlarmEmail: themoment.hellogsm@gmail.com
