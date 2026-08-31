@@ -54,3 +54,8 @@ entrance/.reference/hellogsm-server-26/
 PR_BODY.md
 /.pr-tmp/
 /.claude/command.log
+
+### Pulumi (infra/) ###
+infra/node_modules/
+infra/bin/
+infra/*.tsbuildinfo
