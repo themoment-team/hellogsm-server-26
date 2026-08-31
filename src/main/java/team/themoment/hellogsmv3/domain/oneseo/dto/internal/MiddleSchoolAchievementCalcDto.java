@@ -10,8 +10,9 @@ import lombok.Builder;
  * generalSubjects,newSubjects,artsPhysicalSubjects가 없습니다.
  */
 @Builder
-public record MiddleSchoolAchievementCalcDto(List<Integer> achievement1_2, List<Integer> achievement2_1,
-        List<Integer> achievement2_2, List<Integer> achievement3_1, List<Integer> achievement3_2,
-        List<Integer> artsPhysicalAchievement, List<Integer> absentDays, List<Integer> attendanceDays,
-        List<Integer> volunteerTime, String liberalSystem, String freeSemester, BigDecimal gedAvgScore) {
+public record MiddleSchoolAchievementCalcDto(List<Integer> achievement1_1, List<Integer> achievement1_2,
+        List<Integer> achievement2_1, List<Integer> achievement2_2, List<Integer> achievement3_1,
+        List<Integer> achievement3_2, List<Integer> artsPhysicalAchievement, List<Integer> absentDays,
+        List<Integer> attendanceDays, List<Integer> volunteerTime, String liberalSystem, String freeSemester,
+        BigDecimal gedAvgScore) {
 }

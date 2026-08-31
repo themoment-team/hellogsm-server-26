@@ -114,6 +114,8 @@ class QueryOneseoByIdServiceTest {
                 assertEquals(oneseoPrivacyDetail.getStudentNumber(), oneseoPrivacyDetailResDto.studentNumber());
 
                 MiddleSchoolAchievementResDto middleSchoolAchievementResDto = result.middleSchoolAchievement();
+                assertEquals(middleSchoolAchievement.getAchievement1_1(),
+                        middleSchoolAchievementResDto.achievement1_1());
                 assertEquals(middleSchoolAchievement.getAchievement1_2(),
                         middleSchoolAchievementResDto.achievement1_2());
                 assertEquals(middleSchoolAchievement.getAchievement2_1(),
@@ -312,6 +314,32 @@ class QueryOneseoByIdServiceTest {
             assertNull(result.achievement2_2());
             assertEquals(List.of(1, 2, 3, 4, 5), result.achievement3_1());
             assertEquals(List.of(1, 2, 3, 4, 5), result.achievement3_2());
+        }
+
+        @Test
+        @DisplayName("freeSemester가 1-2이고 1학년 1학기 성적이 별도로 저장되어 있는 경우 achievement1_1을 그대로 반환한다")
+        void it_returns_achievement1_1_for_free_semester_1_2() {
+            Member member = buildMember(memberId);
+            List<Integer> achievement1_1 = List.of(5, 4, 3, 2, 1);
+            List<Integer> integerList = List.of(1, 2, 3, 4, 5);
+            List<String> stringList = List.of("과목1", "과목2", "과목3");
+            MiddleSchoolAchievement msa = MiddleSchoolAchievement.builder().achievement1_1(achievement1_1)
+                    .achievement1_2(integerList).achievement2_1(integerList).achievement2_2(integerList)
+                    .achievement3_1(integerList).achievement3_2(integerList).generalSubjects(stringList)
+                    .newSubjects(stringList).artsPhysicalAchievement(List.of(3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3))
+                    .artsPhysicalSubjects(stringList).absentDays(integerList).attendanceDays(integerList)
+                    .volunteerTime(integerList).liberalSystem("자유학기제").freeSemester("1-2").gedAvgScore(null).build();
+            OneseoPrivacyDetail privacyDetail = buildOneseoPrivacyDetail();
+            Oneseo oneseo = buildOneseo(member, msa, privacyDetail);
+
+            given(oneseoService.findWithMemberByMemberIdOrThrow(memberId)).willReturn(oneseo);
+            given(oneseoPrivacyDetailRepository.findByOneseo(oneseo)).willReturn(privacyDetail);
+            given(middleSchoolAchievementRepository.findByOneseo(oneseo)).willReturn(msa);
+
+            MiddleSchoolAchievementResDto result = queryOneseoByIdService.execute(memberId).middleSchoolAchievement();
+
+            assertEquals(achievement1_1, result.achievement1_1());
+            assertNull(result.achievement1_2());
         }
     }
 }
