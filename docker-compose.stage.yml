@@ -1,0 +1,71 @@
+services:
+  hellogsm-mysql:
+    image: mysql:8.0
+    container_name: hellogsm-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-unused-existing-volume-ignores-this}
+      MYSQL_DATABASE: hellogsm
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - hellogsm-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  hellogsm-redis:
+    image: redis:7-alpine
+    container_name: hellogsm-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - hellogsm-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  hellogsm-stage-server:
+    image: hellogsm-stage-server-img
+    container_name: hellogsm-stage-server
+    restart: always
+    build:
+      context: .
+      dockerfile: DockerfileStage
+    ports:
+      - "8080:8080"
+    depends_on:
+      hellogsm-mysql:
+        condition: service_healthy
+      hellogsm-redis:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  hellogsm-mysql-data:
+    external: true
+  hellogsm-redis-data:
+    external: true
