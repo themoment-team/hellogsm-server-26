@@ -129,8 +129,9 @@ public class QueryOneseoByIdService {
             }
         }
 
-        return MiddleSchoolAchievementResDto.builder().achievement1_2(achievement1_2).achievement2_1(achievement2_1)
-                .achievement2_2(achievement2_2).achievement3_1(achievement3_1).achievement3_2(achievement3_2)
+        return MiddleSchoolAchievementResDto.builder().achievement1_1(middleSchoolAchievement.getAchievement1_1())
+                .achievement1_2(achievement1_2).achievement2_1(achievement2_1).achievement2_2(achievement2_2)
+                .achievement3_1(achievement3_1).achievement3_2(achievement3_2)
                 .generalSubjects(middleSchoolAchievement.getGeneralSubjects())
                 .newSubjects(middleSchoolAchievement.getNewSubjects())
                 .artsPhysicalAchievement(middleSchoolAchievement.getArtsPhysicalAchievement())
