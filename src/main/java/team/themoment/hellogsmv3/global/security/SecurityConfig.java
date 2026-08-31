@@ -42,6 +42,8 @@ public class SecurityConfig {
     private static final String[] ADMIN_ONLY = {Role.ADMIN.name(), Role.ROOT.name()};
     private static final String[] APPLICANT_OR_ROOT = {Role.APPLICANT.name(), Role.ROOT.name()};
     private static final String[] UNAUTHENTICATED_OR_APPLICANT = {Role.UNAUTHENTICATED.name(), Role.APPLICANT.name()};
+    private static final String[] APPLICANT_OR_ADMIN_OR_ROOT = {Role.APPLICANT.name(), Role.ADMIN.name(),
+            Role.ROOT.name()};
 
     @Bean
     public Filter timeBasedFilter() {
@@ -149,7 +151,9 @@ public class SecurityConfig {
 
     private void oneseoRequests(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry req) {
-        req.requestMatchers("/oneseo/v3/oneseo/me").hasAnyAuthority(APPLICANT_OR_ROOT)
+        req.requestMatchers(HttpMethod.GET, "/oneseo/v3/oneseo/me").hasAnyAuthority(APPLICANT_OR_ADMIN_OR_ROOT)
+                .requestMatchers(HttpMethod.POST, "/oneseo/v3/oneseo/me").hasAnyAuthority(APPLICANT_OR_ROOT)
+                .requestMatchers(HttpMethod.PUT, "/oneseo/v3/oneseo/me").hasAnyAuthority(APPLICANT_OR_ROOT)
                 .requestMatchers("/oneseo/v3/oneseo/{memberId}").hasAnyAuthority(ADMIN_ONLY)
                 .requestMatchers(HttpMethod.PATCH, "/oneseo/v3/arrived-status/{memberId}").hasAnyAuthority(ADMIN_ONLY)
                 .requestMatchers(HttpMethod.PATCH, "/oneseo/v3/competency-score/{memberId}").hasAnyAuthority(ADMIN_ONLY)
