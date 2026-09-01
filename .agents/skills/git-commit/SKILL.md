@@ -47,8 +47,8 @@ Format: `type(scope): 설명`
 
 ## Scope Selection
 
-For the full scope selection table and examples, read `references/scope-guide.md`.
-For commit type and scope naming conventions, read `references/commit-conventions.md`.
+For the full scope selection table and examples, read `.agents/skills/git-commit/references/scope-guide.md`.
+For commit type and scope naming conventions, read `.agents/skills/git-commit/references/commit-conventions.md`.
 
 Quick rule: infer domain from changed file paths and directory structure. Use `global` / `ci/cd` / module names only for cross-cutting changes.
 
