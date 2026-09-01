@@ -15,8 +15,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.ExtractMiddleSchoolAchievementReqDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.ExtractedAchievementResDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.response.OcrDownloadUrlResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.OcrUploadUrlResDto;
 import team.themoment.hellogsmv3.domain.oneseo.service.ExtractMiddleSchoolAchievementService;
+import team.themoment.hellogsmv3.domain.oneseo.service.IssueOcrDownloadUrlService;
 import team.themoment.hellogsmv3.domain.oneseo.service.IssueOcrUploadUrlService;
 import team.themoment.hellogsmv3.global.common.handler.annotation.AuthRequest;
 
@@ -28,6 +30,7 @@ public class OneseoExtractionController {
 
     private final ExtractMiddleSchoolAchievementService extractMiddleSchoolAchievementService;
     private final IssueOcrUploadUrlService issueOcrUploadUrlService;
+    private final IssueOcrDownloadUrlService issueOcrDownloadUrlService;
 
     @Operation(summary = "생활기록부 성적 추출", description = "클라이언트가 생활기록부에서 뽑아 보낸 텍스트를 중학교 성적으로 구조화합니다. 원본 파일은 서버로 전송되지 않으며, 원서 데이터를 수정하지 않습니다. 추출 결과는 사용자가 검토한 뒤 원서 등록 API로 제출해야 합니다.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "추출 성공"),
@@ -48,5 +51,16 @@ public class OneseoExtractionController {
             @Parameter(description = "업로드할 파일의 확장자 (pdf, jpg, jpeg, png)") @RequestParam String fileExtension,
             @AuthRequest Long memberId) {
         return issueOcrUploadUrlService.execute(memberId, fileExtension);
+    }
+
+    @Operation(summary = "생활기록부 스캔 파일 다운로드용 Presigned URL 발급", description = "OCR 실행 직전 서버에서 S3에 업로드된 스캔 파일을 내려받기 위해 호출합니다. objectKey가 요청자 소유가 아니거나 파일이 존재하지 않으면 오류를 반환합니다.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "발급 성공"),
+            @ApiResponse(responseCode = "403", description = "본인 소유가 아닌 objectKey인 경우"),
+            @ApiResponse(responseCode = "404", description = "파일이 존재하지 않거나 만료된 경우")})
+    @PostMapping("/middle-school-achievement/ocr-download-url")
+    public OcrDownloadUrlResDto issueOcrDownloadUrl(
+            @Parameter(description = "다운로드할 파일의 objectKey") @RequestParam String objectKey,
+            @AuthRequest Long memberId) {
+        return issueOcrDownloadUrlService.execute(memberId, objectKey);
     }
 }
