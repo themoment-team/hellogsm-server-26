@@ -1,147 +1,22 @@
+// 루트 프로젝트: 공통 좌표와 플러그인 선언만 둔다.
+// 플러그인은 전부 apply false — 서브프로젝트가 각자 필요한 것만 적용한다.
+// (특히 Spring Boot / dependency-management 를 루트에 적용하면 모든 서브프로젝트로
+//  전파돼 엔진 모듈의 의존성 해석까지 오염되므로 반드시 apply false 로 둔다.)
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '4.0.5'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'com.diffplug.spotless' version '8.4.0'
+	id 'org.springframework.boot' version '4.0.5' apply false
+	id 'io.spring.dependency-management' version '1.1.7' apply false
+	id 'com.diffplug.spotless' version '8.4.0' apply false
+	id 'org.jetbrains.kotlin.jvm' version '2.3.21' apply false
+	id 'org.jetbrains.kotlin.plugin.spring' version '2.3.21' apply false
 }
 
-
-spotless {
-	java {
-		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-		eclipse().configFile("src/main/resources/eclipse-java-formatter.xml")
-		leadingTabsToSpaces(4)
-		importOrder('java', 'javax', 'org', 'com', '')
-		removeUnusedImports()
-		endWithNewline()
-		trimTrailingWhitespace()
-	}
-	groovyGradle {
-		target '*.gradle'
-		greclipse()
-	}
-}
-
+// 서버 좌표(team.themoment)와 엔진 좌표(kr.hellogsm.entrance)는 통합 후에도 통일하지
+// 않는다 — 서로 다른 산출물이다. 서버 모듈은 server/build.gradle 에서 자체 group/version
+// 을 유지하고, 엔진 3개 모듈만 여기서 공통 좌표를 부여한다.
 group = 'team.themoment'
 version = 'v20260609.0'
-java.toolchain { languageVersion = JavaLanguageVersion.of(25) }
 
-java {
-	sourceCompatibility = '25'
+configure([project(':entrance-dsl'), project(':entrance-plans'), project(':entrance-engine'), project(':entrance-batch'), project(':entrance-lambda')]) {
+	group = 'kr.hellogsm.entrance'
+	version = '0.1.0-SNAPSHOT'
 }
-
-jar {
-	enabled = false
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
-repositories {
-	mavenCentral()
-	maven { url 'https://jitpack.io' }
-}
-
-dependencies {
-	/** spring app **/
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-
-	/** security **/
-	implementation 'org.springframework.session:spring-session-data-redis'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-
-	/** oauth 2.0 **/
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-
-	/** persistence **/
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-
-	/** queryDsl **/
-	implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.1'
-	annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.1:jakarta'
-	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
-	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
-
-	/** test **/
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.mockito:mockito-inline:5.2.0'
-
-	/** validation **/
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-	/** lombok **/
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-
-	/** aws **/
-	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:4.0.0'
-	implementation 'io.awspring.cloud:spring-cloud-aws-starter-sns:4.0.0'
-
-	/** excel **/
-	implementation 'org.apache.poi:poi-ooxml:5.5.1'
-
-	/** json **/
-	implementation 'net.minidev:json-smart:2.6.0'
-
-	/** swagger **/
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
-
-	/** actuator **/
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-	/** micrometer **/
-	implementation 'io.micrometer:micrometer-registry-prometheus'
-
-	/** logging **/
-	implementation platform('software.amazon.awssdk:bom:2.42.30')
-	implementation 'software.amazon.awssdk:cloudwatchlogs'
-
-	/** open feign **/
-	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-
-	/* sdk */
-	implementation("com.github.themoment-team:the-sdk:1.5")
-
-	/* disender */
-	implementation 'io.github.zaman0806:disender-spring-boot-4-starter:0.1.1'
-}
-
-ext {
-	set('springCloudVersion', "2025.1.1")
-}
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
-}
-
-def querydslSrcDir = "$projectDir/build/generated"
-
-clean {
-	delete file(querydslSrcDir)
-}
-
-tasks.withType(JavaCompile).configureEach {
-	options.generatedSourceOutputDirectory = file(querydslSrcDir)
-}
-
-tasks.named('bootBuildImage') {
-	builder = 'paketobuildpacks/builder-jammy-base:latest'
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
-configurations.configureEach {
-	exclude group: 'org.bouncycastle'
-}
-
-compileJava.dependsOn spotlessApply
-compileTestJava.dependsOn spotlessApply

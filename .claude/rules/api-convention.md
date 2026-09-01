@@ -1,5 +1,7 @@
 # API Convention Rules — hellogsm-server-25
 
+> Scope: `server` module only (the HTTP API surface). `entrance-*` modules expose no HTTP API of their own — `entrance-batch` runs as a DB-backed batch job, invoked from `server`.
+
 ## URL Structure
 ```
 /{domain}/v3/{resource}[/{id}][/{sub-resource}]

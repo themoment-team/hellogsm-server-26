@@ -1,5 +1,7 @@
 # Logging Rules — hellogsm-server-25
 
+> Scope: Java/Spring modules (`server`, `persistence`) only. `entrance-engine`/`entrance-dsl`/`entrance-plans` are pure functions with no logging; `entrance-batch` may log its run but follows its own conventions in [`entrance.md`](./entrance.md).
+
 ## Library
 - SLF4J via Lombok `@Slf4j` annotation
 - Logger field name: `log` (Lombok default)

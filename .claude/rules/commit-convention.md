@@ -23,16 +23,22 @@
 | `code`    | Code quality cleanup, dead code removal             | `code(refactor): 미사용 코드 정리`           |
 | `docs`    | Documentation only changes                         | `docs(global): CLAUDE.md 규칙 섹션 추가`    |
 | `chore`   | Build config, dependency updates                    | `chore(global): AWS BOM 버전 변경`           |
+| `build`   | Gradle module wiring, JVM/toolchain changes (used interchangeably with `chore` for multi-module build graph changes) | `build(entrance): 엔진 JVM target 21 → 25` |
 
 ## Scopes
 
-| Scope       | Applies to                                          |
-|-------------|-----------------------------------------------------|
-| `global`    | Shared infrastructure, config, global exception, security |
-| `member`    | Member domain (entity, service, controller, DTO)    |
-| `oneseo`    | Oneseo (application form) domain                   |
-| `operation` | Operation/schedule/announcement domain              |
-| `common`    | Cross-cutting domain utilities (date, schedule)     |
+| Scope            | Applies to                                          |
+|-------------------|-----------------------------------------------------|
+| `global`          | Shared infrastructure, config, global exception, security |
+| `member`          | Member domain (entity, service, controller, DTO)    |
+| `oneseo`          | Oneseo (application form) domain                   |
+| `operation`       | Operation/schedule/announcement domain              |
+| `common`          | Cross-cutting domain utilities (date, schedule)     |
+| `persistence`     | Shared JPA module (`persistence`) used by `server` and `entrance-batch` |
+| `entrance`        | Cross-cutting entrance engine changes (build wiring, docs spanning `entrance-dsl`/`entrance-plans`/`entrance-engine`) |
+| `entrance-batch`  | `entrance-batch` module (DB runner, CLI jobs)        |
+
+Within the `entrance-*` modules, commits also use narrower scopes inherited from the former standalone repo (`dsl`, `plans`, `engine`) when a change is local to one of those — see `git log` for precedent.
 
 ## Multi-file Commits
 - Group logically related changes in one commit

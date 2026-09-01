@@ -1,1 +1,26 @@
-rootProject.name = 'hellogsm-server-26'
+rootProject.name = 'hellogsm-monorepo'
+
+dependencyResolutionManagement {
+	repositories {
+		mavenCentral()
+	}
+}
+
+include 'server'
+
+// 공유 영속성 모듈 — server·entrance-batch 가 같은 JPA 엔티티를 재사용한다.
+include 'persistence'
+
+// entrance 엔진 계열 — every-entrance 를 subtree 로 흡수(entrance/ 아래에 묶어 둔다).
+// 모듈 이름은 그대로 두고 projectDir 만 매핑한다(모듈 간 참조가 :entrance-dsl 등
+// 절대 경로라 이름이 바뀌면 안 된다).
+include 'entrance-dsl'
+include 'entrance-plans'
+include 'entrance-engine'
+include 'entrance-batch'
+include 'entrance-lambda'
+project(':entrance-dsl').projectDir = file('entrance/entrance-dsl')
+project(':entrance-plans').projectDir = file('entrance/entrance-plans')
+project(':entrance-engine').projectDir = file('entrance/entrance-engine')
+project(':entrance-batch').projectDir = file('entrance/entrance-batch')
+project(':entrance-lambda').projectDir = file('entrance/entrance-lambda')
