@@ -27,12 +27,12 @@ public class IssueOcrUploadUrlService {
     private final S3Environment s3Environment;
 
     public OcrUploadUrlResDto execute(Long memberId, String fileExtension) {
-        authorizeOcrService.execute(memberId);
-
         String normalizedExtension = fileExtension.toLowerCase();
         if (!ALLOWED_EXTENSIONS.contains(normalizedExtension)) {
             throw new ExpectedException("지원하지 않는 파일 확장자입니다.", HttpStatus.BAD_REQUEST);
         }
+
+        authorizeOcrService.execute(memberId);
 
         String objectKey = OBJECT_KEY_PREFIX + memberId + "/" + UUID.randomUUID() + "." + normalizedExtension;
         URL uploadUrl = s3Template.createSignedPutURL(s3Environment.bucketName(), objectKey, UPLOAD_URL_EXPIRATION);

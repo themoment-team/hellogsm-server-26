@@ -73,12 +73,12 @@ class IssueOcrUploadUrlServiceTest {
         class Context_with_disallowed_extension {
 
             @Test
-            @DisplayName("ExpectedException(400)을 던진다")
+            @DisplayName("rate limit을 소모하지 않고 ExpectedException(400)을 던진다")
             void it_throws_bad_request() {
                 assertThatThrownBy(() -> service.execute(1L, "exe")).isInstanceOf(ExpectedException.class)
                         .extracting(e -> ((ExpectedException) e).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
-                verify(authorizeOcrService).execute(1L);
+                verify(authorizeOcrService, never()).execute(any());
                 verify(s3Template, never()).createSignedPutURL(any(), any(), any());
             }
         }
