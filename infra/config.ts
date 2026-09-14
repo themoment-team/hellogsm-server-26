@@ -35,6 +35,15 @@ export const config = {
 
     codeDeployTagValue: cfg.get("codeDeployTagValue") ?? "hello-prod-springboot",
 
+    // entrance-lambda(모의 성적 계산). 이 이름이 GitHub Secret
+    // ENTRANCE_LAMBDA_FUNCTION_NAME_PROD 의 값과 반드시 같아야 CD 가 대상을 찾는다.
+    entranceLambdaFunctionName:
+        cfg.get("entranceLambdaFunctionName") ?? "hello-prod-entrance-score-calculator",
+    // server 의 SCORE_CALCULATOR_API_KEY 와 짝을 맞춰야 한다(불일치 시 모든 요청이 401).
+    entranceLambdaApiKey: cfg.requireSecret("entranceLambdaApiKey"),
+    entranceLambdaMemoryMb: cfg.getNumber("entranceLambdaMemoryMb") ?? 1024,
+    entranceLambdaTimeoutSeconds: cfg.getNumber("entranceLambdaTimeoutSeconds") ?? 30,
+
     snsAlarmEmail: cfg.get("snsAlarmEmail"),
     logRetentionDays: cfg.getNumber("logRetentionDays") ?? 0,
 };

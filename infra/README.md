@@ -159,6 +159,53 @@ Pulumi만으로는 우회할 수 없음). `finalSnapshotIdentifier`가 고정값
    아직 같은 `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` Secret을 쓰고 있어서, 이 PR의 검증만
    보고 지금 삭제하면 stage CD가 즉시 깨진다. stage도 OIDC로 전환한 뒤 GitHub UI에서 수동 삭제할 것
 
+## entrance-lambda (모의 성적 계산 API)
+
+`modules/lambda.ts`가 Lambda 함수 + REST API Gateway를 만든다. `go-hellogsm-score-calculator`를
+대체하지만 **기존 Go 함수는 이 스택에 import되어 있지 않다** — 별개 함수로 병행 운영하다가,
+전환이 끝나면 기존 함수와 그 API Gateway를 콘솔에서 수동 제거한다.
+
+환경은 **prod 단일**이다. 기존 Go 구현에도 stage가 없었고, 점수 계산기는 DB를 쓰지 않는 순수
+함수라 stage 서버가 이 함수를 함께 호출해도 안전하다.
+
+**코드는 Pulumi가 관리하지 않는다.** `pulumi up`은 함수 껍데기(런타임·핸들러·메모리·환경변수)만
+만들고 실제 jar는 `entrance-lambda-prod-cd.yml`이 올린다. `aws.lambda.Function`에
+`ignoreChanges: ["code", "sourceCodeHash"]`가 걸려 있어 이후 `pulumi up`이 CD가 배포한 코드를
+placeholder로 되돌리지 않는다 — **이 옵션을 지우면 다음 `pulumi up`에서 prod 함수가 죽는다.**
+
+### 최초 구축 절차
+
+1. API 키를 만들어 Pulumi config에 넣는다 (미설정 시 `requireSecret`이 `pulumi preview`에서 실패):
+   ```bash
+   openssl rand -hex 32
+   pulumi config set --secret entranceLambdaApiKey '<위에서 만든 값>'
+   ```
+2. `pulumi up` → 함수·실행 역할·API Gateway 생성. 이 시점의 함수는 placeholder라 아직 동작하지 않는다.
+3. GitHub Secret `ENTRANCE_LAMBDA_FUNCTION_NAME_PROD` = `pulumi stack output entranceLambdaFunctionName`
+4. main 대상으로 `entrance-lambda prod CD workflow` 실행 → 실제 코드 배포.
+   (`hellogsm-prod-cd.yml`과 같은 OIDC 역할을 쓰므로 `sub` 조건상 **반드시 main 브랜치 대상**)
+5. GitHub Secret `PROD_WEB_YML` 갱신:
+   - `SCORE_CALCULATOR_SERVICE_URL` = `pulumi stack output entranceLambdaInvokeUrl`
+     (server의 `LambdaScoreCalculatorClient`가 `@PostMapping`에 경로 없이 선언되어 이 URL 루트로
+     POST하므로, 경로까지 포함한 전체 URL이어야 한다)
+   - `SCORE_CALCULATOR_API_KEY` = 1번에서 만든 값 (불일치 시 모든 요청이 401)
+6. server 재배포 후 실제 원서 접수 화면에서 성적 계산이 동작하는지 확인.
+   문제가 있으면 `SCORE_CALCULATOR_SERVICE_URL`을 기존 Go 함수 URL로 되돌리면 즉시 롤백된다.
+
+### 주의
+
+- 런타임은 반드시 `java25`다. `entrance-lambda/build.gradle.kts`가 `jvmTarget=JVM_25`로 클래스 파일
+  버전 69를 뽑으므로 java21 이하에서는 `UnsupportedClassVersionError`로 전부 실패한다.
+  `@pulumi/aws` 6.66의 `Runtime` enum에는 아직 java25가 없어 문자열로 지정했다 — 프로바이더가
+  런타임 값을 거부하면 `@pulumi/aws`를 올릴 것.
+- API Gateway는 **REST API**여야 한다. 핸들러가
+  `RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent>`로 페이로드 형식
+  1.0 전용인데, HTTP API(v2) 기본값은 2.0이고 함수 URL은 2.0 고정이다.
+- API 키 검증은 핸들러 안에서 `x-hg-api-key` 헤더를 비교해 처리한다. API Gateway의 API 키 기능은
+  켜지 않는다 — 인증 지점이 두 곳으로 쪼개진다.
+- 환경변수 `X_HG_INTERNAL_API_KEY`가 없으면 핸들러 생성자가 `error()`로 죽어 **401이 아니라
+  초기화 실패(500)**가 난다. 401이 정상 동작, 500이면 환경변수를 의심할 것.
+
 ## 검증
 
 - `pulumi preview`/`pulumi up`이 clean하게 끝나는지 확인 (replace/delete 없이 create/update만)
@@ -172,10 +219,20 @@ Pulumi만으로는 우회할 수 없음). `finalSnapshotIdentifier`가 고정값
 - `aws logs describe-log-streams --log-group-name hellogsm-prod-log`로 로그 유입 확인
 - Spring Boot 컨테이너를 의도적으로 중지해 ALB Unhealthy 알람이 SNS로 발행되는지 확인 후 재기동
 - GitHub Actions 로그에서 정적 키가 아닌 `role-to-assume`(OIDC) 방식으로 인증되는지 확인
+- entrance-lambda: 잘못된 키로 호출해 **401**이 나오는지 확인 (500이면 환경변수 누락)
+  ```bash
+  curl -i -X POST "$(pulumi stack output entranceLambdaInvokeUrl)" \
+    -H 'Content-Type: application/json' -H 'x-hg-api-key: wrong' -d '{}'
+  ```
+- entrance-lambda: 정상 키로 졸업예정자 페이로드를 보내 200과 `totalScore`가 오는지 확인하고,
+  같은 페이로드를 기존 Go 함수에도 보내 응답을 대조할 것
 
 ## 알려진 스코프 제외 사항
 
 - Discord 웹훅 연동(CloudWatch → Discord)은 레포에 메커니즘이 없어 이번 범위에서 제외 — SNS Topic까지만 생성
 - Stage/Monitoring 환경, `hellogsm-prod-ci.yml`, stage 워크플로는 별도 과제
+- entrance-lambda의 CloudWatch 로그 그룹(`/aws/lambda/<함수명>`)은 Lambda가 자동 생성하도록 두었다 —
+  명시적으로 만들지 않아 보존 기간이 무기한이다. 필요해지면 `aws.cloudwatch.LogGroup`으로 관리 전환
+- 기존 `go-hellogsm-score-calculator` 함수와 그 API Gateway는 import하지 않았다 — 전환 완료 후 수동 제거
 - 앱의 `AWS_ACCESS_KEY`/`AWS_SECRET_KEY` 정적 키 → 인스턴스 프로파일 전환은 후속 과제로 남김
 - RDS `multiAz: false` — 비용 절감을 위한 의도적 선택 (Multi-AZ 전환 시 RDS 비용 약 2배). 고가용성이 필요해지면 별도 논의 후 전환

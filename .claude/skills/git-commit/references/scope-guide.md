@@ -12,7 +12,7 @@ Do not use a hardcoded list. Determine scope from:
 
 1. `git diff --name-only` — look at changed file paths
 2. Directory structure — infer domain/module from path segments (e.g., `src/auth/`, `packages/user/`, `services/payment/`)
-3. Project-specific conventions in `CLAUDE.md` or `.claude/rules/`
+3. Project-specific conventions in `CLAUDE.md` or `.claude/skills/project-rules/references/`
 
 ## Module / Cross-cutting Names (Secondary)
 

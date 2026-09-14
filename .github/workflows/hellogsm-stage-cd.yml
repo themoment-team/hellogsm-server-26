@@ -27,14 +27,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Make YML File
-        run: touch ./src/main/resources/application-stage.yml
+        run: touch ./server/src/main/resources/application-stage.yml
 
-          echo "${{ secrets.STAGE_WEB_YML }}" > ./src/main/resources/application-stage.yml
+          echo "${{ secrets.STAGE_WEB_YML }}" > ./server/src/main/resources/application-stage.yml
 
         shell: bash
 
       - name: Build with Gradle
-        run : ./gradlew clean build
+        # 배포 산출물은 server 의 boot jar 하나뿐이고, 전체 그래프 검증은 같은 커밋에서 CI 가 맡는다.
+        # server 는 persistence 만 의존하므로 entrance 모듈은 빌드 대상에서 빠진다.
+        run: ./gradlew :server:build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -46,7 +48,7 @@ jobs:
       - name: Make ZIP File
         run: |
           mkdir -p deploy/build/libs
-          cp build/libs/*.jar deploy/build/libs/
+          cp server/build/libs/*.jar deploy/build/libs/
           cp appspec.yml deploy/
           cp DockerfileStage deploy/
           cp docker-compose.stage.yml deploy/

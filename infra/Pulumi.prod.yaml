@@ -19,6 +19,11 @@ config:
   hellogsm-infra:githubRepo: hellogsm-server-26
   hellogsm-infra:codeDeployTagValue: hello-prod-springboot
   hellogsm-infra:logRetentionDays: "0"
+  hellogsm-infra:entranceLambdaFunctionName: hello-prod-entrance-score-calculator
+  hellogsm-infra:entranceLambdaMemoryMb: "1024"
+  hellogsm-infra:entranceLambdaTimeoutSeconds: "30"
+  # entranceLambdaApiKey는 pulumi config set --secret으로 직접 넣어야 한다(아래 secure 값 없음).
+  # 미설정 상태면 requireSecret이 pulumi preview 단계에서 실패한다.
   hellogsm-infra:dbPassword:
     secure: AAABAHOa9yIeOGffhDi/82FbBzystjW7ulSmhQbwQ1BrsQHHn1hlyBSag8DPEg1L38tF34t0R8Iev/tS5xohVw==
   hellogsm-infra:snsAlarmEmail: themoment.hellogsm@gmail.com

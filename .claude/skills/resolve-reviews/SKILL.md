@@ -29,12 +29,12 @@ gh pr view --json number,baseRefName -q '{number: .number, base: .baseRefName}'
 Before assessing any comment, discover and read all project convention files:
 
 ```bash
-find .claude/rules -name "*.md" 2>/dev/null
+find .claude/skills/project-rules/references -name "*.md" 2>/dev/null
 ```
 
 Read each returned file in full. These are the authoritative rules for judging each review comment.
 
-**Rule priority**: `CLAUDE.md` > `.claude/rules/**` > `.gemini/styleguide.md` > `CONTRIBUTING.md`
+**Rule priority**: `CLAUDE.md` > `.claude/skills/project-rules/references/**` > `.gemini/styleguide.md` > `CONTRIBUTING.md`
 
 For each comment in `pr_comments.json`, apply the following **layered judgment criteria**:
 

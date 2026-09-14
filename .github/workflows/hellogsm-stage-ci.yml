@@ -29,11 +29,15 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          # setup-gradle 은 기본적으로 default 브랜치(main)에서만 캐시를 기록한다.
+          # 통합 브랜치는 develop 이므로, 여기서 기록해야 develop 대상 PR 들이 최신 캐시를 읽는다.
+          cache-read-only: false
 
       - name: Make YML file
-        run: touch ./src/main/resources/application-stage.yml
+        run: touch ./server/src/main/resources/application-stage.yml
 
-          echo "${{ secrets.STAGE_WEB_YML }}" > ./src/main/resources/application-stage.yml
+          echo "${{ secrets.STAGE_WEB_YML }}" > ./server/src/main/resources/application-stage.yml
 
         shell: bash
 

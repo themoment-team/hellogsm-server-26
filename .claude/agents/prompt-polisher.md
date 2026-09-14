@@ -22,7 +22,7 @@ Discover files dynamically — do not rely on a hardcoded list:
 
 ```bash
 # Discover all rule files
-find .claude/rules -name "*.md" 2>/dev/null
+find .claude/skills/project-rules/references -name "*.md" 2>/dev/null
 
 # Discover agent definitions
 find .claude/agents -name "*.md" 2>/dev/null

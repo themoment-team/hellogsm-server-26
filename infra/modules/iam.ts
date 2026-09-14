@@ -26,6 +26,10 @@ export function createIam(
     const logGroupArn = pulumi.interpolate`${logGroupArnBase}:*`;
     const codeDeployApplicationArn = pulumi.interpolate`arn:aws:codedeploy:${region}:${accountId}:application:${CODEDEPLOY_APPLICATION_NAME}`;
     const codeDeployDeploymentGroupArn = pulumi.interpolate`arn:aws:codedeploy:${region}:${accountId}:deploymentgroup:${CODEDEPLOY_APPLICATION_NAME}/${CODEDEPLOY_DEPLOYMENT_GROUP_NAME}`;
+    // 함수 이름이 config 값이라 ARN 을 리소스 의존 없이 만들 수 있다. modules/lambda.ts 를
+    // 참조하면 createIam -> createEntranceLambda 순환 의존이 생기므로 CodeDeploy 와 동일하게
+    // 이름으로 구성한다.
+    const entranceLambdaArn = pulumi.interpolate`arn:aws:lambda:${region}:${accountId}:function:${config.entranceLambdaFunctionName}`;
 
     // ---- EC2 (Spring Boot) instance role/profile ----
     const springbootEc2Role = new aws.iam.Role("hello-prod-springboot-ec2-role", {
@@ -184,6 +188,21 @@ export function createIam(
                     Effect: "Allow",
                     Action: ["codedeploy:GetDeploymentConfig"],
                     Resource: "*",
+                },
+                {
+                    // entrance-lambda-prod-cd.yml 이 쓰는 권한. UpdateFunctionCode 는 --publish
+                    // 까지 포함하지만, 워크플로가 배포 완료를 기다리며 폴링하는
+                    // `aws lambda wait function-updated-v2` 가 GetFunctionConfiguration 을
+                    // 호출하므로 조회 권한도 함께 필요하다.
+                    Sid: "DeployEntranceLambda",
+                    Effect: "Allow",
+                    Action: [
+                        "lambda:UpdateFunctionCode",
+                        "lambda:PublishVersion",
+                        "lambda:GetFunction",
+                        "lambda:GetFunctionConfiguration",
+                    ],
+                    Resource: entranceLambdaArn,
                 },
             ],
         }),
