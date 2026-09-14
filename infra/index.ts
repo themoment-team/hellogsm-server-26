@@ -14,6 +14,7 @@ import { createDnsAndCertificate } from "./modules/dnsCert";
 import { createAlb } from "./modules/alb";
 import { createCodeDeploy } from "./modules/codeDeploy";
 import { createMonitoring } from "./modules/monitoring";
+import { createEntranceLambda } from "./modules/lambda";
 
 const network = createNetwork();
 const sg = createSecurityGroups(network.vpc.id);
@@ -86,6 +87,9 @@ const monitoring = createMonitoring(
     redis.instance.id,
 );
 
+// VPC/ALB/RDS 와 무관한 독립 리소스다 - 위 그래프에 의존하지 않는다.
+const entranceLambda = createEntranceLambda();
+
 export const vpcId = network.vpc.id;
 export const albDnsName = alb.alb.dnsName;
 export const apiUrl = pulumi.interpolate`https://${fqdn}`;
@@ -100,3 +104,6 @@ export const codeDeployApplicationName = codeDeploy.application.name;
 export const codeDeployDeploymentGroupName = codeDeploy.deploymentGroup.deploymentGroupName;
 export const cloudWatchLogGroupName = monitoring.logGroup.name;
 export const snsAlertsTopicArn = monitoring.alertsTopic.arn;
+export const entranceLambdaFunctionName = entranceLambda.function.name;
+// server 의 SCORE_CALCULATOR_SERVICE_URL 에 이 값을 그대로 넣는다(경로까지 포함한 전체 URL).
+export const entranceLambdaInvokeUrl = entranceLambda.stage.invokeUrl;
