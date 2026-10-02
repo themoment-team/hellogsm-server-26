@@ -1,5 +1,3 @@
-model = "gpt-5.5"
-model_reasoning_effort = "high"
 web_search = "live"
 
 [approval]
