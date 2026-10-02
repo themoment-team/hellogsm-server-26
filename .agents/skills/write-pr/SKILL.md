@@ -21,8 +21,8 @@ cat .github/PULL_REQUEST_TEMPLATE.md
 
 ## Step 2 — Determine Labels
 
-Read `references/labels.md` and select 1–2 appropriate labels based on the nature of the changes.
-Read `references/commit-conventions.md` for commit type and scope naming rules.
+Read `.agents/skills/write-pr/references/labels.md` and select 1–2 appropriate labels based on the nature of the changes.
+Read `.agents/skills/write-pr/references/commit-conventions.md` for commit type and scope naming rules.
 
 ## Step 3 — Generate PR Content
 
@@ -61,7 +61,7 @@ Ask the user which title to use (present options 1/2/3). Wait for the answer bef
 Run the creation script with the confirmed title and labels:
 
 ```bash
-bash scripts/create-pr.sh "<confirmed-title>" "PR_BODY.md" "<label1>,<label2>"
+bash .agents/skills/write-pr/scripts/create-pr.sh "<confirmed-title>" "PR_BODY.md" "<label1>,<label2>"
 ```
 
 After creation, display the PR URL.
