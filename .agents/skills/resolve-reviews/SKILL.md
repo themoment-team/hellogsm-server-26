@@ -24,13 +24,23 @@ gh repo view --json nameWithOwner -q .nameWithOwner
 gh pr view --json number,baseRefName -q '{number: .number, base: .baseRefName}'
 ```
 
-## Step 2 — Assess Each Comment
+## Step 2 — Load Rules and Assess Each Comment
+
+Read existing `AGENTS.md` files that apply to each target path, from the repository root down to the target file's parent directory. More specific instructions override broader ones only within their subtree; do not apply a sibling directory's rules globally. Honor applicable instructions already supplied by the runtime.
+
+`AGENTS.md` is optional. Read the other convention files listed below when they exist, and skip missing files or directories. Do not create a missing instruction file unless the user requests it. Cite only files and sections actually read. If no document covers a topic, use existing code and tool configuration as evidence and label inferred conventions separately from documented rules.
+
+**Rule conflicts**: Follow the runtime instructions, path scopes, and any precedence explicitly defined by the project. Other convention documents are supporting references; do not invent a ranking between tool-specific guides and project documentation. If no applicable instruction resolves a conflict, cite both sources and leave the affected change unapplied while continuing independent work. Intentional scoped overrides are not contradictions.
+
+For Codex, respect the runtime-selected file in each directory: `AGENTS.override.md`, then `AGENTS.md`, then configured fallback filenames. Do not reapply a file superseded by that selection. A document audit may still review a superseded file as content, without treating it as active authority.
+
+Discover applicable `.claude/rules/**`, `.gemini/styleguide.md`, `CONTRIBUTING.md`, and `.github/copilot-instructions.md` files if present, and read them before judging comments. Existing code patterns can provide context but are not grounds to reject a review as a documented-rule violation.
 
 For each comment in `pr_comments.json`, apply the following **layered judgment criteria**:
 
 ### Judgment criteria (priority order)
 
-1. **Project conventions** (primary): cross-reference CLAUDE.md and CONTRIBUTING.md
+1. **Project conventions** (primary): apply the existing, scoped rules discovered above
    - DTO annotation rules, commit scope, logging style, exception message format, etc.
 2. **Language/framework best practices** (secondary): Kotlin official guide, Spring Boot recommendations
    - Apply only when no matching project rule exists
@@ -41,7 +51,7 @@ For each comment in `pr_comments.json`, apply the following **layered judgment c
 - **INVALID**: reviewer is wrong with a clear refutation → skip, post refutation reply
 - **PARTIAL**: intent is correct but application method or scope is ambiguous → confirm with AskUserQuestion
 
-Always cite a specific source in the rationale (e.g. `CLAUDE.md §Logging Style`, `Kotlin: prefer val over var`).
+Always cite an actual source in the rationale (e.g. `AGENTS.md §Logging Style`, `Kotlin: prefer val over var`).
 
 ## Step 3 — Act on Each Verdict
 
@@ -83,8 +93,8 @@ Accept? (y / n / s = skip for now)
 
 | # | Reviewer | File | Verdict | Rationale | Action |
 |---|----------|------|---------|-----------|--------|
-| 1 | alice | Foo.kt:12 | ✅ VALID | CLAUDE.md §Logging Style | Auto-fixed (abc1234) |
-| 2 | bob | Bar.kt:34 | ❌ INVALID | CLAUDE.md §Exception Message | Skipped |
+| 1 | alice | Foo.kt:12 | ✅ VALID | AGENTS.md §Logging Style | Auto-fixed (abc1234) |
+| 2 | bob | Bar.kt:34 | ❌ INVALID | AGENTS.md §Exception Message | Skipped |
 | 3 | alice | Baz.kt:56 | ⚠️ PARTIAL | - | PENDING |
 ```
 
