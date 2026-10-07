@@ -3,6 +3,8 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -162,6 +164,55 @@ class OneseoTempStorageServiceTest {
                             resDto.middleSchoolAchievement().gedAvgScore());
                     assertEquals(calculatedScoreResDto, resDto.calculatedScore());
                     assertEquals(step, resDto.step());
+                }
+            }
+
+            @Nested
+            @DisplayName("middleSchoolAchievement가 빈 객체로 주어지면")
+            class Context_with_empty_middle_school_achievement {
+                private final OneseoTempReqDto emptyAchievementReqDto = OneseoTempReqDto.builder()
+                        .graduationType(GraduationType.GED).graduationDate("2026-01").address("광주광역시 광산구 송정동 상무대로 312")
+                        .detailAddress("101동 1001호").profileImg("https://example.com/image.jpg")
+                        .middleSchoolAchievement(MiddleSchoolAchievementReqDto.builder().build())
+                        .firstDesiredMajor(Major.SW).secondDesiredMajor(Major.AI).thirdDesiredMajor(Major.IOT).build();
+
+                @BeforeEach
+                void setUp() {
+                    given(oneseoRepository.findByMember(member)).willReturn(Optional.empty());
+                }
+
+                @Test
+                @DisplayName("Lambda 점수 계산을 호출하지 않고 calculatedScore로 null을 반환한다")
+                void it_skips_lambda_call_and_returns_null_calculated_score() {
+                    FoundOneseoResDto result = oneseoTempStorageService.execute(emptyAchievementReqDto, step, memberId);
+
+                    assertNull(result.calculatedScore());
+                    verify(lambdaScoreCalculatorClient, never()).calculateScore(any(LambdaScoreCalculatorReqDto.class));
+                }
+            }
+
+            @Nested
+            @DisplayName("middleSchoolAchievement가 null로 주어지면")
+            class Context_with_null_middle_school_achievement {
+                private final OneseoTempReqDto nullAchievementReqDto = OneseoTempReqDto.builder()
+                        .graduationType(GraduationType.GED).graduationDate("2026-01").address("광주광역시 광산구 송정동 상무대로 312")
+                        .detailAddress("101동 1001호").profileImg("https://example.com/image.jpg")
+                        .middleSchoolAchievement(null).firstDesiredMajor(Major.SW).secondDesiredMajor(Major.AI)
+                        .thirdDesiredMajor(Major.IOT).build();
+
+                @BeforeEach
+                void setUp() {
+                    given(oneseoRepository.findByMember(member)).willReturn(Optional.empty());
+                }
+
+                @Test
+                @DisplayName("NPE 없이 Lambda 점수 계산을 호출하지 않고 calculatedScore로 null을 반환한다")
+                void it_skips_lambda_call_and_returns_null_calculated_score() {
+                    FoundOneseoResDto result = oneseoTempStorageService.execute(nullAchievementReqDto, step, memberId);
+
+                    assertNull(result.middleSchoolAchievement().achievement1_1());
+                    assertNull(result.calculatedScore());
+                    verify(lambdaScoreCalculatorClient, never()).calculateScore(any(LambdaScoreCalculatorReqDto.class));
                 }
             }
 

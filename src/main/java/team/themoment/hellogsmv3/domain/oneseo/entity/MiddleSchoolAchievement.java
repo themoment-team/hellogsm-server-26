@@ -28,6 +28,10 @@ public class MiddleSchoolAchievement {
     private Oneseo oneseo;
 
     @Convert(converter = IntegerListConverter.class)
+    @Column(name = "achievement_1_1")
+    private List<Integer> achievement1_1;
+
+    @Convert(converter = IntegerListConverter.class)
     @Column(name = "achievement_1_2")
     private List<Integer> achievement1_2;
 

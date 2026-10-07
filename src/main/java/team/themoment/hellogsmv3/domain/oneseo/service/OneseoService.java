@@ -91,7 +91,8 @@ public class OneseoService {
             }
         }
 
-        builder.achievement1_2(validationGeneralAchievement(tmpAchievement1_2))
+        builder.achievement1_1(validationGeneralAchievement(tmpAchievement1_1))
+                .achievement1_2(validationGeneralAchievement(tmpAchievement1_2))
                 .achievement2_1(validationGeneralAchievement(tmpAchievement2_1))
                 .achievement2_2(validationGeneralAchievement(tmpAchievement2_2))
                 .achievement3_1(validationGeneralAchievement(tmpAchievement3_1))

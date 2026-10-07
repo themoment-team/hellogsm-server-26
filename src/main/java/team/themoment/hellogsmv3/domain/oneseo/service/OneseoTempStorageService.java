@@ -30,6 +30,9 @@ import team.themoment.sdk.exception.ExpectedException;
 @RequiredArgsConstructor
 public class OneseoTempStorageService {
 
+    private static final MiddleSchoolAchievementReqDto EMPTY_ACHIEVEMENT = MiddleSchoolAchievementReqDto.builder()
+            .build();
+
     private final MemberService memberService;
     private final OneseoRepository oneseoRepository;
     private final LambdaScoreCalculatorClient lambdaScoreCalculatorClient;
@@ -74,6 +77,9 @@ public class OneseoTempStorageService {
 
     private MiddleSchoolAchievementResDto buildMiddleSchoolAchievementResDto(OneseoTempReqDto reqDto) {
         MiddleSchoolAchievementReqDto middleSchoolAchievement = reqDto.middleSchoolAchievement();
+        if (middleSchoolAchievement == null) {
+            return MiddleSchoolAchievementResDto.builder().build();
+        }
 
         List<Integer> absentDays = middleSchoolAchievement.absentDays();
         List<Integer> attendanceDays = middleSchoolAchievement.attendanceDays();
@@ -97,7 +103,7 @@ public class OneseoTempStorageService {
 
     private CalculatedScoreResDto calculateScore(OneseoTempReqDto reqDto) {
         MiddleSchoolAchievementReqDto achievement = reqDto.middleSchoolAchievement();
-        if (achievement == null) {
+        if (achievement == null || achievement.equals(EMPTY_ACHIEVEMENT)) {
             return null;
         }
 

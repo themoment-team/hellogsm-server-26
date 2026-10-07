@@ -99,7 +99,8 @@ public class ModifyOneseoService {
         List<Integer> attendanceDays = middleSchoolAchievement.getAttendanceDays();
         Integer absentDaysCount = OneseoService.calcAbsentDaysCount(absentDays, attendanceDays);
 
-        return MiddleSchoolAchievementResDto.builder().achievement1_2(middleSchoolAchievement.getAchievement1_2())
+        return MiddleSchoolAchievementResDto.builder().achievement1_1(middleSchoolAchievement.getAchievement1_1())
+                .achievement1_2(middleSchoolAchievement.getAchievement1_2())
                 .achievement2_1(middleSchoolAchievement.getAchievement2_1())
                 .achievement2_2(middleSchoolAchievement.getAchievement2_2())
                 .achievement3_1(middleSchoolAchievement.getAchievement3_1())
@@ -265,9 +266,10 @@ public class ModifyOneseoService {
                 reqDto.graduationType());
 
         MiddleSchoolAchievement modifiedMiddleSchoolAchievement = MiddleSchoolAchievement.builder()
-                .id(middleSchoolAchievement.getId()).oneseo(oneseo).achievement1_2(calcDto.achievement1_2())
-                .achievement2_1(calcDto.achievement2_1()).achievement2_2(calcDto.achievement2_2())
-                .achievement3_1(calcDto.achievement3_1()).achievement3_2(calcDto.achievement3_2())
+                .id(middleSchoolAchievement.getId()).oneseo(oneseo).achievement1_1(calcDto.achievement1_1())
+                .achievement1_2(calcDto.achievement1_2()).achievement2_1(calcDto.achievement2_1())
+                .achievement2_2(calcDto.achievement2_2()).achievement3_1(calcDto.achievement3_1())
+                .achievement3_2(calcDto.achievement3_2())
                 .generalSubjects(updatedMiddleSchoolAchievement.generalSubjects())
                 .newSubjects(updatedMiddleSchoolAchievement.newSubjects())
                 .artsPhysicalAchievement(calcDto.artsPhysicalAchievement())
