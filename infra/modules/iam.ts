@@ -169,12 +169,18 @@ export function createIam(
                     Resource: pulumi.interpolate`${deploymentBucketArn}/prod/*`,
                 },
                 {
+                    // create-deployment은 같은 S3 revision(동일 bucket/key)으로 재배포할 때
+                    // 이미 등록된 revision 정보를 조회하기 위해 내부적으로
+                    // GetApplicationRevision을 호출한다. 신규 revision에서는 필요 없어
+                    // 최초 배포에서는 누락이 드러나지 않다가, 같은 커밋으로 재배포(재실행)할 때
+                    // AccessDeniedException으로 실패한다.
                     Sid: "TriggerCodeDeploy",
                     Effect: "Allow",
                     Action: [
                         "codedeploy:CreateDeployment",
                         "codedeploy:GetDeployment",
                         "codedeploy:GetApplication",
+                        "codedeploy:GetApplicationRevision",
                         "codedeploy:RegisterApplicationRevision",
                     ],
                     Resource: [codeDeployApplicationArn, codeDeployDeploymentGroupArn],
