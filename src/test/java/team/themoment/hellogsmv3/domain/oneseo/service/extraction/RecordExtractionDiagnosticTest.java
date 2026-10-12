@@ -258,7 +258,8 @@ class RecordExtractionDiagnosticTest {
         assertThat(result.achievement().artsPhysicalAchievement()).hasSize(15);
         assertThat(result.achievement().artsPhysicalAchievement().get(3)).isEqualTo(5);
         // 합성 텍스트에는 1학년 출결 · 봉사만 담았으므로 나머지 학년은 비어 있어야 합니다.
-        assertThat(result.achievement().absentDays()).containsExactly(2, null, null);
+        // ROWS의 결석 칸(2 0 0)은 질병 2 / 미인정 0 / 기타 0이며, 질병은 정책상 계산에서 제외되므로 0입니다.
+        assertThat(result.achievement().absentDays()).containsExactly(0, null, null);
         assertThat(result.achievement().volunteerTime()).containsExactly(7, null, null);
     }
 }
