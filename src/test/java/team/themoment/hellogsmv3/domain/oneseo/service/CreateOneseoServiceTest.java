@@ -76,7 +76,8 @@ class CreateOneseoServiceTest {
         List<Integer> achievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> generalSubjects = Arrays.asList("국어", "도덕", "사회", "역사", "수학", "과학", "기술가정", "영어");
         List<String> newSubjects = List.of("프로그래밍");
-        List<Integer> artsPhysicalAchievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
+        // 졸업예정자 + 자유학기제: 5학기(1-1 ~ 3-1) × 3과목
+        List<Integer> artsPhysicalAchievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> artsPhysicalSubjects = Arrays.asList("체육", "미술", "음악");
         List<Integer> absentDays = Arrays.asList(0, 0, 0);
         List<Integer> attendanceDays = Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0);

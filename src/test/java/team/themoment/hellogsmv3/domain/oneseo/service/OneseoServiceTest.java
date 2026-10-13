@@ -11,6 +11,7 @@ import static team.themoment.hellogsmv3.domain.oneseo.entity.type.Screening.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -579,6 +580,70 @@ class OneseoServiceTest {
                 assertEquals("예체능 성취점수가 비어있습니다.", exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
             }
+        }
+
+        @Nested
+        @DisplayName("예체능 성취점수 개수가 졸업 구분과 자유학기/학년제 기준과 다르면")
+        class Context_with_arts_physical_achievement_size_mismatch {
+
+            @Test
+            @DisplayName("졸업자 + 자유학년제에 12개가 아닌 11개가 오면 ExpectedException을 던진다")
+            void it_throws_expected_exception_when_shorter() {
+                MiddleSchoolAchievementReqDto dto = createDefaultDtoBuilder().liberalSystem("자유학년제")
+                        .artsPhysicalAchievement(artsPhysicalAchievementOfSize(11)).build();
+
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> OneseoService.buildCalcDtoWithFillEmpty(dto, GraduationType.GRADUATE));
+
+                assertEquals("예체능 성취점수 개수가 올바르지 않습니다. 기대값: 12, 입력값: 11", exception.getMessage());
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            }
+
+            @Test
+            @DisplayName("졸업예정자 + 자유학년제에 9개보다 많이 오면 ExpectedException을 던진다")
+            void it_throws_expected_exception_when_longer() {
+                MiddleSchoolAchievementReqDto dto = createDefaultDtoBuilder().liberalSystem("자유학년제")
+                        .artsPhysicalAchievement(artsPhysicalAchievementOfSize(10)).build();
+
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> OneseoService.buildCalcDtoWithFillEmpty(dto, CANDIDATE));
+
+                assertEquals("예체능 성취점수 개수가 올바르지 않습니다. 기대값: 9, 입력값: 10", exception.getMessage());
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("예체능 성취점수 개수가 졸업 구분과 자유학기/학년제 기준과 같으면")
+        class Context_with_arts_physical_achievement_size_match {
+
+            @Test
+            @DisplayName("졸업예정자 + 자유학년제는 9개, 자유학기제는 15개를 받아들인다")
+            void it_accepts_candidate_sizes() {
+                assertAcceptedSize(CANDIDATE, "자유학년제", 9);
+                assertAcceptedSize(CANDIDATE, "자유학기제", 15);
+            }
+
+            @Test
+            @DisplayName("졸업자 + 자유학년제는 12개, 자유학기제는 18개를 받아들인다")
+            void it_accepts_graduate_sizes() {
+                assertAcceptedSize(GraduationType.GRADUATE, "자유학년제", 12);
+                assertAcceptedSize(GraduationType.GRADUATE, "자유학기제", 18);
+            }
+
+            private void assertAcceptedSize(GraduationType graduationType, String liberalSystem, int size) {
+                MiddleSchoolAchievementReqDto dto = createDefaultDtoBuilder().liberalSystem(liberalSystem)
+                        .freeSemester("자유학기제".equals(liberalSystem) ? "1-1" : null)
+                        .artsPhysicalAchievement(artsPhysicalAchievementOfSize(size)).build();
+
+                MiddleSchoolAchievementCalcDto resultDto = OneseoService.buildCalcDtoWithFillEmpty(dto, graduationType);
+
+                assertEquals(size, resultDto.artsPhysicalAchievement().size());
+            }
+        }
+
+        private List<Integer> artsPhysicalAchievementOfSize(int size) {
+            return new ArrayList<>(Collections.nCopies(size, 5));
         }
 
         private MiddleSchoolAchievementReqDto.MiddleSchoolAchievementReqDtoBuilder createDefaultDtoBuilder() {
