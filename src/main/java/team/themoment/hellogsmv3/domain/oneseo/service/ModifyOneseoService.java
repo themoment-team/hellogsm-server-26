@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static team.themoment.hellogsmv3.domain.oneseo.service.OneseoService.buildCalcDtoWithFillEmpty;
+import static team.themoment.hellogsmv3.domain.oneseo.service.OneseoService.isValidFreeSemester;
 import static team.themoment.hellogsmv3.domain.oneseo.service.OneseoService.isValidMiddleSchoolInfo;
 
 import java.util.List;
@@ -43,6 +44,7 @@ public class ModifyOneseoService {
     public FoundOneseoResDto execute(OneseoReqDto reqDto, Long memberId) {
 
         isValidMiddleSchoolInfo(reqDto);
+        isValidFreeSemester(reqDto.graduationType(), reqDto.middleSchoolAchievement());
 
         Oneseo currentOneseo = oneseoService.findWithMemberByMemberIdOrThrow(memberId);
 
