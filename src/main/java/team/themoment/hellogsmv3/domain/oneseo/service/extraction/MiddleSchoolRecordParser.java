@@ -194,9 +194,10 @@ public class MiddleSchoolRecordParser {
      * 원서 폼이 입력받는 학기 목록을 반환합니다.
      *
      * <p>
-     * 프론트엔드의 {@code artPhysicalGraduationArray} 등과 일치해야 합니다.
+     * 프론트엔드의 {@code artPhysicalGraduationArray} 등과 일치해야 합니다. 원서 제출 시 예체능 성취점수 길이
+     * 검증에도 사용됩니다.
      */
-    private List<String> resolveSemesters(GraduationType graduationType, String liberalSystem) {
+    public static List<String> resolveSemesters(GraduationType graduationType, String liberalSystem) {
         boolean isFreeSemester = FREE_SEMESTER_SYSTEM.equals(liberalSystem);
         if (graduationType == GraduationType.GRADUATE) {
             return isFreeSemester ? GRADUATE_FREE_SEMESTER_SEMESTERS : GRADUATE_SEMESTERS;
