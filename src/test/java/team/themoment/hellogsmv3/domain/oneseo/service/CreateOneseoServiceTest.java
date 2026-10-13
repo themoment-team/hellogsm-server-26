@@ -294,5 +294,48 @@ class CreateOneseoServiceTest {
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
             }
         }
+
+        @Nested
+        @DisplayName("졸업예정자가 자유학기제를 선택하고 자유학기 학기를 선택하지 않았다면")
+        class Context_with_candidate_free_semester_system_without_free_semester {
+
+            MiddleSchoolAchievementReqDto freeSemesterMissingAchievementReqDto = MiddleSchoolAchievementReqDto.builder()
+                    .achievement1_2(achievement).achievement2_1(achievement).achievement2_2(achievement)
+                    .achievement3_1(achievement).generalSubjects(generalSubjects).newSubjects(newSubjects)
+                    .artsPhysicalAchievement(artsPhysicalAchievement).artsPhysicalSubjects(artsPhysicalSubjects)
+                    .absentDays(absentDays).attendanceDays(attendanceDays).volunteerTime(volunteerTime)
+                    .liberalSystem("자유학기제").freeSemester(null).build();
+
+            OneseoReqDto freeSemesterMissingReqDto = new OneseoReqDto(guardianName,
+                    guardianPhoneNumber,
+                    relationshipWithGuardian,
+                    profileImg,
+                    address,
+                    detailAddress,
+                    CANDIDATE,
+                    schoolTeacherName,
+                    schoolTeacherPhoneNumber,
+                    firstDesiredMajor,
+                    secondDesiredMajor,
+                    thirdDesiredMajor,
+                    freeSemesterMissingAchievementReqDto,
+                    schoolName,
+                    schoolAddress,
+                    screening,
+                    graduationDate,
+                    studentNumber);
+
+            @Test
+            @DisplayName("점수 계산을 호출하지 않고 ExpectedException을 던진다")
+            void it_throws_expected_exception_without_calculating_score() {
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> createOneseoService.execute(freeSemesterMissingReqDto, memberId));
+
+                assertEquals("자유학기제를 선택한 졸업예정자는 자유학기 학기를 필수로 선택해야 합니다.", exception.getMessage());
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+                verify(lambdaScoreCalculatorClient, never()).calculateScore(any(LambdaScoreCalculatorReqDto.class));
+                verify(oneseoRepository, never()).save(any(Oneseo.class));
+            }
+        }
     }
 }

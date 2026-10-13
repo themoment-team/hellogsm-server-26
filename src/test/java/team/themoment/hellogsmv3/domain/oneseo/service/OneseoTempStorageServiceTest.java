@@ -192,6 +192,36 @@ class OneseoTempStorageServiceTest {
             }
 
             @Nested
+            @DisplayName("졸업예정자가 자유학기제를 선택하고 자유학기 학기를 선택하지 않았다면")
+            class Context_with_candidate_free_semester_system_without_free_semester {
+                private final OneseoTempReqDto freeSemesterMissingReqDto = OneseoTempReqDto.builder()
+                        .graduationType(GraduationType.CANDIDATE).address("광주광역시 광산구 송정동 상무대로 312")
+                        .detailAddress("101동 1001호").profileImg("https://example.com/image.jpg")
+                        .middleSchoolAchievement(MiddleSchoolAchievementReqDto.builder()
+                                .achievement2_1(List.of(4, 5, 3, 5, 4, 5, 3, 5, 2))
+                                .generalSubjects(List.of("국어", "도덕", "사회", "역사", "수학", "과학", "기술가정", "영어"))
+                                .liberalSystem("자유학기제").freeSemester(null).build())
+                        .firstDesiredMajor(Major.SW).secondDesiredMajor(Major.AI).thirdDesiredMajor(Major.IOT).build();
+
+                @BeforeEach
+                void setUp() {
+                    given(oneseoRepository.findByMember(member)).willReturn(Optional.empty());
+                }
+
+                @Test
+                @DisplayName("Lambda 점수 계산을 호출하지 않고 입력값을 유지한 채 calculatedScore로 null을 반환한다")
+                void it_skips_lambda_call_and_returns_null_calculated_score() {
+                    FoundOneseoResDto result = oneseoTempStorageService
+                            .execute(freeSemesterMissingReqDto, step, memberId);
+
+                    assertEquals("자유학기제", result.middleSchoolAchievement().liberalSystem());
+                    assertNull(result.middleSchoolAchievement().freeSemester());
+                    assertNull(result.calculatedScore());
+                    verify(lambdaScoreCalculatorClient, never()).calculateScore(any(LambdaScoreCalculatorReqDto.class));
+                }
+            }
+
+            @Nested
             @DisplayName("middleSchoolAchievement가 null로 주어지면")
             class Context_with_null_middle_school_achievement {
                 private final OneseoTempReqDto nullAchievementReqDto = OneseoTempReqDto.builder()

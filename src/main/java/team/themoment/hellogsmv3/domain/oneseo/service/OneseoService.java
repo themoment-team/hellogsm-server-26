@@ -31,6 +31,7 @@ import team.themoment.sdk.exception.ExpectedException;
 public class OneseoService {
 
     public static final String ONESEO_CACHE_VALUE = "oneseo";
+    private static final String FREE_SEMESTER_SYSTEM = "자유학기제";
     private final ScheduleEnvironment scheduleEnv;
     private final OneseoRepository oneseoRepository;
     private final OperationTestResultRepository operationTestResultRepository;
@@ -184,6 +185,21 @@ public class OneseoService {
                         || isBlankString(reqDto.schoolName()) || isBlankString(reqDto.schoolAddress()))) {
             throw new ExpectedException("중학교 졸업예정인 지원자는 현재 재학 중인 중학교 정보를 필수로 입력해야 합니다.", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    public static void isValidFreeSemester(GraduationType graduationType,
+            MiddleSchoolAchievementReqDto middleSchoolAchievement) {
+        if (isFreeSemesterMissing(graduationType, middleSchoolAchievement)) {
+            throw new ExpectedException("자유학기제를 선택한 졸업예정자는 자유학기 학기를 필수로 선택해야 합니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 점수 계산 Lambda는 졸업예정자가 자유학기제를 선택한 경우 freeSemester가 없으면 400을 반환한다
+    public static boolean isFreeSemesterMissing(GraduationType graduationType,
+            MiddleSchoolAchievementReqDto middleSchoolAchievement) {
+        return graduationType == CANDIDATE && middleSchoolAchievement != null
+                && FREE_SEMESTER_SYSTEM.equals(middleSchoolAchievement.liberalSystem())
+                && isBlankString(middleSchoolAchievement.freeSemester());
     }
 
     private static boolean isBlankString(String target) {
