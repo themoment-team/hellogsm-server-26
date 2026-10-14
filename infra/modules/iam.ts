@@ -15,6 +15,7 @@ const LOG_GROUP_NAME = "hellogsm-prod-log";
 export function createIam(
     deploymentBucketArn: pulumi.Input<string>,
     appAssetsBucketArn: pulumi.Input<string>,
+    ecrRepositoryArn: pulumi.Input<string>,
 ): IamResult {
     const identity = aws.getCallerIdentityOutput({});
     const accountId = identity.accountId;
@@ -77,6 +78,19 @@ export function createIam(
                     // SnsSmsTemplate로 전화번호 지정 직접 SMS 발송(SendSmsServiceImpl)만 사용 -
                     // Topic ARN이 존재하지 않는 발행 방식이라 리소스 레벨로 좁힐 수 없음(AWS 제약).
                     Resource: "*",
+                },
+                {
+                    // GetAuthorizationToken은 ECR 특성상 리소스 레벨 제한이 불가능한 액션(AWS 제약)
+                    Sid: "EcrAuth",
+                    Effect: "Allow",
+                    Action: ["ecr:GetAuthorizationToken"],
+                    Resource: "*",
+                },
+                {
+                    Sid: "EcrPull",
+                    Effect: "Allow",
+                    Action: ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "ecr:BatchCheckLayerAvailability"],
+                    Resource: ecrRepositoryArn,
                 },
             ],
         }),
@@ -190,6 +204,28 @@ export function createIam(
                     Effect: "Allow",
                     Action: ["codedeploy:GetDeploymentConfig"],
                     Resource: "*",
+                },
+                {
+                    // GetAuthorizationToken은 ECR 특성상 리소스 레벨 제한이 불가능한 액션(AWS 제약)
+                    Sid: "EcrAuth",
+                    Effect: "Allow",
+                    Action: ["ecr:GetAuthorizationToken"],
+                    Resource: "*",
+                },
+                {
+                    Sid: "EcrPush",
+                    Effect: "Allow",
+                    Action: [
+                        "ecr:DescribeImages",
+                        "ecr:BatchCheckLayerAvailability",
+                        "ecr:GetDownloadUrlForLayer",
+                        "ecr:BatchGetImage",
+                        "ecr:PutImage",
+                        "ecr:InitiateLayerUpload",
+                        "ecr:UploadLayerPart",
+                        "ecr:CompleteLayerUpload",
+                    ],
+                    Resource: ecrRepositoryArn,
                 },
             ],
         }),

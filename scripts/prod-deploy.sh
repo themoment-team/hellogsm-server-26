@@ -1,8 +1,16 @@
 #!/bin/bash
+set -euo pipefail
 
-IMAGE_NAME=hellogsm-prod-server-img
 CONTAINER_NAME=hellogsm-prod-server
-DOCKERFILE_NAME=DockerfileProd
+REGION=ap-northeast-2
+IMAGE_URI=$(cat /home/ec2-user/builds/ECR_IMAGE_URI.txt)
+ECR_REGISTRY=$(echo $IMAGE_URI | cut -d'/' -f1)
+
+echo "> ECR 로그인" >> /home/ec2-user/deploy.log
+aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
+
+echo "> 이미지 pull: $IMAGE_URI" >> /home/ec2-user/deploy.log
+sudo docker pull $IMAGE_URI
 
 echo "> 현재 실행 중인 Docker 컨테이너 ID 확인" >> /home/ec2-user/deploy.log
 RUNNING_CONTAINER_ID=$(docker ps -q -f name=$CONTAINER_NAME)
@@ -24,6 +32,7 @@ else
   sudo docker rm $EXISTING_CONTAINER_ID
 fi
 
-cd /home/ec2-user/builds/
-docker build -t $IMAGE_NAME -f $DOCKERFILE_NAME .
-docker run -d --name $CONTAINER_NAME -p 8080:8080 $IMAGE_NAME
+sudo docker run -d --name $CONTAINER_NAME --restart unless-stopped -p 8080:8080 $IMAGE_URI
+
+echo "> 사용하지 않는 이미지 정리" >> /home/ec2-user/deploy.log
+sudo docker image prune -af
