@@ -216,6 +216,7 @@ export function createIam(
                     Sid: "EcrPush",
                     Effect: "Allow",
                     Action: [
+                        "ecr:DescribeImages",
                         "ecr:BatchCheckLayerAvailability",
                         "ecr:GetDownloadUrlForLayer",
                         "ecr:BatchGetImage",

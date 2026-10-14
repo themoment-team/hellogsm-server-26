@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 CONTAINER_NAME=hellogsm-prod-server
 REGION=ap-northeast-2
@@ -31,4 +32,7 @@ else
   sudo docker rm $EXISTING_CONTAINER_ID
 fi
 
-sudo docker run -d --name $CONTAINER_NAME -p 8080:8080 $IMAGE_URI
+sudo docker run -d --name $CONTAINER_NAME --restart unless-stopped -p 8080:8080 $IMAGE_URI
+
+echo "> 사용하지 않는 이미지 정리" >> /home/ec2-user/deploy.log
+sudo docker image prune -af
