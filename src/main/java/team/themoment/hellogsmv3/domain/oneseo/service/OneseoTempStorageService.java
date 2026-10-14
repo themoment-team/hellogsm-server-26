@@ -112,6 +112,9 @@ public class OneseoTempStorageService {
         if (subjects != null && !subjects.isEmpty() && (achievements == null || achievements.isEmpty())) {
             return null;
         }
+        if (isFreeSemesterMissing(reqDto.graduationType(), achievement)) {
+            return null;
+        }
 
         LambdaScoreCalculatorReqDto lambdaRequest = LambdaScoreCalculatorReqDto.from(achievement,
                 reqDto.graduationType());

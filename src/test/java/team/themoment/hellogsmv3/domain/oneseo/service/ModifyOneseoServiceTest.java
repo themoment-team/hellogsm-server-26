@@ -75,7 +75,8 @@ class ModifyOneseoServiceTest {
         List<Integer> achievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> generalSubjects = Arrays.asList("국어", "도덕", "사회", "역사", "수학", "과학", "기술가정", "영어");
         List<String> newSubjects = List.of("프로그래밍");
-        List<Integer> artsPhysicalAchievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5);
+        // 졸업예정자 + 자유학기제: 5학기(1-1 ~ 3-1) × 3과목
+        List<Integer> artsPhysicalAchievement = Arrays.asList(5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
         List<String> artsPhysicalSubjects = Arrays.asList("체육", "미술", "음악");
         List<Integer> absentDays = Arrays.asList(0, 0, 0);
         List<Integer> attendanceDays = Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -269,6 +270,49 @@ class ModifyOneseoServiceTest {
                         () -> modifyOneseoService.execute(oneseoReqDto, memberId));
                 assertEquals("해당 지원자의 원서를 찾을 수 없습니다. member ID: " + memberId, exception.getMessage());
                 assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("졸업예정자가 자유학기제를 선택하고 자유학기 학기를 선택하지 않았다면")
+        class Context_with_candidate_free_semester_system_without_free_semester {
+
+            MiddleSchoolAchievementReqDto freeSemesterMissingAchievementReqDto = MiddleSchoolAchievementReqDto.builder()
+                    .achievement1_2(null).achievement2_1(achievement).achievement2_2(achievement)
+                    .achievement3_1(achievement).achievement3_2(null).generalSubjects(generalSubjects)
+                    .newSubjects(newSubjects).artsPhysicalAchievement(artsPhysicalAchievement)
+                    .artsPhysicalSubjects(artsPhysicalSubjects).absentDays(absentDays).attendanceDays(attendanceDays)
+                    .volunteerTime(volunteerTime).liberalSystem("자유학기제").freeSemester(null).build();
+
+            OneseoReqDto freeSemesterMissingReqDto = new OneseoReqDto(guardianName,
+                    guardianPhoneNumber,
+                    relationshipWithGuardian,
+                    profileImg,
+                    address,
+                    detailAddress,
+                    CANDIDATE,
+                    schoolTeacherName,
+                    schoolTeacherPhoneNumber,
+                    firstDesiredMajor,
+                    secondDesiredMajor,
+                    thirdDesiredMajor,
+                    freeSemesterMissingAchievementReqDto,
+                    schoolName,
+                    schoolAddress,
+                    screening,
+                    graduationDate,
+                    studentNumber);
+
+            @Test
+            @DisplayName("원서를 수정하지 않고 ExpectedException을 던진다")
+            void it_throws_expected_exception_without_modifying() {
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> modifyOneseoService.execute(freeSemesterMissingReqDto, memberId));
+
+                assertEquals("자유학기제를 선택한 졸업예정자는 자유학기 학기를 필수로 선택해야 합니다.", exception.getMessage());
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+                verify(oneseoService, never()).findWithMemberByMemberIdOrThrow(memberId);
+                verify(lambdaScoreCalculatorClient, never()).calculateScore(any(LambdaScoreCalculatorReqDto.class));
             }
         }
 

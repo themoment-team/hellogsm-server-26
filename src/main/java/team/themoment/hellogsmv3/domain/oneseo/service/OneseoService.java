@@ -2,6 +2,8 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType.CANDIDATE;
 import static team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo.NO;
+import static team.themoment.hellogsmv3.domain.oneseo.service.extraction.MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM;
+import static team.themoment.hellogsmv3.domain.oneseo.service.extraction.MiddleSchoolRecordParser.FREE_YEAR_SYSTEM;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +25,8 @@ import team.themoment.hellogsmv3.domain.oneseo.entity.type.ScreeningCategory;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
 import team.themoment.hellogsmv3.domain.oneseo.repository.EntranceTestResultRepository;
 import team.themoment.hellogsmv3.domain.oneseo.repository.OneseoRepository;
+import team.themoment.hellogsmv3.domain.oneseo.service.extraction.MiddleSchoolRecordParser;
+import team.themoment.hellogsmv3.domain.oneseo.service.extraction.SubjectNameNormalizer;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import team.themoment.sdk.exception.ExpectedException;
 
@@ -31,6 +35,7 @@ import team.themoment.sdk.exception.ExpectedException;
 public class OneseoService {
 
     public static final String ONESEO_CACHE_VALUE = "oneseo";
+    private static final String FREE_SEMESTER_SYSTEM = "자유학기제";
     private final ScheduleEnvironment scheduleEnv;
     private final OneseoRepository oneseoRepository;
     private final OperationTestResultRepository operationTestResultRepository;
@@ -97,19 +102,26 @@ public class OneseoService {
                 .achievement2_2(validationGeneralAchievement(tmpAchievement2_2))
                 .achievement3_1(validationGeneralAchievement(tmpAchievement3_1))
                 .achievement3_2(validationGeneralAchievement(tmpAchievement3_2))
-                .artsPhysicalAchievement(
-                        validationArtsPhysicalAchievement(dto.artsPhysicalAchievement(), dto.artsPhysicalSubjects()))
+                .artsPhysicalAchievement(validationArtsPhysicalAchievement(dto.artsPhysicalAchievement(),
+                        dto.artsPhysicalSubjects(),
+                        graduationType,
+                        dto.liberalSystem()))
                 .absentDays(dto.absentDays()).attendanceDays(dto.attendanceDays()).volunteerTime(dto.volunteerTime())
                 .liberalSystem(dto.liberalSystem()).freeSemester(dto.freeSemester()).gedAvgScore(dto.gedAvgScore());
         return builder.build();
     }
 
-    private static List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements, List<String> subjects) {
+    private static List<Integer> validationArtsPhysicalAchievement(List<Integer> achievements,
+            List<String> subjects,
+            GraduationType graduationType,
+            String liberalSystem) {
         if (subjects != null && !subjects.isEmpty() && (achievements == null || achievements.isEmpty()))
             throw new ExpectedException("예체능 성취점수가 비어있습니다.", HttpStatus.BAD_REQUEST);
 
         if (achievements == null)
             return null;
+
+        validationArtsPhysicalAchievementSize(achievements, graduationType, liberalSystem);
 
         achievements.forEach(achievement -> {
             if (achievement == null)
@@ -119,6 +131,22 @@ public class OneseoService {
         });
 
         return achievements;
+    }
+
+    // 점수 계산 Lambda는 배열에 들어온 칸만 평균에 반영하므로, 길이가 다르면 실제 성적과 다른 점수가 나온다
+    private static void validationArtsPhysicalAchievementSize(List<Integer> achievements,
+            GraduationType graduationType,
+            String liberalSystem) {
+        // 자유학기/학년제 값이 올바르지 않으면 기대 길이를 정할 수 없으므로 점수 계산 단계의 검증에 맡긴다
+        if (!FREE_SEMESTER_SYSTEM.equals(liberalSystem) && !FREE_YEAR_SYSTEM.equals(liberalSystem))
+            return;
+
+        int expectedSize = MiddleSchoolRecordParser.resolveSemesters(graduationType, liberalSystem).size()
+                * SubjectNameNormalizer.STANDARD_ARTS_PHYSICAL_SUBJECTS.size();
+        if (achievements.size() != expectedSize)
+            throw new ExpectedException(
+                    "예체능 성취점수 개수가 올바르지 않습니다. 기대값: " + expectedSize + ", 입력값: " + achievements.size(),
+                    HttpStatus.BAD_REQUEST);
     }
 
     private static List<Integer> validationGeneralAchievement(List<Integer> achievements) {
@@ -184,6 +212,21 @@ public class OneseoService {
                         || isBlankString(reqDto.schoolName()) || isBlankString(reqDto.schoolAddress()))) {
             throw new ExpectedException("중학교 졸업예정인 지원자는 현재 재학 중인 중학교 정보를 필수로 입력해야 합니다.", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    public static void isValidFreeSemester(GraduationType graduationType,
+            MiddleSchoolAchievementReqDto middleSchoolAchievement) {
+        if (isFreeSemesterMissing(graduationType, middleSchoolAchievement)) {
+            throw new ExpectedException("자유학기제를 선택한 졸업예정자는 자유학기 학기를 필수로 선택해야 합니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 점수 계산 Lambda는 졸업예정자가 자유학기제를 선택한 경우 freeSemester가 없으면 400을 반환한다
+    public static boolean isFreeSemesterMissing(GraduationType graduationType,
+            MiddleSchoolAchievementReqDto middleSchoolAchievement) {
+        return graduationType == CANDIDATE && middleSchoolAchievement != null
+                && FREE_SEMESTER_SYSTEM.equals(middleSchoolAchievement.liberalSystem())
+                && isBlankString(middleSchoolAchievement.freeSemester());
     }
 
     private static boolean isBlankString(String target) {
