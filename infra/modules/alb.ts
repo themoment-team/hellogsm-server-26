@@ -46,6 +46,10 @@ export function createAlb(
             healthyThreshold: 2,
             unhealthyThreshold: 2,
         },
+        // WITH_TRAFFIC_CONTROL 배포의 BlockTraffic 단계는 이 드레이닝 시간만큼 대기한다.
+        // 기본값 300초면 HalfAtATime 배포 한 번에 인스턴스당 최대 5분, 총 최대 10분이 추가된다.
+        // server.shutdown: graceful + 응답시간이 짧은 API 특성상 30초면 충분하다.
+        deregistrationDelay: 30,
         tags: { Name: "hello-prod-tg" },
     });
 
