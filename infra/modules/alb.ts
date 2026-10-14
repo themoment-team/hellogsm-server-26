@@ -14,7 +14,7 @@ export function createAlb(
     publicSubnetIds: pulumi.Input<pulumi.Input<string>[]>,
     albSgId: aws.ec2.SecurityGroup["id"],
     vpcId: aws.ec2.Vpc["id"],
-    springbootInstanceId: aws.ec2.Instance["id"],
+    springbootInstanceIds: aws.ec2.Instance["id"][],
     certificateArn: pulumi.Input<string>,
     zoneId: pulumi.Input<string>,
 ): AlbResult {
@@ -49,13 +49,19 @@ export function createAlb(
         tags: { Name: "hello-prod-tg" },
     });
 
-    // 단일 인스턴스 정적 등록 (Auto Scaling Group 아님). CodeDeploy가 WITH_TRAFFIC_CONTROL로
-    // 배포 중 이 타겟을 등록 해제/재등록하지만, 인스턴스가 1대뿐이라 배포 중 다운타임 자체는
-    // 여전히 존재한다(502가 아닌 연결 거부/503으로 바뀌는 정도).
-    new aws.lb.TargetGroupAttachment("hello-prod-tg-attachment", {
-        targetGroupArn: targetGroup.arn,
-        targetId: springbootInstanceId,
-        port: 8080,
+    // 정적 인스턴스 등록 (Auto Scaling Group 아님). 2대를 등록해 CodeDeploy
+    // HalfAtATime 배포 시 한 대가 교체되는 동안 나머지 한 대가 계속 트래픽을 받는다.
+    // 첫 번째 attachment는 기존 운영 중인 단일 인스턴스 attachment와 동일한 pulumi 리소스
+    // 이름("hello-prod-tg-attachment")을 유지한다 - 이름을 바꾸면 pulumi가 이미 등록된
+    // attachment를 삭제 후 재생성하면서 그 순간 타겟이 잠깐 해제/재등록돼 불필요한 리스크가
+    // 생긴다. 두 번째(B)만 순수 추가 리소스다.
+    const attachmentNames = ["hello-prod-tg-attachment", "hello-prod-tg-attachment-b"];
+    springbootInstanceIds.forEach((instanceId, i) => {
+        new aws.lb.TargetGroupAttachment(attachmentNames[i], {
+            targetGroupArn: targetGroup.arn,
+            targetId: instanceId,
+            port: 8080,
+        });
     });
 
     const httpsListener = new aws.lb.Listener("hello-prod-alb-listener-443", {
