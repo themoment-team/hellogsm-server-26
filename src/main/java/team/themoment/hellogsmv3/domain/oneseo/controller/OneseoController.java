@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -169,6 +171,11 @@ public class OneseoController {
     }
 
     @Operation(summary = "원서 수정 권한 요청", description = "지원자가 원서 수정 권한을 요청합니다.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "요청 성공"),
+            @ApiResponse(responseCode = "401", description = "로그인하지 않았거나 세션이 만료된 경우"),
+            @ApiResponse(responseCode = "403", description = "지원자(APPLICANT) 권한이 아니거나, 09:00 ~ 16:00 외의 시간에 요청했거나, 1차 전형 결과가 이미 산출된 경우. 원인은 message로 구분합니다."),
+            @ApiResponse(responseCode = "404", description = "회원이 존재하지 않거나 제출한 원서가 없는 경우"),
+            @ApiResponse(responseCode = "409", description = "이미 수정 권한이 부여되었거나(APPROVED) 수정 권한 요청이 진행 중인(REQUESTED) 경우")})
     @PostMapping("/oneseo/me/request")
     public CommonApiResponse requestEditPermission(@AuthRequest Long memberId) {
         requestOneseoEditPermissionService.execute(memberId);

@@ -40,27 +40,53 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build
 
-      - name: Make ZIP File
-        run: |
-          mkdir -p deploy/build/libs
-          cp build/libs/*.jar deploy/build/libs/
-          cp appspec.yml deploy/
-          cp DockerfileProd deploy/
-          cp -r scripts deploy/
-          cd deploy && zip -r ../$GITHUB_SHA.zip .
-        shell: bash
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_PROD_DEPLOY_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 인스턴스가 2대로 늘면서 HalfAtATime 롤링 배포로 바뀌어, EC2 위에서 매번 docker build를
+      # 하면 교체 중인 쪽이 더 오래 비정상 상태로 남는다. 이미지를 CI에서 한 번만 빌드해 ECR에
+      # push하고, 인스턴스는 appspec 훅(scripts/prod-deploy.sh)에서 pull + run만 하도록 분리한다.
+      # ECR 리포지토리가 imageTagMutability: IMMUTABLE이라 같은 커밋(github.sha)으로
+      # 워크플로를 재실행하면 push가 "tag already exists"로 실패한다. 이미 push된 태그면
+      # 다시 빌드하지 않고 건너뛴다 (CodeDeploy 단계만 실패해 재시도하는 경우 대응).
+      - name: Build and Push Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          ECR_REPOSITORY: hello-prod-server
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          if aws ecr describe-images --repository-name $ECR_REPOSITORY --image-ids imageTag=$IMAGE_TAG >/dev/null 2>&1; then
+            echo "이미 존재하는 이미지라 빌드/push를 건너뜁니다: $IMAGE_TAG"
+          else
+            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f DockerfileProd .
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          fi
+
+      - name: Make ZIP File
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          ECR_REPOSITORY: hello-prod-server
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          mkdir -p deploy
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" > deploy/ECR_IMAGE_URI.txt
+          cp appspec.yml deploy/
+          cp -r scripts deploy/
+          cd deploy && zip -r ../$GITHUB_SHA.zip .
+        shell: bash
+
       - name: Upload to S3
         run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./$GITHUB_SHA.zip s3://${{ secrets.BUCKET_NAME }}/prod/$GITHUB_SHA.zip
 
       - name: Code Deploy
-        run: aws deploy create-deployment --application-name hellogsm-prod-codedeploy --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name api-prod-hellogsm-kr --s3-location bucket=${{ secrets.BUCKET_NAME }},bundleType=zip,key=prod/$GITHUB_SHA.zip
+        run: aws deploy create-deployment --application-name hellogsm-prod-codedeploy --deployment-config-name CodeDeployDefault.HalfAtATime --deployment-group-name api-prod-hellogsm-kr --s3-location bucket=${{ secrets.BUCKET_NAME }},bundleType=zip,key=prod/$GITHUB_SHA.zip
 
   notify:
     runs-on: ubuntu-latest

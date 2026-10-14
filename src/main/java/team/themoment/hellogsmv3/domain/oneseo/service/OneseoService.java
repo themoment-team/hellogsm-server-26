@@ -90,7 +90,9 @@ public class OneseoService {
         }
         if (tmpAchievement1_2 == null) {
             if (tmpAchievement1_1 == null) {
-                tmpAchievement1_2 = tmpAchievement2_2;
+                // 같은 학년(1학년) 안에 채울 짝이 없는 자유학년제 케이스라 학년을 넘어가야 하는데,
+                // "같은 학년 우선, 그다음 가까운 학기" 원칙상 2-2보다 시간상 더 가까운 2-1을 써야 한다.
+                tmpAchievement1_2 = tmpAchievement2_1;
             } else {
                 tmpAchievement1_2 = tmpAchievement1_1;
             }

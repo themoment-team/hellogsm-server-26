@@ -10,7 +10,7 @@ export interface MonitoringResult {
 export function createMonitoring(
     targetGroupArnSuffix: aws.lb.TargetGroup["arnSuffix"],
     albArnSuffix: aws.lb.LoadBalancer["arnSuffix"],
-    springbootInstanceId: aws.ec2.Instance["id"],
+    springbootInstanceIds: aws.ec2.Instance["id"][],
     redisInstanceId: aws.ec2.Instance["id"],
 ): MonitoringResult {
     // 2024년부터 실제 운영 로그(약 1GB)가 쌓여있는 기존 로그 그룹을 pulumi import로 흡수한다
@@ -67,19 +67,25 @@ export function createMonitoring(
         alarmActions: [alertsTopic.arn],
     });
 
-    new aws.cloudwatch.MetricAlarm("hello-prod-springboot-status-check-failed", {
-        name: "hello-prod-springboot-status-check-failed",
-        namespace: "AWS/EC2",
-        metricName: "StatusCheckFailed",
-        dimensions: { InstanceId: springbootInstanceId },
-        statistic: "Maximum",
-        period: 60,
-        evaluationPeriods: 2,
-        threshold: 1,
-        comparisonOperator: "GreaterThanOrEqualToThreshold",
-        treatMissingData: "breaching",
-        alarmActions: [alertsTopic.arn],
-        okActions: [alertsTopic.arn],
+    // 인스턴스가 2대라 한 대 상태이상 자체는 즉시 전체 장애가 아니지만, 롤링 배포 중
+    // 나머지 한 대가 이상이면 다운타임으로 이어지므로 인스턴스별로 개별 알람을 둔다.
+    // 첫 번째 알람은 기존 단일 인스턴스 알람과 동일한 이름을 유지해 불필요한 삭제/재생성을 피한다.
+    const alarmNames = ["hello-prod-springboot-status-check-failed", "hello-prod-springboot-status-check-failed-b"];
+    springbootInstanceIds.forEach((instanceId, i) => {
+        new aws.cloudwatch.MetricAlarm(alarmNames[i], {
+            name: alarmNames[i],
+            namespace: "AWS/EC2",
+            metricName: "StatusCheckFailed",
+            dimensions: { InstanceId: instanceId },
+            statistic: "Maximum",
+            period: 60,
+            evaluationPeriods: 2,
+            threshold: 1,
+            comparisonOperator: "GreaterThanOrEqualToThreshold",
+            treatMissingData: "breaching",
+            alarmActions: [alertsTopic.arn],
+            okActions: [alertsTopic.arn],
+        });
     });
 
     new aws.cloudwatch.MetricAlarm("hello-prod-redis-status-check-failed", {

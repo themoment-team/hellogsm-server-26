@@ -12,6 +12,7 @@ export interface SpringbootServerResult {
 const userData = fs.readFileSync(path.join(__dirname, "../../userdata/springboot-ec2.sh"), "utf-8");
 
 export function createSpringbootServer(
+    resourceName: string,
     privateSubnetId: aws.ec2.Subnet["id"],
     springbootSgId: aws.ec2.SecurityGroup["id"],
     instanceProfileName: aws.iam.InstanceProfile["name"],
@@ -20,7 +21,7 @@ export function createSpringbootServer(
     const ami = getAmazonLinux2023Ami();
 
     const instance = new aws.ec2.Instance(
-        "hello-prod-springboot",
+        resourceName,
         {
             ami: ami.id,
             instanceType: config.springbootInstanceType,

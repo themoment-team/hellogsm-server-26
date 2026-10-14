@@ -345,11 +345,11 @@ class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("1학년 2학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_1_2_with_2_2() {
+            @DisplayName("1학년 2학기 성적을 더 가까운 2학년 1학기 성적으로 채운 DTO를 반환한다")
+            void it_fills_1_2_with_2_1() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement1_2());
+                assertEquals(middleSchoolAchievementReqDto.achievement2_1(), resultDto.achievement1_2());
                 assertEquals(middleSchoolAchievementReqDto.achievement2_1(), resultDto.achievement2_1());
                 assertEquals(middleSchoolAchievementReqDto.achievement2_2(), resultDto.achievement2_2());
                 assertEquals(middleSchoolAchievementReqDto.achievement3_1(), resultDto.achievement3_1());
@@ -471,11 +471,11 @@ class OneseoServiceTest {
             }
 
             @Test
-            @DisplayName("1학년 2학기 성적을 2학년 2학기 성적으로 채운 DTO를 반환한다")
-            void it_fills_1_2_with_2_2() {
+            @DisplayName("1학년 2학기 성적을 더 가까운 2학년 1학기 성적으로 채운 DTO를 반환한다")
+            void it_fills_1_2_with_2_1() {
                 MiddleSchoolAchievementCalcDto resultDto = OneseoService
                         .buildCalcDtoWithFillEmpty(middleSchoolAchievementReqDto, graduationType);
-                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement2_2());
+                assertEquals(resultDto.achievement1_2(), middleSchoolAchievementReqDto.achievement2_1());
                 assertEquals(resultDto.achievement2_1(), middleSchoolAchievementReqDto.achievement2_1());
                 assertEquals(resultDto.achievement2_2(), middleSchoolAchievementReqDto.achievement2_2());
                 assertEquals(resultDto.achievement3_1(), middleSchoolAchievementReqDto.achievement3_1());
