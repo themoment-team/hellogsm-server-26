@@ -220,6 +220,84 @@ class MiddleSchoolRecordParserTest {
         }
 
         @Nested
+        @DisplayName("표준 과목이 아닌 과목이 모든 학년에서 P로만 나오는 경우")
+        class Context_with_always_pass_non_standard_subject {
+
+            private static final String TEXT_WITH_ALWAYS_PASS_SUBJECT = """
+                    교과학습발달상황
+                    [1학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 한문 한문 P
+                    [2학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 한문 한문 P
+                    [3학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 한문 한문 P
+                    """;
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = new MiddleSchoolRecordParser(new SubjectNameNormalizer()).parse(
+                        new ExtractedTextDto(TEXT_WITH_ALWAYS_PASS_SUBJECT, 1, true, ExtractionSource.TEXT_LAYER, 1.0),
+                        GraduationType.CANDIDATE,
+                        MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("추가 과목으로 등록하지 않는다")
+            void it_does_not_register_as_additional_subject() {
+                assertThat(result.achievement().newSubjects()).isEmpty();
+                assertThat(result.meta().unrecognizedSubjects()).isEmpty();
+                assertThat(result.achievement().achievement1_1()).hasSize(9);
+            }
+        }
+
+        @Nested
+        @DisplayName("표준 과목이 아닌 과목이 한 학기라도 등급을 받은 경우")
+        class Context_with_mixed_pass_and_graded_non_standard_subject {
+
+            private static final String TEXT_WITH_MIXED_SUBJECT = """
+                    교과학습발달상황
+                    [1학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 한문 한문 P
+                    [2학년]
+                    학기 교과 과목 원점수/과목평균(표준편차) 성취도(수강자수) 비고
+                    1 한문 한문 A
+                    """;
+
+            private ExtractedAchievementResDto result;
+
+            @BeforeEach
+            void setUp() {
+                result = new MiddleSchoolRecordParser(new SubjectNameNormalizer()).parse(
+                        new ExtractedTextDto(TEXT_WITH_MIXED_SUBJECT, 1, true, ExtractionSource.TEXT_LAYER, 1.0),
+                        GraduationType.CANDIDATE,
+                        MiddleSchoolRecordParser.FREE_SEMESTER_SYSTEM);
+            }
+
+            @Test
+            @DisplayName("추가 과목으로 등록하고, 등급을 받은 학기에 점수를 채운다")
+            void it_registers_and_fills_graded_semester() {
+                assertThat(result.achievement().newSubjects()).containsExactly("한문");
+                // 순서: 국어, 사회, 도덕, 역사, 수학, 과학, 기술가정, 정보, 영어, 한문
+                assertThat(result.achievement().achievement2_1().get(9)).isEqualTo(5);
+            }
+
+            @Test
+            @DisplayName("P였던 학기는 없음으로 채우고 누락 경고를 붙이지 않는다")
+            void it_fills_pass_semester_as_zero_without_missing_warning() {
+                assertThat(result.achievement().achievement1_1().get(9)).isEqualTo(0);
+                assertThat(result.meta().warnings())
+                        .noneMatch(warning -> warning.type() == ExtractionWarningType.MISSING_SUBJECT
+                                && "achievement1_1".equals(warning.field()) && "한문".equals(warning.rawText()));
+            }
+        }
+
+        @Nested
         @DisplayName("학기 열이 병합 셀이라 첫 과목 행에만 있고 원점수에 쉼표 소수점이 섞인 경우")
         class Context_with_merged_semester_cell_and_comma_decimal {
 

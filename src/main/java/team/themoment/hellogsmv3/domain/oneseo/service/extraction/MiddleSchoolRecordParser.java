@@ -357,14 +357,18 @@ public class MiddleSchoolRecordParser {
             return;
         }
 
-        if (subject.matchType() == SubjectNameNormalizer.MatchType.UNKNOWN) {
+        // 미등록 과목이 P(이수)로만 적힌 학기는 추가과목으로 등록하지 않음. 등록해버리면 모든 학기가
+        // "없음"인 빈 줄만 생기기 때문. 단, 같은 과목이 다른 학기에서 등급(A~E)으로 한 번이라도 나오면
+        // 그 occurrence에서 정상 등록되고, 이 학기의 점수(0)도 generalBySemester에 남아있어 그대로 채워진다.
+        boolean unknownPassOnlyRow = subject.matchType() == SubjectNameNormalizer.MatchType.UNKNOWN && letter == 'P';
+        if (subject.matchType() == SubjectNameNormalizer.MatchType.UNKNOWN && !unknownPassOnlyRow) {
             context.unrecognizedSubjects.add(subject.raw());
             context.newSubjectOrder.add(subject.normalized());
         }
         context.generalBySemester.computeIfAbsent(semesterKey, key -> new LinkedHashMap<>()).put(subject.normalized(),
                 score);
 
-        if (subject.needsReview()) {
+        if (subject.needsReview() && !unknownPassOnlyRow) {
             context.warnings.add(ExtractionWarningResDto.builder().field("generalSubjects").rawText(subject.raw())
                     .type(subject.matchType() == SubjectNameNormalizer.MatchType.UNKNOWN
                             ? ExtractionWarningType.UNRECOGNIZED_SUBJECT
