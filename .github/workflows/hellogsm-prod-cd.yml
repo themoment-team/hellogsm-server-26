@@ -53,21 +53,19 @@ jobs:
       # 인스턴스가 2대로 늘면서 HalfAtATime 롤링 배포로 바뀌어, EC2 위에서 매번 docker build를
       # 하면 교체 중인 쪽이 더 오래 비정상 상태로 남는다. 이미지를 CI에서 한 번만 빌드해 ECR에
       # push하고, 인스턴스는 appspec 훅(scripts/prod-deploy.sh)에서 pull + run만 하도록 분리한다.
-      # ECR 리포지토리가 imageTagMutability: IMMUTABLE이라 같은 커밋(github.sha)으로
-      # 워크플로를 재실행하면 push가 "tag already exists"로 실패한다. 이미 push된 태그면
-      # 다시 빌드하지 않고 건너뛴다 (CodeDeploy 단계만 실패해 재시도하는 경우 대응).
+      # 태그는 github.sha지만 application-prod.yml(스케줄 등 운영 설정)은 jar 안에 빌드
+      # 시점에 내장되고 secret으로 커밋과 별개로 바뀔 수 있다. "이미 있으면 skip" 방식은
+      # 같은 커밋을 설정만 바꿔 재배포할 때 과거 이미지를 조용히 재사용하는 버그로
+      # 이어져서 (실제로 한 번 발생함), 항상 재빌드/재push한다. ECR 리포지토리가
+      # MUTABLE이라 재push 자체는 실패하지 않는다 (ecr.ts 참고).
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           ECR_REPOSITORY: hello-prod-server
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          if aws ecr describe-images --repository-name $ECR_REPOSITORY --image-ids imageTag=$IMAGE_TAG >/dev/null 2>&1; then
-            echo "이미 존재하는 이미지라 빌드/push를 건너뜁니다: $IMAGE_TAG"
-          else
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f DockerfileProd .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          fi
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f DockerfileProd .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Make ZIP File
         env:

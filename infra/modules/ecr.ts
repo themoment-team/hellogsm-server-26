@@ -11,7 +11,12 @@ export interface EcrResult {
 export function createEcr(): EcrResult {
     const repository = new aws.ecr.Repository("hello-prod-server-ecr", {
         name: "hello-prod-server",
-        imageTagMutability: "IMMUTABLE",
+        // 태그는 git commit SHA지만, application-prod.yml(스케줄 등 운영 설정)은 jar 안에
+        // 빌드 시점에 내장되고 GitHub Actions secret으로 커밋과 별개로 바뀔 수 있다.
+        // IMMUTABLE이면 같은 커밋을 설정만 바꿔 재배포할 때 "tag already exists"로 push가
+        // 막혀서, 재배포가 실제로는 과거 이미지를 재사용하는 조용한 버그로 이어진다.
+        // MUTABLE로 두고 매 배포마다 항상 재빌드/재push한다 (CI 워크플로 참고).
+        imageTagMutability: "MUTABLE",
         imageScanningConfiguration: { scanOnPush: true },
         tags: { Name: "hello-prod-server-ecr" },
     });
