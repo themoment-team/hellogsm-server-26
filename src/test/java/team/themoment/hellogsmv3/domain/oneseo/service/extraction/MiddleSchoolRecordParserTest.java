@@ -138,10 +138,10 @@ class MiddleSchoolRecordParserTest {
                 // 샘플에는 1학년 출결 · 봉사만 있으므로 2 · 3학년은 0이 아니라 null이어야 한다.
                 // 0으로 채우면 "개근 · 봉사 0시간"이라는 멀쩡한 값으로 보여서 지원자가 인식 실패를 눈치채지 못한다.
                 // 샘플 행은 결석/지각/조퇴/결과 각각 (질병/미인정/기타) = (3,2,1)/(4,1,0)/(2,3,0)/(1,2,3) 이며,
-                // 질병은 정책상 계산에서 제외되므로 미인정+기타만 남아 3/1/3/5가 된다.
-                assertThat(result.achievement().absentDays()).containsExactly(3, null, null);
+                // 질병·기타는 정책상 계산에서 제외되므로 미인정만 남아 2/1/3/2가 된다.
+                assertThat(result.achievement().absentDays()).containsExactly(2, null, null);
                 assertThat(result.achievement().attendanceDays())
-                        .containsExactly(1, 3, 5, null, null, null, null, null, null);
+                        .containsExactly(1, 3, 2, null, null, null, null, null, null);
                 assertThat(result.achievement().volunteerTime()).containsExactly(7, null, null);
             }
 

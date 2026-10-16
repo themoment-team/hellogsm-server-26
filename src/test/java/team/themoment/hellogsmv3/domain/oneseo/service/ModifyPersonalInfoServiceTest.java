@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
@@ -37,6 +39,9 @@ class ModifyPersonalInfoServiceTest {
     @Mock
     private OneseoRepository oneseoRepository;
 
+    @Mock
+    private CacheManager cacheManager;
+
     @InjectMocks
     private ModifyPersonalInfoService modifyPersonalInfoService;
 
@@ -55,17 +60,20 @@ class ModifyPersonalInfoServiceTest {
         class Context_with_first_test_not_announced {
 
             private Member member;
+            private Cache cache;
 
             @BeforeEach
             void setUp() {
                 member = mock(Member.class);
                 Oneseo oneseo = mock(Oneseo.class);
                 EntranceTestResult entranceTestResult = mock(EntranceTestResult.class);
+                cache = mock(Cache.class);
 
                 given(memberService.findByIdOrThrow(memberId)).willReturn(member);
                 given(oneseoRepository.findByMember(member)).willReturn(Optional.of(oneseo));
                 given(oneseo.getEntranceTestResult()).willReturn(entranceTestResult);
                 given(entranceTestResult.getFirstTestPassYn()).willReturn(null);
+                given(cacheManager.getCache(OneseoService.ONESEO_CACHE_VALUE)).willReturn(cache);
             }
 
             @Test
@@ -76,6 +84,16 @@ class ModifyPersonalInfoServiceTest {
                 modifyPersonalInfoService.execute(reqDto, memberId, true);
 
                 verify(member).modifyMember("홍길동", LocalDate.of(2009, 1, 1), member.getPhoneNumber(), Sex.MALE);
+            }
+
+            @Test
+            @DisplayName("DB에 제출된 원서가 있으므로 캐시를 무효화한다")
+            void it_evicts_cache_when_oneseo_exists() {
+                ModifyPersonalInfoReqDto reqDto = buildReqDto("홍길동", LocalDate.of(2009, 1, 1), Sex.MALE);
+
+                modifyPersonalInfoService.execute(reqDto, memberId, true);
+
+                verify(cache).evict(memberId);
             }
         }
 
@@ -132,6 +150,16 @@ class ModifyPersonalInfoServiceTest {
 
                 verify(member).modifyMember("홍길동", LocalDate.of(2009, 1, 1), member.getPhoneNumber(), Sex.MALE);
             }
+
+            @Test
+            @DisplayName("임시저장 캐시를 지우지 않는다")
+            void it_does_not_evict_cache_without_oneseo() {
+                ModifyPersonalInfoReqDto reqDto = buildReqDto("홍길동", LocalDate.of(2009, 1, 1), Sex.MALE);
+
+                modifyPersonalInfoService.execute(reqDto, memberId, true);
+
+                verify(cacheManager, never()).getCache(any());
+            }
         }
 
         @Nested
@@ -155,7 +183,6 @@ class ModifyPersonalInfoServiceTest {
                 modifyPersonalInfoService.execute(reqDto, memberId, false);
 
                 verify(member).modifyMember("홍길동", LocalDate.of(2009, 1, 1), member.getPhoneNumber(), Sex.MALE);
-                verify(oneseoRepository, never()).findByMember(any());
             }
         }
 

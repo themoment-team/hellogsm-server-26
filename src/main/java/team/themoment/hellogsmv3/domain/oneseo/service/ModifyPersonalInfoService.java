@@ -2,7 +2,8 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 
 import java.util.Optional;
 
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,18 +20,27 @@ public class ModifyPersonalInfoService {
 
     private final MemberService memberService;
     private final OneseoRepository oneseoRepository;
+    private final CacheManager cacheManager;
 
     @Transactional
-    @CacheEvict(value = OneseoService.ONESEO_CACHE_VALUE, key = "#memberId")
     public void execute(ModifyPersonalInfoReqDto reqDto, Long memberId, boolean checkFirstTest) {
         Member member = memberService.findByIdOrThrow(memberId);
+        Optional<Oneseo> oneseo = oneseoRepository.findByMember(member);
 
         if (checkFirstTest) {
-            Optional<Oneseo> oneseo = oneseoRepository.findByMember(member);
             oneseo.map(Oneseo::getEntranceTestResult)
                     .ifPresent(result -> OneseoService.isBeforeFirstTest(result.getFirstTestPassYn()));
         }
 
         member.modifyMember(reqDto.name(), reqDto.birth(), member.getPhoneNumber(), reqDto.sex());
+
+        // 제출된 원서가 DB에 있을 때만 캐시를 무효화한다. 임시저장만 있는 지원자는 DB에 원서가
+        // 없으므로 여기서 캐시를 지우면 임시저장 내용 자체가 사라진다(다음 자동 임시저장 때 갱신됨).
+        if (oneseo.isPresent()) {
+            Cache cache = cacheManager.getCache(OneseoService.ONESEO_CACHE_VALUE);
+            if (cache != null) {
+                cache.evict(memberId);
+            }
+        }
     }
 }
