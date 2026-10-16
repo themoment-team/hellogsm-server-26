@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +24,8 @@ import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.member.entity.type.Sex;
 import team.themoment.hellogsmv3.domain.member.service.MemberService;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.ModifyPersonalInfoReqDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.response.FoundOneseoResDto;
+import team.themoment.hellogsmv3.domain.oneseo.dto.response.OneseoPrivacyDetailResDto;
 import team.themoment.hellogsmv3.domain.oneseo.entity.EntranceTestResult;
 import team.themoment.hellogsmv3.domain.oneseo.entity.Oneseo;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.YesNo;
@@ -132,13 +135,16 @@ class ModifyPersonalInfoServiceTest {
         class Context_with_no_oneseo {
 
             private Member member;
+            private Cache cache;
 
             @BeforeEach
             void setUp() {
                 member = mock(Member.class);
+                cache = mock(Cache.class);
 
                 given(memberService.findByIdOrThrow(memberId)).willReturn(member);
                 given(oneseoRepository.findByMember(member)).willReturn(Optional.empty());
+                given(cacheManager.getCache(OneseoService.ONESEO_CACHE_VALUE)).willReturn(cache);
             }
 
             @Test
@@ -158,7 +164,40 @@ class ModifyPersonalInfoServiceTest {
 
                 modifyPersonalInfoService.execute(reqDto, memberId, true);
 
-                verify(cacheManager, never()).getCache(any());
+                verify(cache, never()).evict(any());
+            }
+
+            @Test
+            @DisplayName("임시저장 캐시가 있으면 캐시 속 인적사항을 최신 값으로 갱신한다")
+            void it_refreshes_cached_personal_info_when_cache_exists() {
+                OneseoPrivacyDetailResDto oldDetail = OneseoPrivacyDetailResDto.builder().name("김철수").sex(Sex.FEMALE)
+                        .birth(LocalDate.of(2008, 5, 5)).phoneNumber("01000000000").build();
+                FoundOneseoResDto cached = FoundOneseoResDto.builder().privacyDetail(oldDetail).build();
+                given(cache.get(memberId, FoundOneseoResDto.class)).willReturn(cached);
+
+                ModifyPersonalInfoReqDto reqDto = buildReqDto("홍길동", LocalDate.of(2009, 1, 1), Sex.MALE);
+
+                modifyPersonalInfoService.execute(reqDto, memberId, true);
+
+                ArgumentCaptor<FoundOneseoResDto> captor = ArgumentCaptor.forClass(FoundOneseoResDto.class);
+                verify(cache).put(eq(memberId), captor.capture());
+                OneseoPrivacyDetailResDto updatedDetail = captor.getValue().privacyDetail();
+                assertEquals("홍길동", updatedDetail.name());
+                assertEquals(LocalDate.of(2009, 1, 1), updatedDetail.birth());
+                assertEquals(Sex.MALE, updatedDetail.sex());
+                assertEquals("01000000000", updatedDetail.phoneNumber());
+            }
+
+            @Test
+            @DisplayName("임시저장 캐시가 없으면 아무 것도 하지 않는다")
+            void it_does_nothing_when_cache_entry_missing() {
+                given(cache.get(memberId, FoundOneseoResDto.class)).willReturn(null);
+
+                ModifyPersonalInfoReqDto reqDto = buildReqDto("홍길동", LocalDate.of(2009, 1, 1), Sex.MALE);
+
+                modifyPersonalInfoService.execute(reqDto, memberId, true);
+
+                verify(cache, never()).put(any(), any());
             }
         }
 
