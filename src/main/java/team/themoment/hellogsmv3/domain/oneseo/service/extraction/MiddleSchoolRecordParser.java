@@ -102,7 +102,7 @@ public class MiddleSchoolRecordParser {
      *
      * <p>
      * group1=학년, group2=수업일수, group3=숫자 12개. 4개 항목(결석/지각/조퇴/결과) 모두 3칸씩 질병/미인정/기타
-     * 순으로 동일하게 구성되며, 질병은 정책상 계산에서 제외한다({@link #readAttendance} 참고).
+     * 순으로 동일하게 구성되며, 질병·기타는 정책상 계산에서 제외하고 미인정만 반영한다({@link #readAttendance} 참고).
      */
     private static final Pattern ATTENDANCE_ROW = Pattern.compile("^([123])\\s+(\\d+)((?:\\s+\\d+){12})\\s*$");
 
@@ -404,12 +404,12 @@ public class MiddleSchoolRecordParser {
             int grade = Integer.parseInt(matcher.group(1));
             int[] values = Arrays.stream(matcher.group(3).strip().split("\\s+")).mapToInt(Integer::parseInt).toArray();
 
-            // 결석 미인정/기타 합산 (질병은 정책상 계산에서 제외)
-            context.absentDays[grade - 1] = values[1] + values[2];
-            // 학년별 지각, 조퇴, 결과 순으로 3칸씩 배치 (각 칸도 미인정/기타만 합산, 질병 제외)
-            context.attendanceDays[(grade - 1) * 3] = values[4] + values[5];
-            context.attendanceDays[(grade - 1) * 3 + 1] = values[7] + values[8];
-            context.attendanceDays[(grade - 1) * 3 + 2] = values[10] + values[11];
+            // 결석은 미인정만 반영 (질병·기타로 인한 결석은 정책상 계산에서 제외)
+            context.absentDays[grade - 1] = values[1];
+            // 학년별 지각, 조퇴, 결과 순으로 3칸씩 배치 (각 칸도 미인정만 반영, 질병·기타 제외)
+            context.attendanceDays[(grade - 1) * 3] = values[4];
+            context.attendanceDays[(grade - 1) * 3 + 1] = values[7];
+            context.attendanceDays[(grade - 1) * 3 + 2] = values[10];
             return true;
         }
 
