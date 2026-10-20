@@ -3,11 +3,13 @@ package team.themoment.hellogsmv3.domain.oneseo.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoSortBy;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoPageInfoDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -29,7 +31,9 @@ public class SearchOneseoService {
             ScreeningCategory screeningTag,
             YesNo isSubmitted,
             String keyword,
-            OneseoEditStatusTag status) {
+            OneseoEditStatusTag status,
+            OneseoSortBy sortBy,
+            Sort.Direction sortDirection) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<SearchOneseoResDto> oneseoPage = findOneseoByTagsAndKeyword(testResultTag,
@@ -37,6 +41,8 @@ public class SearchOneseoService {
                 isSubmitted,
                 keyword,
                 status,
+                sortBy,
+                sortDirection,
                 pageable);
 
         SearchOneseoPageInfoDto infoDto = SearchOneseoPageInfoDto.builder().totalPages(oneseoPage.getTotalPages())
@@ -50,12 +56,16 @@ public class SearchOneseoService {
             YesNo isSubmitted,
             String keyword,
             OneseoEditStatusTag status,
+            OneseoSortBy sortBy,
+            Sort.Direction sortDirection,
             Pageable pageable) {
         return oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
                 screeningTag,
                 isSubmitted,
                 testResultTag,
                 status,
+                sortBy,
+                sortDirection,
                 pageable);
     }
 }

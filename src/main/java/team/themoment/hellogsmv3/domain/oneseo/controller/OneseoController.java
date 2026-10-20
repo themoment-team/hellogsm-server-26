@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,7 +95,7 @@ public class OneseoController {
         return CommonApiResponse.success("수정되었습니다.");
     }
 
-    @Operation(summary = "원서 검색", description = "조건을 파라미터로 받아 원서를 검색합니다.")
+    @Operation(summary = "원서 검색", description = "조건을 파라미터로 받아 원서를 검색합니다. sortBy, sortDirection으로 정렬 기준을 지정할 수 있습니다.")
     @GetMapping("/oneseo/search")
     public SearchOneseosResDto search(@RequestParam @Min(0) Integer page,
             @RequestParam @Min(0) Integer size,
@@ -102,8 +103,11 @@ public class OneseoController {
             @RequestParam(required = false) ScreeningCategory screeningTag,
             @Schema(description = "서류 제출 여부") @RequestParam(required = false) YesNo isSubmitted,
             @RequestParam(name = "keyword", required = false) String keyword,
-            @Schema(description = "수정 상태 필터 (ANY_EDIT, REQUESTED, APPROVED)") @RequestParam(required = false) OneseoEditStatusTag status) {
-        return searchOneseoService.execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, status);
+            @Schema(description = "수정 상태 필터 (ANY_EDIT, REQUESTED, APPROVED)") @RequestParam(required = false) OneseoEditStatusTag status,
+            @Schema(description = "정렬 기준, 생략하면 접수번호 내림차순") @RequestParam(required = false) OneseoSortBy sortBy,
+            @Schema(description = "정렬 방향 (ASC, DESC), YES/NO 컬럼은 ASC일 때 YES가 먼저 옵니다.") @RequestParam(defaultValue = "ASC") Sort.Direction sortDirection) {
+        return searchOneseoService
+                .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, status, sortBy, sortDirection);
     }
 
     @Operation(summary = "내 원서 조회", description = "내 원서 정보를 조회합니다. 임시 저장된 원서가 있다면 임시 저장된 원서를 조회합니다.")

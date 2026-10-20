@@ -1,6 +1,7 @@
 package team.themoment.hellogsmv3.domain.oneseo.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import team.themoment.hellogsmv3.domain.oneseo.entity.type.GraduationType;
@@ -24,7 +25,7 @@ public record OneseoTempReqDto(@Schema(description = "보호자 이름", default
                 "IOT"}) Major secondDesiredMajor,
         @Schema(description = "3지망 학과", defaultValue = "IOT", allowableValues = {"SW", "AI",
                 "IOT"}) Major thirdDesiredMajor,
-        MiddleSchoolAchievementReqDto middleSchoolAchievement,
+        @Valid MiddleSchoolAchievementReqDto middleSchoolAchievement,
         @Schema(description = "중학교 이름", nullable = true, defaultValue = "금호중앙중학교") String schoolName,
         @Schema(description = "중학교 주소", nullable = true, defaultValue = "광주광역시 북구 운암2동 금호로 100") String schoolAddress,
         @Schema(description = "자원자 전형", defaultValue = "GENERAL", allowableValues = {"GENERAL", "SPECIAL",

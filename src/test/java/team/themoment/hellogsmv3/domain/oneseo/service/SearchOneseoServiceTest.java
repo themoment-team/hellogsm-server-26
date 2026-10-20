@@ -21,9 +21,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import team.themoment.hellogsmv3.domain.member.entity.Member;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoSortBy;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoPageInfoDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -70,14 +72,23 @@ class SearchOneseoServiceTest {
                         isSubmitted,
                         testResultTag,
                         null,
+                        null,
+                        Sort.Direction.ASC,
                         pageable)).willReturn(emptyPage);
             }
 
             @Test
             @DisplayName("빈 결과를 반환한다")
             void it_returns_empty_result() {
-                SearchOneseosResDto result = searchOneseoService
-                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        null,
+                        null,
+                        Sort.Direction.ASC);
 
                 assertEquals(0, result.info().totalElements());
                 assertEquals(0, result.info().totalPages());
@@ -114,14 +125,23 @@ class SearchOneseoServiceTest {
                         isSubmitted,
                         testResultTag,
                         null,
+                        null,
+                        Sort.Direction.ASC,
                         pageable)).willReturn(oneseoPage);
             }
 
             @Test
             @DisplayName("적절한 데이터를 반환한다")
             void it_returns_filtered_results() {
-                SearchOneseosResDto result = searchOneseoService
-                        .execute(page, size, testResultTag, screeningTag, isSubmitted, keyword, null);
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        null,
+                        null,
+                        Sort.Direction.ASC);
 
                 SearchOneseoPageInfoDto searchOneseoPageInfoDto = result.info();
                 assertEquals(1, searchOneseoPageInfoDto.totalElements());
@@ -172,6 +192,8 @@ class SearchOneseoServiceTest {
                         isSubmitted,
                         testResultTag,
                         OneseoEditStatusTag.ANY_EDIT,
+                        null,
+                        Sort.Direction.ASC,
                         pageable)).willReturn(oneseoPage);
             }
 
@@ -184,7 +206,9 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         keyword,
-                        OneseoEditStatusTag.ANY_EDIT);
+                        OneseoEditStatusTag.ANY_EDIT,
+                        null,
+                        Sort.Direction.ASC);
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
@@ -219,6 +243,8 @@ class SearchOneseoServiceTest {
                         isSubmitted,
                         testResultTag,
                         OneseoEditStatusTag.REQUESTED,
+                        null,
+                        Sort.Direction.ASC,
                         pageable)).willReturn(oneseoPage);
             }
 
@@ -231,7 +257,9 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         keyword,
-                        OneseoEditStatusTag.REQUESTED);
+                        OneseoEditStatusTag.REQUESTED,
+                        null,
+                        Sort.Direction.ASC);
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
@@ -266,6 +294,8 @@ class SearchOneseoServiceTest {
                         isSubmitted,
                         testResultTag,
                         OneseoEditStatusTag.APPROVED,
+                        null,
+                        Sort.Direction.ASC,
                         pageable)).willReturn(oneseoPage);
             }
 
@@ -278,12 +308,62 @@ class SearchOneseoServiceTest {
                         screeningTag,
                         isSubmitted,
                         keyword,
-                        OneseoEditStatusTag.APPROVED);
+                        OneseoEditStatusTag.APPROVED,
+                        null,
+                        Sort.Direction.ASC);
 
                 assertEquals(1, result.info().totalElements());
                 assertEquals(1, result.oneseos().size());
                 assertEquals(member.getId(), result.oneseos().getFirst().memberId());
                 assertEquals(oneseo.getOneseoSubmitCode(), result.oneseos().getFirst().submitCode());
+            }
+        }
+
+        @Nested
+        @DisplayName("sortBy와 sortDirection이 주어진 경우")
+        class Context_with_sort {
+
+            private final OneseoSortBy sortBy = OneseoSortBy.COMPETENCY_SCORE;
+            private final Sort.Direction sortDirection = Sort.Direction.DESC;
+
+            private Member member;
+
+            @BeforeEach
+            void setUp() {
+                Pageable pageable = PageRequest.of(page, size);
+                member = buildMember();
+
+                SearchOneseoResDto searchOneseoResDto = buildSearchOneseoDto(member,
+                        buildOneseo(),
+                        buildOneseoPrivacyDetail(),
+                        buildEntranceTestResult());
+                Page<SearchOneseoResDto> oneseoPage = new PageImpl<>(List.of(searchOneseoResDto), pageable, 1);
+
+                given(oneseoRepository.findAllByKeywordAndScreeningAndSubmissionStatusAndTestResult(keyword,
+                        screeningTag,
+                        isSubmitted,
+                        testResultTag,
+                        OneseoEditStatusTag.ANY_EDIT,
+                        sortBy,
+                        sortDirection,
+                        pageable)).willReturn(oneseoPage);
+            }
+
+            @Test
+            @DisplayName("필터와 함께 정렬 조건이 repository로 올바르게 전달된다")
+            void it_passes_sort_with_filters_to_repository() {
+                SearchOneseosResDto result = searchOneseoService.execute(page,
+                        size,
+                        testResultTag,
+                        screeningTag,
+                        isSubmitted,
+                        keyword,
+                        OneseoEditStatusTag.ANY_EDIT,
+                        sortBy,
+                        sortDirection);
+
+                assertEquals(1, result.info().totalElements());
+                assertEquals(member.getId(), result.oneseos().getFirst().memberId());
             }
         }
     }

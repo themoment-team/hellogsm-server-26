@@ -5,9 +5,11 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import team.themoment.hellogsmv3.domain.oneseo.dto.internal.FoundMemberAndOneseoDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoEditStatusTag;
+import team.themoment.hellogsmv3.domain.oneseo.dto.request.OneseoSortBy;
 import team.themoment.hellogsmv3.domain.oneseo.dto.request.TestResultTag;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.AdmissionTicketsResDto;
 import team.themoment.hellogsmv3.domain.oneseo.dto.response.SearchOneseoResDto;
@@ -30,6 +32,8 @@ public interface CustomOneseoRepository {
             YesNo isSubmitted,
             TestResultTag testResultTag,
             OneseoEditStatusTag status,
+            OneseoSortBy sortBy,
+            Sort.Direction sortDirection,
             Pageable pageable);
 
     List<AdmissionTicketsResDto> findAdmissionTickets();

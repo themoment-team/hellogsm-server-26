@@ -1,0 +1,5 @@
+package team.themoment.hellogsmv3.domain.oneseo.dto.request;
+
+public enum OneseoSortBy {
+    SUBMIT_CODE, NAME, SCHOOL_NAME, SCREENING, COMPETENCY_SCORE, INTERVIEW_SCORE, REAL_ONESEO_ARRIVED, FIRST_TEST_PASS, SECOND_TEST_PASS, ENTRANCE_INTENTION
+}
