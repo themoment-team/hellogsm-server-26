@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Builder;
 import team.themoment.hellogsmv3.domain.oneseo.annotation.ValidSubjectName;
 
@@ -23,7 +24,7 @@ public record MiddleSchoolAchievementReqDto(
         @Schema(description = "예체능 교과 이름", nullable = true, defaultValue = "[\"체육\", \"미술\", \"음악\"]") List<String> artsPhysicalSubjects,
         @Schema(description = "결석일", nullable = true, defaultValue = "[2, 0, 0]") List<Integer> absentDays,
         @Schema(description = "출결일", nullable = true, defaultValue = "[0, 4, 0, 0, 0, 0, 0, 0, 0]") List<Integer> attendanceDays,
-        @Schema(description = "봉사시간", nullable = true, defaultValue = "[7, 3, 4]") List<Integer> volunteerTime,
+        @Schema(description = "봉사시간", nullable = true, defaultValue = "[7, 3, 4]") List<@PositiveOrZero(message = "봉사시간은 0 이상이어야 합니다.") Integer> volunteerTime,
         @Schema(description = "자유학기 or 학년제 시스템", nullable = true, defaultValue = "자유학년제", allowableValues = {
                 "자유학기제", "자유학년제"}) String liberalSystem,
         @Schema(description = "자유학기제 학기", nullable = true, defaultValue = "null", allowableValues = {"1-1", "1-2",
