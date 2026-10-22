@@ -38,7 +38,10 @@ jobs:
         shell: bash
 
       - name: Build with Gradle
-        run: ./gradlew clean build
+        # Eclipse P2(greclipse) 저장소가 GitHub Actions 러너에서만 provisioning 실패(네트워크 이슈)해서
+        # 입학 마감 연장 긴급 배포를 위해 이번 배포 1회만 groovy spotless 검사를 건너뜀.
+        # 복구 확인되면 이 커밋은 되돌려야 함.
+        run: ./gradlew clean build -x spotlessGroovyGradle -x spotlessGroovyGradleCheck
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
