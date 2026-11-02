@@ -327,8 +327,8 @@ public class DownloadExcelService {
         BigDecimal adjustedDocumentScore = documentEvaluationScore
                 .divide(BigDecimal.valueOf(3), 3, RoundingMode.HALF_UP);
 
-        return adjustedDocumentScore.multiply(BigDecimal.valueOf(0.5))
-                .add(competencyEvaluationScore.multiply(BigDecimal.valueOf(0.3)))
+        return adjustedDocumentScore.multiply(BigDecimal.valueOf(0.6))
+                .add(competencyEvaluationScore.multiply(BigDecimal.valueOf(0.2)))
                 .add(interviewScore.multiply(BigDecimal.valueOf(0.2))).setScale(3, RoundingMode.HALF_UP);
     }
 }
