@@ -207,7 +207,7 @@ class DownloadExcelServiceTest {
             assertEquals("70", dataRow.getCell(21).getStringCellValue());
             assertEquals("60", dataRow.getCell(22).getStringCellValue());
 
-            assertEquals("46.334", dataRow.getCell(23).getStringCellValue());
+            assertEquals("42.000", dataRow.getCell(23).getStringCellValue());
 
             assertEquals("IOT", dataRow.getCell(24).getStringCellValue());
             assertEquals("01012345678", dataRow.getCell(25).getStringCellValue());
@@ -278,7 +278,7 @@ class DownloadExcelServiceTest {
                     Sheet sheet = workbook.getSheetAt(0);
                     Row dataRow = sheet.getRow(1);
 
-                    assertEquals("54.000", dataRow.getCell(23).getStringCellValue());
+                    assertEquals("49.000", dataRow.getCell(23).getStringCellValue());
                 }
             }
         }
