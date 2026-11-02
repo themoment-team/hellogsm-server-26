@@ -42,6 +42,13 @@ public class DownloadExcelService {
     private static final int BATCH_SIZE = 1000; // 한 번에 처리할 원서 데이터의 배치 크기
     private static final int ROW_ACCESS_WINDOW = 100; // SXSSFWorkbook의 메모리 사용 최적화를 위한 행 접근 윈도우 크기
 
+    // 2027학년도 2차 전형 최종 성적 반영 비율: 서류 60% + 역량검사 20% + 면접 20%
+    // go-hellogsm 배치(실제 합/불합격·학과배정 결정)에도 동일한 비율이 별도로 구현되어 있어,
+    // 학년도마다 비율이 바뀌면 두 저장소 모두 함께 수정해야 한다.
+    private static final BigDecimal DOCUMENT_SCORE_RATIO = BigDecimal.valueOf(0.6);
+    private static final BigDecimal COMPETENCY_SCORE_RATIO = BigDecimal.valueOf(0.2);
+    private static final BigDecimal INTERVIEW_SCORE_RATIO = BigDecimal.valueOf(0.2);
+
     private static final List<String> HEADER_NAMES = List.of("순번",
             "접수번호",
             "수험번호",
@@ -324,11 +331,13 @@ public class DownloadExcelService {
             return null;
         }
 
+        // 중간 반올림 오차가 최종 3자리 반올림에 섞이지 않도록 충분히 큰 scale로 나눈 뒤,
+        // 전체 식을 계산한 값에 대해서만 한 번 반올림한다.
         BigDecimal adjustedDocumentScore = documentEvaluationScore
-                .divide(BigDecimal.valueOf(3), 3, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(3), 10, RoundingMode.HALF_UP);
 
-        return adjustedDocumentScore.multiply(BigDecimal.valueOf(0.5))
-                .add(competencyEvaluationScore.multiply(BigDecimal.valueOf(0.3)))
-                .add(interviewScore.multiply(BigDecimal.valueOf(0.2))).setScale(3, RoundingMode.HALF_UP);
+        return adjustedDocumentScore.multiply(DOCUMENT_SCORE_RATIO)
+                .add(competencyEvaluationScore.multiply(COMPETENCY_SCORE_RATIO))
+                .add(interviewScore.multiply(INTERVIEW_SCORE_RATIO)).setScale(3, RoundingMode.HALF_UP);
     }
 }
