@@ -1,6 +1,6 @@
 ---
 name: write-pr
-description: Generate PR title, body, and labels from commits since the base branch, then create the PR on GitHub. Handles base branch detection, label selection, and PR creation end-to-end.
+description: Generate a PR title, body, and a single label from commits since the base branch, then create the PR on GitHub. Handles base branch detection, label selection, and PR creation end-to-end.
 allowed-tools: Bash(git *:*), Bash(bash *create-pr.sh:*), Bash(cat *:*), Read, Write
 ---
 
@@ -19,9 +19,9 @@ Also read the PR template:
 cat .github/PULL_REQUEST_TEMPLATE.md
 ```
 
-## Step 2 — Determine Labels
+## Step 2 — Determine the Label
 
-Read `.agents/skills/write-pr/references/labels.md` and select 1–2 appropriate labels based on the nature of the changes.
+Read `.agents/skills/write-pr/references/labels.md` and select **exactly one** label based on the nature of the changes. When several labels apply, follow the priority order in that reference and keep only the top match.
 Read `.agents/skills/write-pr/references/commit-conventions.md` for commit type and scope naming rules.
 
 ## Step 3 — Generate PR Content
@@ -48,7 +48,7 @@ Write the body to `PR_BODY.md`, then display:
 3. [title3]
 
 ## 선택된 라벨
-- label1, label2
+- label
 
 ## PR 본문 미리보기
 [body content]
@@ -58,11 +58,15 @@ Ask the user which title to use (present options 1/2/3). Wait for the answer bef
 
 ## Step 5 — Create PR
 
-Run the creation script with the confirmed title and labels:
+Run the creation script with the confirmed title and the single label:
 
 ```bash
-bash .agents/skills/write-pr/scripts/create-pr.sh "<confirmed-title>" "PR_BODY.md" "<label1>,<label2>"
+bash .agents/skills/write-pr/scripts/create-pr.sh "<confirmed-title>" "PR_BODY.md" "<label>"
 ```
 
-After creation, display the PR URL.
+The script drops the label and creates the PR unlabeled when the repository does not have that
+label. Never create a missing label or swap in a different one — an unlabeled PR is the expected
+outcome there.
+
+After creation, display the PR URL. If the label was dropped, say so in one line.
 Cleanup: remove `PR_BODY.md`.

@@ -12,7 +12,13 @@ Do not use a hardcoded list. Determine scope from:
 
 1. `git diff --name-only` — look at changed file paths
 2. Directory structure — infer domain/module from path segments (e.g., `src/auth/`, `packages/user/`, `services/payment/`)
-3. Project-specific conventions in `CLAUDE.md` or `.claude/rules/`
+3. Existing `AGENTS.md` files applicable to the changed paths, and any relevant `.claude/rules/` or `CONTRIBUTING.md` conventions
+
+Respect the scope of nested `AGENTS.md` files. Skip missing documents and do not create them. Explicit project scope conventions take precedence over this guide’s domain-first default; otherwise infer the scope from changed paths and recent commits, and label it as inferred rather than citing a missing document.
+
+Do not invent a priority between conflicting reference documents. Follow an explicitly documented project choice; otherwise report the conflict before choosing a scope for the affected commit.
+
+For Codex, respect the runtime-selected file in each directory: `AGENTS.override.md`, then `AGENTS.md`, then configured fallback filenames. Do not reapply a file superseded by that selection. A document audit may still review a superseded file as content, without treating it as active authority.
 
 ## Module / Cross-cutting Names (Secondary)
 
