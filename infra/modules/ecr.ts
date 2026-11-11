@@ -9,17 +9,25 @@ export interface EcrResult {
 // 들어가 롤링 배포의 이점이 줄어든다. CI에서 미리 빌드해 ECR에 push하고, 인스턴스는
 // pull + run만 하도록 분리한다.
 export function createEcr(): EcrResult {
-    const repository = new aws.ecr.Repository("hello-prod-server-ecr", {
-        name: "hello-prod-server",
-        // 태그는 git commit SHA지만, application-prod.yml(스케줄 등 운영 설정)은 jar 안에
-        // 빌드 시점에 내장되고 GitHub Actions secret으로 커밋과 별개로 바뀔 수 있다.
-        // IMMUTABLE이면 같은 커밋을 설정만 바꿔 재배포할 때 "tag already exists"로 push가
-        // 막혀서, 재배포가 실제로는 과거 이미지를 재사용하는 조용한 버그로 이어진다.
-        // MUTABLE로 두고 매 배포마다 항상 재빌드/재push한다 (CI 워크플로 참고).
-        imageTagMutability: "MUTABLE",
-        imageScanningConfiguration: { scanOnPush: true },
-        tags: { Name: "hello-prod-server-ecr" },
-    });
+    // ECR 저장소는 입학 전형 시즌과 무관하게 CI/CD가 main 머지마다 계속 이미지를 push하는
+    // 상시 자원이다 - 매 운영 사이클의 destroy 대상에 들어가면 과거 이미지가 전부 날아가고
+    // 다음 배포가 깨지므로 protect:true로 보존한다. 이미지 보관 비용은 lifecycle policy로
+    // 최근 20개만 유지해 이미 낮게 관리 중.
+    const repository = new aws.ecr.Repository(
+        "hello-prod-server-ecr",
+        {
+            name: "hello-prod-server",
+            // 태그는 git commit SHA지만, application-prod.yml(스케줄 등 운영 설정)은 jar 안에
+            // 빌드 시점에 내장되고 GitHub Actions secret으로 커밋과 별개로 바뀔 수 있다.
+            // IMMUTABLE이면 같은 커밋을 설정만 바꿔 재배포할 때 "tag already exists"로 push가
+            // 막혀서, 재배포가 실제로는 과거 이미지를 재사용하는 조용한 버그로 이어진다.
+            // MUTABLE로 두고 매 배포마다 항상 재빌드/재push한다 (CI 워크플로 참고).
+            imageTagMutability: "MUTABLE",
+            imageScanningConfiguration: { scanOnPush: true },
+            tags: { Name: "hello-prod-server-ecr" },
+        },
+        { protect: true },
+    );
 
     new aws.ecr.LifecyclePolicy("hello-prod-server-ecr-lifecycle", {
         repository: repository.name,

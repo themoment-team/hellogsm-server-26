@@ -140,14 +140,21 @@ export function createIam(
     });
 
     // ---- GitHub OIDC provider + deploy role ----
-    const githubOidcProvider = new aws.iam.OpenIdConnectProvider("github-actions-oidc", {
-        url: "https://token.actions.githubusercontent.com",
-        clientIdLists: ["sts.amazonaws.com"],
-        // aws.iam.OpenIdConnectProvider는 thumbprintLists를 필수로 요구하지만, 2024-12-12부터
-        // AWS는 token.actions.githubusercontent.com 같은 신뢰된 IdP에 대해 이 값을 실제로는
-        // 무시한다. 갱신이 필요한 값이 아니므로 이후 값을 최신화할 필요 없음.
-        thumbprintLists: ["6938fd4d98bab03faadb97b34396831e3780aea1"],
-    });
+    // OIDC provider는 AWS 계정당 동일 URL로 1개만 허용된다 - 다른 리포(stage 등)가 향후
+    // 같은 provider를 공유하게 될 수도 있고, 비용도 전혀 없으므로 매 운영 사이클
+    // destroy/up 대상에서 빼고 protect:true로 상시 보존한다.
+    const githubOidcProvider = new aws.iam.OpenIdConnectProvider(
+        "github-actions-oidc",
+        {
+            url: "https://token.actions.githubusercontent.com",
+            clientIdLists: ["sts.amazonaws.com"],
+            // aws.iam.OpenIdConnectProvider는 thumbprintLists를 필수로 요구하지만, 2024-12-12부터
+            // AWS는 token.actions.githubusercontent.com 같은 신뢰된 IdP에 대해 이 값을 실제로는
+            // 무시한다. 갱신이 필요한 값이 아니므로 이후 값을 최신화할 필요 없음.
+            thumbprintLists: ["6938fd4d98bab03faadb97b34396831e3780aea1"],
+        },
+        { protect: true },
+    );
 
     const githubActionsDeployRole = new aws.iam.Role("hello-prod-github-actions-deploy-role", {
         name: "hello-prod-github-actions-deploy-role",

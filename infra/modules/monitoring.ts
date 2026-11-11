@@ -1,8 +1,10 @@
 import * as aws from "@pulumi/aws";
 import { config } from "../config";
 
+const LOG_GROUP_NAME = "hellogsm-prod-log";
+
 export interface MonitoringResult {
-    logGroup: aws.cloudwatch.LogGroup;
+    logGroupName: string;
     alertsTopic: aws.sns.Topic;
 }
 
@@ -13,29 +15,27 @@ export function createMonitoring(
     springbootInstanceIds: aws.ec2.Instance["id"][],
     redisInstanceId: aws.ec2.Instance["id"],
 ): MonitoringResult {
-    // 2024년부터 실제 운영 로그(약 1GB)가 쌓여있는 기존 로그 그룹을 pulumi import로 흡수한다
-    // (README 참고). protect:true로 실수 삭제를 막는다 - 삭제 시 로그가 전부 유실된다.
-    const logGroup = new aws.cloudwatch.LogGroup(
-        "hellogsm-prod-log",
-        {
-            name: "hellogsm-prod-log",
-            // 0 = 만료 없음 (logback-spring.xml의 retentionTimeDays=0과 정합)
-            retentionInDays: config.logRetentionDays,
-            tags: { Name: "hellogsm-prod-log" },
-        },
+    // 2024년부터 실제 운영 로그(약 1GB 이상)가 쌓여있는 기존 로그 그룹이다. 삭제 시
+    // 로그가 전부 유실되고, 운영 사이클과 무관하게 상시 보존해야 하는 자원이라 더 이상
+    // Pulumi가 관리하지 않고 데이터 소스로만 참조한다 (실제 값 조회는 불필요한 경우가
+    // 많아 이름만 상수로 export - 필요해지면 getLogGroupOutput으로 조회해 바꾼다).
+    const logGroupName = LOG_GROUP_NAME;
+
+    // SNS 알람 토픽은 비용이 거의 없고, destroy/up으로 재생성하면 이메일 구독자가 매 시즌
+    // 재확인(컨펌 클릭)을 다시 해야 하는 불편이 생긴다. protect:true로 상시 보존한다 -
+    // 알람(MetricAlarm)은 매 시즌 새로 뜨는 인스턴스/ALB를 가리켜야 해서 ephemeral로 둔다.
+    const alertsTopic = new aws.sns.Topic(
+        "hello-prod-alerts",
+        { name: "hello-prod-alerts" },
         { protect: true },
     );
 
-    const alertsTopic = new aws.sns.Topic("hello-prod-alerts", {
-        name: "hello-prod-alerts",
-    });
-
     if (config.snsAlarmEmail) {
-        new aws.sns.TopicSubscription("hello-prod-alerts-email", {
-            topic: alertsTopic.arn,
-            protocol: "email",
-            endpoint: config.snsAlarmEmail,
-        });
+        new aws.sns.TopicSubscription(
+            "hello-prod-alerts-email",
+            { topic: alertsTopic.arn, protocol: "email", endpoint: config.snsAlarmEmail },
+            { protect: true },
+        );
     }
 
     new aws.cloudwatch.MetricAlarm("hello-prod-alb-unhealthy-hosts", {
@@ -103,5 +103,5 @@ export function createMonitoring(
         okActions: [alertsTopic.arn],
     });
 
-    return { logGroup, alertsTopic };
+    return { logGroupName, alertsTopic };
 }

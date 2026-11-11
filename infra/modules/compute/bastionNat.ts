@@ -1,41 +1,23 @@
 import * as aws from "@pulumi/aws";
 
-export interface BastionNatResult {
-    instance: aws.ec2.Instance;
-    eip: aws.ec2.Eip;
-}
+// Bastion+NAT 인스턴스("hello-prod-nat")는 입학 전형 시즌과 무관하게 상시 보존하는
+// 리소스다 - 이 인스턴스는 운영 중인 EC2/RDS 접근용 Bastion이자 프라이빗 서브넷의
+// NAT 역할을 겸하고 있어, 매 시즌 destroy/up으로 흔들면 안 된다(AMI/userData를 건드리면
+// stop/start가 발생해 iptables MASQUERADE 설정이 날아갈 위험도 있음 - README 참고).
+// 그래서 더 이상 Pulumi가 생성/삭제를 관리하지 않고 데이터 소스로만 참조한다.
+export function createBastionNat() {
+    const instance = aws.ec2.getInstanceOutput({
+        filters: [{ name: "tag:Name", values: ["hello-prod-nat"] }],
+    });
 
-// 기존에 실제 운영 중인 Bastion+NAT 인스턴스(i-094592acf0b762882, "hello-prod-nat")를
-// pulumi import로 그대로 흡수한다 (README 참고). AMI/인스턴스 타입/키페어는 새로
-// 결정하지 않고 실제 라이브 인스턴스의 현재 값과 정확히 맞춰 replace가 발생하지 않도록 한다.
-export function createBastionNat(
-    publicSubnetId: aws.ec2.Subnet["id"],
-    bastionSgId: aws.ec2.SecurityGroup["id"],
-): BastionNatResult {
-    const instance = new aws.ec2.Instance(
-        "hello-prod-nat",
-        {
-            ami: "ami-0d211b58ff9d9bb61",
-            instanceType: "t4g.micro",
-            subnetId: publicSubnetId,
-            vpcSecurityGroupIds: [bastionSgId],
-            keyName: "hello-prod-bastion",
-            // NAT 겸용 인스턴스는 자신이 발신지/목적지가 아닌 트래픽도 전달해야 하므로 필수
-            sourceDestCheck: false,
-            tags: { Name: "hello-prod-nat" },
-        },
-        { protect: true },
-    );
-
-    const eip = new aws.ec2.Eip(
-        "hello-prod-eip",
-        {
-            instance: instance.id,
-            domain: "vpc",
-            tags: { Name: "hello-prod-eip" },
-        },
-        { protect: true },
-    );
+    // 이 프로바이더 버전은 단일 EIP 데이터 소스(getEip)가 없어 getEips(복수형)로 조회한다.
+    // hello-prod-eip는 NAT 인스턴스에 고정 연결된 단일 EIP라 결과가 항상 정확히 1개다.
+    const eips = aws.ec2.getEipsOutput({
+        tags: { Name: "hello-prod-eip" },
+    });
+    const eip = { publicIp: eips.publicIps[0] };
 
     return { instance, eip };
 }
+
+export type BastionNatResult = ReturnType<typeof createBastionNat>;
