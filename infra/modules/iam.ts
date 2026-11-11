@@ -4,6 +4,7 @@ import { config } from "../config";
 
 export interface IamResult {
     springbootInstanceProfile: aws.iam.InstanceProfile;
+    redisInstanceProfile: aws.iam.InstanceProfile;
     codeDeployServiceRole: aws.iam.Role;
     githubActionsDeployRole: aws.iam.Role;
 }
@@ -117,6 +118,43 @@ export function createIam(
 
     const springbootInstanceProfile = new aws.iam.InstanceProfile("hello-prod-springboot-instance-profile", {
         role: springbootEc2Role.name,
+    });
+
+    // SSM Session Manager 접속용 - 과거 이 리소스를 추가한 코드가 커밋되지 않은 채 로컬에서만
+    // pulumi up이 실행돼, state에는 있지만 어느 브랜치의 git 히스토리에도 없는 상태였다
+    // (2026-11 정리 때 preview에서 "삭제 대상"으로 드러나 발견). 기존 실제 값 그대로 복원한다.
+    new aws.iam.RolePolicyAttachment("hello-prod-springboot-ssm-attach", {
+        role: springbootEc2Role.name,
+        policyArn: "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    });
+
+    // ---- EC2 (Redis) instance role/profile ----
+    // springboot와 동일한 사유로 커밋되지 않은 채 state에만 남아있던 리소스를 복원한다.
+    // Redis는 ephemeral이라 이 role/profile도 시즌마다 함께 뜨고 내려간다(NAT의 role과
+    // 달리 protect:true를 걸지 않는다 - bastionNat.ts 참고).
+    const redisEc2Role = new aws.iam.Role("hello-prod-redis-ec2-role", {
+        name: "hello-prod-redis-ec2-role",
+        assumeRolePolicy: JSON.stringify({
+            Version: "2012-10-17",
+            Statement: [
+                {
+                    Effect: "Allow",
+                    Principal: { Service: "ec2.amazonaws.com" },
+                    Action: "sts:AssumeRole",
+                },
+            ],
+        }),
+    });
+
+    new aws.iam.RolePolicyAttachment("hello-prod-redis-ssm-attach", {
+        role: redisEc2Role.name,
+        policyArn: "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    });
+
+    // 기존 실제 인스턴스 프로파일 이름(랜덤 서픽스 포함)을 그대로 지정해 교체를 피한다.
+    const redisInstanceProfile = new aws.iam.InstanceProfile("hello-prod-redis-instance-profile", {
+        name: "hello-prod-redis-instance-profile-3b7069e",
+        role: redisEc2Role.name,
     });
 
     // ---- CodeDeploy service role ----
@@ -262,5 +300,5 @@ export function createIam(
         { protect: true },
     );
 
-    return { springbootInstanceProfile, codeDeployServiceRole, githubActionsDeployRole };
+    return { springbootInstanceProfile, redisInstanceProfile, codeDeployServiceRole, githubActionsDeployRole };
 }

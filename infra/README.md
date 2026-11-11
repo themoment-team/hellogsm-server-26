@@ -91,12 +91,40 @@ AWS 콘솔에서 직접 만들어져 이 스택이 처음부터 관리하지 않
   로 보호를 해제한 뒤 `pulumi up`을 돌린다.
 - `ecr.ts`의 ECR 저장소 `hello-prod-server` — CI/CD가 시즌과 무관하게 계속 이미지를 push하는
   상시 자원이라 `protect:true`로 전환. (이미지 보관 비용은 lifecycle policy로 최근 20개만 유지)
+- `lambda.ts`의 entrance-lambda(모의 성적 계산 Lambda + API Gateway) 전체 — Lambda/API Gateway
+  둘 다 유휴 비용이 없어(호출당 과금) "시즌 끝나면 내려서 비용 절감"할 이유가 없다. 모듈 내
+  모든 리소스를 `protect:true`로 보존한다.
+  **2026-11 발견:** 이 모듈은 과거 `feature/build/entrance-integration` 브랜치(develop에
+  머지되지 않음, PR #396)에서만 작성됐던 코드다. 그 브랜치 코드로 로컬에서 `pulumi up`을 돌려
+  실제 운영 Lambda/APIGW가 만들어졌지만, 코드는 어느 브랜치에도 커밋되지 않은 채 Pulumi state에만
+  남아있었다 - persistent/ephemeral 정리 중 `pulumi preview`가 이걸 통째로 삭제 대상으로 잡는 걸
+  보고 발견해서 그 브랜치에서 `lambda.ts`만 추출해 포트했다. `entranceLambdaApiKey`(Lambda가 읽는
+  `X_HG_INTERNAL_API_KEY`, server의 `SCORE_CALCULATOR_API_KEY`와 짝을 맞춰야 함)는
+  `pulumi config set --secret`으로 이미 설정돼 있다(실제 배포된 값을 그대로 가져와 재설정함).
+
+### Springboot/Redis EC2가 실제로 쓰는데 코드에 없었던 리소스 (2026-11 발견, 복원 완료)
+
+`compute/bastionNat.ts`의 NAT role과 같은 사유로, 어느 git 히스토리에도 없이 로컬에서만 적용된 뒤
+Pulumi state에만 남아있던 리소스들이다. `pulumi preview`가 전부 삭제 대상으로 잡는 걸 보고 발견했다.
+
+- `iam.ts`의 `hello-prod-springboot-ssm-attach` / `hello-prod-redis-ssm-attach` - SSM Session
+  Manager 접속용 `AmazonSSMManagedInstanceCore` policy attach. springboot role에는 이미 있던
+  커스텀 정책들과 별개로 추가.
+- `iam.ts`의 `hello-prod-redis-ec2-role` + `hello-prod-redis-instance-profile` - Redis EC2는
+  지금까지 아예 IAM role 없이 뜨는 것처럼 코드엔 보였지만, 실제로는 이 role/profile이 붙어있었다.
+  기존 instance-profile 이름(`hello-prod-redis-instance-profile-3b7069e`)을 그대로 지정해 교체를
+  피했다. `compute/redisServer.ts`에 `iamInstanceProfile` 파라미터를 추가해 연결한다.
+- `compute/redisServer.ts`에 `ignoreChanges: ["ami", "userData"]` 추가 - **springboot에는 이미
+  있었지만 redis에는 없었던 치명적 누락이었다.** 이게 없으면 AWS가 "최신" AL2023 AMI를 새로
+  내놓는 순간 `pulumi preview`가 가동 중인 Redis 인스턴스를 **replace(파괴 후 재생성, 데이터 유실)**
+  대상으로 잡는다 - 실제로 2026-11 정리 작업 중 이 상태로 잡힌 걸 발견해서 고쳤다.
 
 ### 운영 사이클마다 뜨고 내려가는 인프라 (ephemeral, `pulumi up`/`pulumi destroy --exclude-protected` 대상)
 
 ALB(+리스너 2개+타겟그룹+어태치먼트), Route53 A레코드, ACM 인증서(+DNS 검증), Spring Boot EC2 2대,
-Redis EC2, 이들의 보안그룹(albSg/springbootSg/redisSg), Spring Boot 인스턴스 프로파일(및 EC2 롤),
-CloudWatch MetricAlarm들. (CodeDeploy 서비스 롤과 GitHub Actions 배포 롤은 위 보존 목록으로 옮겼다.)
+Redis EC2, 이들의 보안그룹(albSg/springbootSg/redisSg) 및 SG 룰, Spring Boot/Redis 인스턴스
+프로파일·EC2 롤·SSM attach, CloudWatch MetricAlarm들. (CodeDeploy 서비스 롤과 GitHub Actions
+배포 롤은 위 보존 목록으로 옮겼다.)
 
 ### 이번 정리 작업 전에 반드시 먼저 해야 하는 것 — 기존 state 정리
 
@@ -143,6 +171,16 @@ update인지 반드시 확인한다. 예상 밖의 `delete`나 `replace`가 보�
 먼저 원인을 파악한다.
 
 ### 운영 사이클 명령
+
+**`protect:true`는 코드에 적는다고 바로 적용되지 않는다 - `pulumi up`을 실제로 한 번 돌려야
+state에 기록된다.** 2026-11 정리 때 이 스택에 `pulumi up`을 한 번도 안 돌린 채 바로
+`pulumi destroy --exclude-protected`를 돌리려 했다가, 코드에 `protect:true`로 선언해둔
+ECR/SNS/GitHub OIDC/entrance-lambda 전체가 실제로는 state에 보호 플래그가 없어 삭제 대상으로
+잡히는 걸 뒤늦게 발견했다. **이 README의 "보존 인프라를 Pulumi state에서 제거하기" 절차를
+처음 적용하는 시점, 또는 새로 `protect:true`를 추가한 직후에는 반드시 `pulumi up`을 한 번 돌려
+(diff가 0 create/delete/update/replace임을 먼저 확인할 것) 보호 플래그를 state에 반영한 다음,
+`pulumi destroy --exclude-protected --preview-only`로 삭제 대상 목록이 예상과 일치하는지
+재확인하고 나서야 실제 destroy를 실행한다.**
 
 **`pulumi up` 실행 전, 프라이빗 서브넷의 NAT 라우트가 살아있는지 먼저 수동으로 확인한다** —
 이 라우트(`hello-prod-priv-rtb-a`/`hello-prod-priv-rtb-b`의 `0.0.0.0/0 -> hello-prod-nat`)는
