@@ -87,6 +87,10 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]) {
         toPort: 22,
     });
 
+    // springbootSg는 ephemeral이라 이 룰도 protect:true를 걸면 안 된다 - springbootSg를
+    // destroy하는 순간 "아직 그 SG를 참조하는 룰이 있다"는 AWS DependencyViolation으로
+    // 막혀버린다. rdsSg(protect:true)는 그대로 남고, 이 룰만 springboot와 함께
+    // 사라졌다가 다음 시즌 springboot가 다시 뜰 때 함께 재생성되는 게 맞는 동작이다.
     new aws.ec2.SecurityGroupRule("rds-from-springboot-3306", {
         type: "ingress",
         securityGroupId: rdsSg.id,
@@ -97,15 +101,22 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]) {
     });
 
     // 아키텍처 다이어그램상 Bastion+NAT -> db -> MySQL 경로 - 관리자가 Bastion을 경유해
-    // SSH 터널링으로 RDS에 직접 접근(점검/마이그레이션 등)할 수 있도록 허용
-    new aws.ec2.SecurityGroupRule("rds-from-bastion-3306", {
-        type: "ingress",
-        securityGroupId: rdsSg.id,
-        sourceSecurityGroupId: bastionSg.id,
-        protocol: "tcp",
-        fromPort: 3306,
-        toPort: 3306,
-    });
+    // SSH 터널링으로 RDS에 직접 접근(점검/마이그레이션 등)할 수 있도록 허용.
+    // rdsSg/bastionSg 둘 다 상시 보존 대상(protect:true 또는 데이터 소스)이라, 이 룰도
+    // destroy 대상에서 빼야 한다 - 안 그러면 ephemeral 정리 때마다 Bastion의 RDS
+    // 점검 경로가 끊겼다가 다음 pulumi up에서야 복구된다.
+    new aws.ec2.SecurityGroupRule(
+        "rds-from-bastion-3306",
+        {
+            type: "ingress",
+            securityGroupId: rdsSg.id,
+            sourceSecurityGroupId: bastionSg.id,
+            protocol: "tcp",
+            fromPort: 3306,
+            toPort: 3306,
+        },
+        { protect: true },
+    );
 
     return { albSg, bastionSg, springbootSg, redisSg, rdsSg };
 }

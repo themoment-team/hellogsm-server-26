@@ -29,23 +29,29 @@ export function createEcr(): EcrResult {
         { protect: true },
     );
 
-    new aws.ecr.LifecyclePolicy("hello-prod-server-ecr-lifecycle", {
-        repository: repository.name,
-        policy: JSON.stringify({
-            rules: [
-                {
-                    rulePriority: 1,
-                    description: "최근 20개 이미지만 보관",
-                    selection: {
-                        tagStatus: "any",
-                        countType: "imageCountMoreThan",
-                        countNumber: 20,
+    // repository와 함께 상시 보존 - 매 시즌 destroy 대상에서 빠지면 lifecycle policy가
+    // 없는 채로 비시즌 동안 방치돼 다음 up까지 이미지 정리가 멈춘다.
+    new aws.ecr.LifecyclePolicy(
+        "hello-prod-server-ecr-lifecycle",
+        {
+            repository: repository.name,
+            policy: JSON.stringify({
+                rules: [
+                    {
+                        rulePriority: 1,
+                        description: "최근 20개 이미지만 보관",
+                        selection: {
+                            tagStatus: "any",
+                            countType: "imageCountMoreThan",
+                            countNumber: 20,
+                        },
+                        action: { type: "expire" },
                     },
-                    action: { type: "expire" },
-                },
-            ],
-        }),
-    });
+                ],
+            }),
+        },
+        { protect: true },
+    );
 
     return { repository };
 }
