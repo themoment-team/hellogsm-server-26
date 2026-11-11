@@ -4,24 +4,199 @@ hellogsm-server-26 **상용(production)** AWS 인프라를 관리하는 Pulumi(T
 State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한다. 이 스코프는 Production
 환경만 다루며, Stage/Monitoring 환경과 `hellogsm-prod-ci.yml`, stage 워크플로는 포함하지 않는다.
 
-## 현재 상태 (중요)
+## 현재 상태 (중요) — 보존 인프라 vs 운영 사이클 인프라 2분할
 
-이 프로젝트를 처음 설계할 때는 "상용 인프라가 전부 삭제됐다"는 전제로 전량 신규 생성을 계획했으나,
-실제로는 아래 리소스들이 예전부터(2024년~) 그대로 남아 운영되고 있었다:
+2027학년도 입학 전형이 끝나고 상용 인프라를 "정리"하면서, 이 스택을 **상시 보존 인프라**와
+**매 운영 사이클(전형 시즌)마다 `pulumi up`/`pulumi destroy --exclude-protected`로 뜨고 내려가는
+인프라**로 명확히 나눴다. 전자는 비용이 거의 없거나(네트워크, IAM, S3 스토리지, 로그그룹, ECR 등)
+혹은 재생성이 위험/번거로운(Bastion+NAT) 리소스이고, 후자는 실제 전형 기간에만 필요한 과금
+컴퓨트(EC2, ALB)다. **RDS(`hello-prod-mysql`)는 이번 정리 범위에서 완전히 제외** — 데이터/스냅샷
+처리는 별도 일정으로 진행하며 지금은 그대로 `protect:true` + `deletionProtection:true`로 운영 유지.
 
-- VPC `hello-vpc`, 서브넷 4개(`hello-prod-public-2a`, `hello-public-subnet-2b`,
-  `hello-prod-private-2a`, `hello-private-subnet-2b`), IGW `hellogsm-igw`, 라우트테이블 4개 + 연결
-- Bastion+NAT 인스턴스 `hello-prod-nat`(운영 중, EIP `hello-prod-eip` 연결) + 보안그룹 `hellogsm-nat-sg`
-- CodeDeploy 애플리케이션 `hellogsm-prod-codedeploy` / 배포그룹 `api-prod-hellogsm-kr` (실제 배포 이력 있음)
-- CloudWatch 로그 그룹 `hellogsm-prod-log` (수백MB~1GB 이상의 실제 운영 로그 보유)
-- S3 버킷 `hellogsm-cicd-bucket`(배포 아티팩트), `hello-26-prod-bucket`(앱 자산)
+### 이번 Pulumi 스택 정리 범위 밖의 레거시 리소스 (별도로 정리 필요)
 
-**이 리소스들은 전부 `pulumi import`로 흡수되어 있고, 코드에서 `protect: true`로 보호된다.**
-`hello-pub-rtb`(2b 퍼블릭 라우트테이블)는 **stage 환경(`hello-dev-public-2a`)과 공유**되므로 특히 주의.
+AWS 콘솔에서 직접 만들어져 이 스택이 처음부터 관리하지 않는 리소스들 - 비용 감사 때 "out of scope"로
+분류했던 항목들이다. 전부 아직 삭제되지 않았고, 추후 정리 시 아래 DNS 레코드도 함께 지워야 한다.
 
-새로 생성/관리하는 것은 RDS MySQL, ALB(+ 리스너/타겟그룹), Spring Boot EC2, Redis EC2, 관련 보안그룹,
-IAM 롤(Spring Boot 인스턴스 프로파일 / CodeDeploy 서비스 롤 / GitHub OIDC 배포 롤), ACM 인증서,
-Route53 레코드, SNS 알람 뿐이다.
+- 레거시 공용 ALB `hello-alb` - 과거 stage와 `hello-prod-internal-api`를 함께 서빙하던 ALB. 지금의
+  prod 트래픽은 전부 이 스택이 관리하는 `hello-prod-alb`로 흐르고 있어 실사용은 끝난 것으로 보이나,
+  stage가 여전히 이 ALB를 쓰고 있어 stage 쪽 확인 없이 삭제하면 안 된다.
+- Route53 A레코드 `api.prod.hellogsm.kr` - 위 레거시 `hello-alb`를 가리키는 레코드(실제 prod 도메인은
+  이제 `api-prod.hellogsm.kr` → `hello-prod-alb`). 레거시 ALB를 삭제할 때 이 레코드도 같이 삭제할 것 -
+  안 그러면 더 이상 쓰지 않는 ALB를 가리키는 dangling 레코드로 남는다.
+- 중복 정지 상태 Redis EC2 + 연결된 EBS 볼륨, 미사용 EIP(`readygsm-prod-eip`, 다른 프로젝트 소유),
+  RDS 수동 스냅샷 13개(~260GB)도 동일하게 별도 정리 대상.
+
+### 상시 보존 인프라 — 더 이상 Pulumi가 생성/수정/삭제하지 않고 데이터 소스로만 참조
+
+이 리소스들은 전부 2024년부터 그대로 운영되어온 것들이거나, CI/CD·모니터링처럼 시즌과 무관하게
+상시 필요한 것들이다. **과거에는 `pulumi import` + `protect:true`로 "관리하되 보호"하는 방식이었지만,
+이제는 Pulumi state에서 완전히 빼고 읽기 전용 데이터 소스(`aws.*.get*Output`)로만 참조한다** —
+매 시즌 `pulumi destroy --exclude-protected`를 돌려도 아예 그래프에 없으므로 건드릴 일이 없다.
+
+- `network.ts`: VPC `hello-vpc`, 서브넷 4개 — `tag:Name` 필터 기반 데이터 소스 조회. 서브넷 4개는
+  추가로 `vpcId: vpc.id`로 조회 범위를 `hello-vpc`로 좁혀, stage 등 다른 VPC에 같은 이름 태그가
+  우연히 생겨도 그 리소스가 섞여 들어오지 않도록 한다(`hello-public-subnet-2b`/
+  `hello-private-subnet-2b`는 stage와 의도적으로 공유되는 서브넷이라 이 필터로도 모호성이
+  없어지진 않지만, 다른 두 서브넷에는 실질적인 방어가 된다). IGW와 라우트테이블 4개는 NAT 라우트
+  리소스가 사라지면서 이 스택 어디에서도 참조하지 않아 조회 자체를 제거했다(소비자 없는 데이터
+  소스는 매 `preview`/`up`/`destroy`마다 불필요한 AWS API 호출과 태그 변경 시 "no match found"
+  실패 위험만 남긴다).
+- `compute/bastionNat.ts`: Bastion+NAT 인스턴스 `hello-prod-nat` — 데이터 소스 조회. EIP는 별도
+  태그 조회 대신 이 인스턴스 조회 결과의 `publicIp`를 그대로 사용한다(태그 의존 없이 정확하고
+  조회도 한 번 줄어든다). 이 인스턴스는 DB/배치 작업용 SSH 터널 등 운영 전반에 상시 쓰이는
+  Bastion이라 시즌과 무관하게 항상 떠 있어야 한다.
+  **이 인스턴스가 실제로 쓰는 IAM role `hello-prod-nat-ec2-role` + instance-profile도 같이
+  데이터 소스로 조회한다** — 리팩토링 당시 어느 코드에도 선언되지 않은 채 state에만 남아있던
+  버그였다(선언이 없으면 `pulumi up`/`preview`가 이걸 "삭제 대상"으로 인식해, destroy 시
+  가동 중인 NAT 인스턴스가 SSM 접속/AWS API 호출 권한을 잃을 뻔했다). instance-profile 이름은
+  `instance.iamInstanceProfile`에서 그대로 가져와 조회한다. SSM 접속에 필요한
+  `AmazonSSMManagedInstanceCore` attach(`hello-prod-nat-ssm-attach`)는 AWS에 attachment
+  전용 데이터 소스가 없어 `getRolePolicyAttachments`로 간접 검증(attach 누락 시 `preview`/`up`
+  실패)한다.
+- `securityGroups.ts`의 `bastionSg`(`hellogsm-nat-sg`) — 데이터 소스 조회. 관리자 SSH ingress
+  CIDR은 이 스택 밖에서 수동 관리되며 drift를 감지하지 않는다 (Config 섹션 참고).
+- `s3.ts`: 배포 아티팩트 버킷 / 앱 자산 버킷 — 데이터 소스 조회 (스토리지 비용만 발생).
+- `monitoring.ts`의 CloudWatch 로그 그룹 `hellogsm-prod-log` — 이름만 상수로 참조하되,
+  `retentionInDays`는 데이터 소스로 조회해 `config.logRetentionDays`와 불일치 시 `preview`/`up`을
+  실패시켜 drift를 감지한다(실제 로그 데이터는 삭제 시 전부 유실되므로 애초에 손댈 이유가 없다).
+
+### protect:true로 보존하지만 데이터 소스 전환이 불가능/불필요한 것들
+
+- `codeDeploy.ts`의 애플리케이션/배포그룹 — AWS 프로바이더에 CodeDeploy용 데이터 소스가 없어
+  (`getApplication`/`getDeploymentGroup` 미지원) 기존처럼 `protect:true` 관리 리소스로 유지.
+- `securityGroups.ts`의 `rdsSg` — RDS가 이번 범위에서 제외되어 계속 운영 중이므로, 함께 destroy되면
+  RDS가 보안그룹을 잃는 장애로 이어진다. 그래서 새로 `protect:true`를 추가했다.
+- `database.ts`의 `hello-prod-rds-subnet-group` — `rdsSg`와 동일한 이유로 보호 대상이다. RDS
+  인스턴스가 사용 중인 subnet group을 ephemeral로 두면 `pulumi destroy --exclude-protected`가
+  AWS의 `InvalidParameterValue`(사용 중인 DB subnet group은 삭제 불가)로 매 시즌 종료마다
+  중간에 실패한다. 그래서 새로 `protect:true`를 추가했다.
+- `iam.ts`의 GitHub OIDC provider — AWS 계정당 동일 URL로 1개만 허용되고 비용이 전혀 없어
+  `protect:true`로 전환.
+- `iam.ts`의 `hello-prod-github-actions-deploy-role`(+정책) — `hellogsm-prod-cd.yml`은 main
+  브랜치 push마다(전형 시즌과 무관하게 상시) 이 역할로 ECR에 이미지를 push한다. ECR은 보존했는데
+  이 역할을 ephemeral로 두면 비시즌에 main이 머지될 때 assume할 역할이 없어 CI/CD가 실패하므로,
+  ECR과 짝을 맞춰 `protect:true`로 전환했다.
+- `iam.ts`의 `hello-prod-codedeploy-service-role`(+정책 어태치먼트) — `codeDeploy.ts`의
+  deploymentGroup(protect:true로 상시 보존)이 이 역할의 arn을 그대로 저장한다. 역할을 ephemeral로
+  두면 매 시즌 종료~다음 up 전까지 보존된 배포그룹이 존재하지 않는 서비스 역할을 가리키게 되므로,
+  동일한 이유로 `protect:true`로 전환했다.
+- `monitoring.ts`의 SNS 알람 토픽/이메일 구독 — 비용이 거의 없고, 매 시즌 재생성하면 이메일 구독자가
+  컨펌을 다시 눌러야 하는 불편이 생겨 `protect:true`로 전환. (MetricAlarm 자체는 매 시즌 새
+  인스턴스/ALB를 가리켜야 해서 ephemeral로 유지)
+  **주의:** `TopicSubscription`의 `endpoint`는 ForceNew 필드라, 나중에 `snsAlarmEmail` 값을
+  바꾸면 Pulumi가 삭제 후 재생성을 시도하다가 `protect:true`에 막혀 `pulumi up`이 "resource
+  protected" 에러로 실패한다. 이메일을 교체할 때는 먼저
+  `pulumi state unprotect 'urn:...:aws:sns/topicSubscription:TopicSubscription::hello-prod-alerts-email'`
+  로 보호를 해제한 뒤 `pulumi up`을 돌린다.
+- `ecr.ts`의 ECR 저장소 `hello-prod-server` — CI/CD가 시즌과 무관하게 계속 이미지를 push하는
+  상시 자원이라 `protect:true`로 전환. (이미지 보관 비용은 lifecycle policy로 최근 20개만 유지)
+- `lambda.ts`의 entrance-lambda(모의 성적 계산 Lambda + API Gateway) 전체 — Lambda/API Gateway
+  둘 다 유휴 비용이 없어(호출당 과금) "시즌 끝나면 내려서 비용 절감"할 이유가 없다. 모듈 내
+  모든 리소스를 `protect:true`로 보존한다.
+  **2026-11 발견:** 이 모듈은 과거 `feature/build/entrance-integration` 브랜치(develop에
+  머지되지 않음, PR #396)에서만 작성됐던 코드다. 그 브랜치 코드로 로컬에서 `pulumi up`을 돌려
+  실제 운영 Lambda/APIGW가 만들어졌지만, 코드는 어느 브랜치에도 커밋되지 않은 채 Pulumi state에만
+  남아있었다 - persistent/ephemeral 정리 중 `pulumi preview`가 이걸 통째로 삭제 대상으로 잡는 걸
+  보고 발견해서 그 브랜치에서 `lambda.ts`만 추출해 포트했다. `entranceLambdaApiKey`(Lambda가 읽는
+  `X_HG_INTERNAL_API_KEY`, server의 `SCORE_CALCULATOR_API_KEY`와 짝을 맞춰야 함)는
+  `pulumi config set --secret`으로 이미 설정돼 있다(실제 배포된 값을 그대로 가져와 재설정함).
+
+### Springboot/Redis EC2가 실제로 쓰는데 코드에 없었던 리소스 (2026-11 발견, 복원 완료)
+
+`compute/bastionNat.ts`의 NAT role과 같은 사유로, 어느 git 히스토리에도 없이 로컬에서만 적용된 뒤
+Pulumi state에만 남아있던 리소스들이다. `pulumi preview`가 전부 삭제 대상으로 잡는 걸 보고 발견했다.
+
+- `iam.ts`의 `hello-prod-springboot-ssm-attach` / `hello-prod-redis-ssm-attach` - SSM Session
+  Manager 접속용 `AmazonSSMManagedInstanceCore` policy attach. springboot role에는 이미 있던
+  커스텀 정책들과 별개로 추가.
+- `iam.ts`의 `hello-prod-redis-ec2-role` + `hello-prod-redis-instance-profile` - Redis EC2는
+  지금까지 아예 IAM role 없이 뜨는 것처럼 코드엔 보였지만, 실제로는 이 role/profile이 붙어있었다.
+  기존 instance-profile 이름(`hello-prod-redis-instance-profile-3b7069e`)을 그대로 지정해 교체를
+  피했다. `compute/redisServer.ts`에 `iamInstanceProfile` 파라미터를 추가해 연결한다.
+- `compute/redisServer.ts`에 `ignoreChanges: ["ami", "userData"]` 추가 - **springboot에는 이미
+  있었지만 redis에는 없었던 치명적 누락이었다.** 이게 없으면 AWS가 "최신" AL2023 AMI를 새로
+  내놓는 순간 `pulumi preview`가 가동 중인 Redis 인스턴스를 **replace(파괴 후 재생성, 데이터 유실)**
+  대상으로 잡는다 - 실제로 2026-11 정리 작업 중 이 상태로 잡힌 걸 발견해서 고쳤다.
+
+### 운영 사이클마다 뜨고 내려가는 인프라 (ephemeral, `pulumi up`/`pulumi destroy --exclude-protected` 대상)
+
+ALB(+리스너 2개+타겟그룹+어태치먼트), Route53 A레코드, ACM 인증서(+DNS 검증), Spring Boot EC2 2대,
+Redis EC2, 이들의 보안그룹(albSg/springbootSg/redisSg) 및 SG 룰, Spring Boot/Redis 인스턴스
+프로파일·EC2 롤·SSM attach, CloudWatch MetricAlarm들. (CodeDeploy 서비스 롤과 GitHub Actions
+배포 롤은 위 보존 목록으로 옮겼다.)
+
+### 이번 정리 작업 전에 반드시 먼저 해야 하는 것 — 기존 state 정리
+
+지금 실제 Pulumi stack state에는 위 "상시 보존" 리소스들이 **과거 코드 기준으로 이미
+`pulumi import`되어 관리 리소스로 들어가 있다.** 코드만 이렇게 바꾸고 바로 `pulumi up`을 돌리면
+Pulumi는 "코드에서 사라진 관리 리소스"로 인식해 **삭제를 시도**하는데, `protect:true`가 걸려있던
+리소스라도 이번 코드 변경으로 보호 설정 자체가 없어졌으므로 실제로 삭제될 위험이 있다.
+**따라서 `pulumi up`/`preview`를 돌리기 전에, 아래처럼 해당 리소스들을 state에서만 제거(`pulumi
+state rm`)해 실제 AWS 리소스는 그대로 두고 Pulumi의 관리 대상에서만 빼야 한다.**
+
+```bash
+cd infra
+pulumi stack select prod
+
+# network.ts
+pulumi state rm 'urn:pulumi:prod::hellogsm-infra::...:aws:ec2/vpc:Vpc::hello-vpc'
+# (정확한 URN은 `pulumi stack --show-urns` 또는 `pulumi stack export`로 먼저 확인할 것 -
+#  아래는 리소스 이름만 나열한 목록이다)
+# hello-vpc, hellogsm-igw,
+# hello-prod-public-2a, hello-public-subnet-2b, hello-prod-private-2a, hello-private-subnet-2b,
+# hello-prod-pub-rtb-a(+ hello-prod-pub-rtb-a-igw-route), hello-pub-rtb(+ hello-pub-rtb-igw-route),
+# hello-prod-priv-rtb-a(+ hello-prod-priv-rtb-a-nat-route),
+# hello-prod-priv-rtb-b(+ hello-prod-priv-rtb-b-nat-route),
+# hello-prod-public-2a-assoc, hello-public-subnet-2b-assoc,
+# hello-prod-private-2a-assoc, hello-private-subnet-2b-assoc
+
+# compute/bastionNat.ts + securityGroups.ts
+# hello-prod-nat, hello-prod-eip, hellogsm-nat-sg,
+# hello-prod-nat-ec2-role, hello-prod-nat-instance-profile, hello-prod-nat-ssm-attach
+# (2026-11 정리 때 발견 - 코드에 선언이 전혀 없는 채 state에만 남아있던 리소스. 실제로
+#  가동 중인 NAT 인스턴스가 이 role/profile을 쓰고 있어, state rm 없이 preview/up을 돌리면
+#  삭제 대상으로 잡혔을 것)
+
+# s3.ts
+# deploymentBucket, appAssetsBucket
+
+# monitoring.ts
+# hellogsm-prod-log (LogGroup 리소스만 - SNS Topic/Subscription은 그대로 유지, 삭제 금지)
+```
+
+`pulumi state rm`은 **state에서만** 빼는 동작이라 실제 AWS 리소스는 전혀 건드리지 않는다(AWS API를
+호출하지 않음). 전부 제거한 뒤 `pulumi preview`를 돌려 diff가 0 delete / (ephemeral 리소스만)
+update인지 반드시 확인한다. 예상 밖의 `delete`나 `replace`가 보이면 **절대 `pulumi up`하지 말고**
+먼저 원인을 파악한다.
+
+### 운영 사이클 명령
+
+**`protect:true`는 코드에 적는다고 바로 적용되지 않는다 - `pulumi up`을 실제로 한 번 돌려야
+state에 기록된다.** 2026-11 정리 때 이 스택에 `pulumi up`을 한 번도 안 돌린 채 바로
+`pulumi destroy --exclude-protected`를 돌리려 했다가, 코드에 `protect:true`로 선언해둔
+ECR/SNS/GitHub OIDC/entrance-lambda 전체가 실제로는 state에 보호 플래그가 없어 삭제 대상으로
+잡히는 걸 뒤늦게 발견했다. **이 README의 "보존 인프라를 Pulumi state에서 제거하기" 절차를
+처음 적용하는 시점, 또는 새로 `protect:true`를 추가한 직후에는 반드시 `pulumi up`을 한 번 돌려
+(diff가 0 create/delete/update/replace임을 먼저 확인할 것) 보호 플래그를 state에 반영한 다음,
+`pulumi destroy --exclude-protected --preview-only`로 삭제 대상 목록이 예상과 일치하는지
+재확인하고 나서야 실제 destroy를 실행한다.**
+
+**`pulumi up` 실행 전, 프라이빗 서브넷의 NAT 라우트가 살아있는지 먼저 수동으로 확인한다** —
+이 라우트(`hello-prod-priv-rtb-a`/`hello-prod-priv-rtb-b`의 `0.0.0.0/0 -> hello-prod-nat`)는
+Pulumi가 관리도, 존재 검증도 하지 않는다. 라우트가 없으면 springboot/redis userdata의
+`dnf install`/`wget`이 인터넷에 못 나가 인스턴스 생성 자체가 실패한다(`set -euxo pipefail`).
+
+```bash
+aws ec2 describe-route-tables --route-table-ids <hello-prod-priv-rtb-a-id> <hello-prod-priv-rtb-b-id> \
+  --query 'RouteTables[].Routes[?DestinationCidrBlock==`0.0.0.0/0`]'
+
+# 전형 시즌 시작 - 과금 컴퓨트(ALB/EC2 등) 신규 생성
+pulumi up
+
+# 전형 시즌 종료 - ephemeral 리소스만 정리, 보존 인프라/RDS는 그대로 유지
+pulumi destroy --exclude-protected
+```
 
 ## 사전 준비
 
@@ -45,54 +220,33 @@ pulumi preview   # diff가 없어야 정상 (0 create / 0 replace)
 값을 바꿔야 할 때만 아래처럼 갱신한다.
 
 ```bash
-pulumi config set adminSshCidr <IP>/32
 pulumi config set --secret dbPassword '<new-password>'
+```
+
+**관리자 SSH 접근(Bastion `hellogsm-nat-sg`의 22번 포트 CIDR)은 이 스택이 관리하지 않는다** —
+bastionSg가 데이터 소스로 전환되면서 `adminSshCidr` config는 소비자가 없어져 제거했다. 접근 가능
+CIDR을 바꿔야 하면 AWS 콘솔/CLI에서 `hellogsm-nat-sg`를 직접 수정하고, `pulumi preview`는 이
+변경을 감지하지 않으므로(diff가 0으로 나와도 정상) 수동으로 확인한다.
+
+```bash
+aws ec2 describe-security-groups --group-names hellogsm-nat-sg \
+  --query 'SecurityGroups[0].IpPermissions[?ToPort==`22`]'
 ```
 
 ## 재해복구 — 스택을 처음부터 다시 만들어야 하는 경우
 
-새 Pulumi 조직/프로젝트로 마이그레이션하는 등 state를 처음부터 다시 구성해야 한다면,
-"현재 상태" 절에서 언급한 기존 리소스들을 **반드시 먼저 import**해야 한다 (안 하면 `pulumi up`이
-동일 이름/CIDR의 VPC·NAT를 중복 생성하거나, 이미 존재하는 로그 그룹/CodeDeploy 앱 이름 충돌로 실패한다).
+새 Pulumi 조직/프로젝트로 마이그레이션하는 등 state를 처음부터 다시 구성해야 한다면, 리소스
+종류에 따라 절차가 다르다.
 
-```bash
-# VPC / IGW / 서브넷 / 라우트테이블 / 연결 / NAT / SG / EIP / 로그그룹 / CodeDeploy
-# — 정확한 리소스 ID는 AWS 콘솔 또는 `aws ec2 describe-*` 로 먼저 조회할 것
-pulumi import aws:ec2/vpc:Vpc hello-vpc <vpc-id>
-pulumi import aws:ec2/internetGateway:InternetGateway hellogsm-igw <igw-id>
-pulumi import aws:ec2/subnet:Subnet hello-prod-public-2a <subnet-id>
-pulumi import aws:ec2/subnet:Subnet hello-public-subnet-2b <subnet-id>
-pulumi import aws:ec2/subnet:Subnet hello-prod-private-2a <subnet-id>
-pulumi import aws:ec2/subnet:Subnet hello-private-subnet-2b <subnet-id>
-pulumi import aws:ec2/routeTable:RouteTable hello-prod-pub-rtb-a <rtb-id>
-pulumi import aws:ec2/routeTable:RouteTable hello-pub-rtb <rtb-id>
-pulumi import aws:ec2/routeTable:RouteTable hello-prod-priv-rtb-a <rtb-id>
-pulumi import aws:ec2/routeTable:RouteTable hello-prod-priv-rtb-b <rtb-id>
-pulumi import aws:ec2/routeTableAssociation:RouteTableAssociation hello-prod-public-2a-assoc <subnet-id>/<rtb-id>
-pulumi import aws:ec2/routeTableAssociation:RouteTableAssociation hello-public-subnet-2b-assoc <subnet-id>/<rtb-id>
-pulumi import aws:ec2/routeTableAssociation:RouteTableAssociation hello-prod-private-2a-assoc <subnet-id>/<rtb-id>
-pulumi import aws:ec2/routeTableAssociation:RouteTableAssociation hello-private-subnet-2b-assoc <subnet-id>/<rtb-id>
-pulumi import aws:ec2/securityGroup:SecurityGroup hellogsm-nat-sg <sg-id>
-pulumi import aws:ec2/instance:Instance hello-prod-nat <instance-id>
-pulumi import aws:ec2/eip:Eip hello-prod-eip <allocation-id>
-# 퍼블릭 라우트테이블의 IGW 라우트 - RouteTable에서 인라인 routes를 빼고 분리형 Route로
-# 관리하면서 새로 생긴 리소스. AWS에는 이미 있는 라우트라 import 없이 pulumi up하면
-# RouteAlreadyExists로 실패한다.
-pulumi import aws:ec2/route:Route hello-prod-pub-rtb-a-igw-route '<rtb-id>_0.0.0.0/0'
-pulumi import aws:ec2/route:Route hello-pub-rtb-igw-route '<rtb-id>_0.0.0.0/0'
-pulumi import aws:ec2/route:Route hello-prod-priv-rtb-a-nat-route '<rtb-id>_0.0.0.0/0'
-pulumi import aws:ec2/route:Route hello-prod-priv-rtb-b-nat-route '<rtb-id>_0.0.0.0/0'
-pulumi import aws:cloudwatch/logGroup:LogGroup hellogsm-prod-log hellogsm-prod-log
-pulumi import aws:codedeploy/application:Application hellogsm-prod-codedeploy hellogsm-prod-codedeploy
-pulumi import aws:codedeploy/deploymentGroup:DeploymentGroup api-prod-hellogsm-kr 'hellogsm-prod-codedeploy:api-prod-hellogsm-kr'
-pulumi import aws:s3/bucketV2:BucketV2 deploymentBucket hellogsm-cicd-bucket
-pulumi import aws:s3/bucketV2:BucketV2 appAssetsBucket hello-26-prod-bucket
-```
+**상시 보존 인프라(데이터 소스로만 참조하는 것들)는 import가 필요 없다** — network.ts /
+compute/bastionNat.ts / securityGroups.ts의 bastionSg / s3.ts가 참조하는 VPC·서브넷·
+NAT 인스턴스(EIP는 이 인스턴스 조회 결과에서 파생)·`hellogsm-nat-sg`·S3 버킷 2개는 AWS 계정에
+해당 `tag:Name`(또는 버킷명)으로 **이미 존재하기만 하면** 데이터 소스 조회가 바로 성공한다.
+존재하지 않는다면 그건 이 스택의 책무가 아니라 해당 리소스를 실제로 복구해야 하는 더 큰 문제다.
 
-위 목록은 "기존에 살아있던" 리소스만 다룬다. 아래는 이 스택이 **새로 만들면서 이름을 고정**해둔
-리소스들이라, 계정에 동일 이름이 이미 있으면(예: 이전 시도의 잔재) `pulumi up`이 아니라
-`pulumi import`부터 해야 충돌하지 않는다. 특히 OIDC provider는 계정당 URL별 1개만 허용되므로
-반드시 먼저 확인할 것.
+여전히 Pulumi가 **생성/관리**하는 아래 리소스들만 기존 동일 이름이 AWS에 남아있는 경우
+`pulumi up` 대신 먼저 import해야 충돌하지 않는다. 특히 OIDC provider는 계정당 URL별 1개만
+허용되므로 반드시 먼저 확인할 것.
 
 ```bash
 # 같은 URL의 OIDC provider가 계정에 이미 있으면 EntityAlreadyExists로 실패한다
@@ -104,18 +258,21 @@ pulumi import aws:iam/role:Role hello-prod-codedeploy-service-role hello-prod-co
 pulumi import aws:iam/role:Role hello-prod-github-actions-deploy-role hello-prod-github-actions-deploy-role
 
 pulumi import aws:rds/subnetGroup:SubnetGroup hello-prod-rds-subnet-group hello-prod-rds-subnet-group
+pulumi import aws:ecr/repository:Repository hello-prod-server-ecr hello-prod-server
+pulumi import aws:codedeploy/application:Application hellogsm-prod-codedeploy hellogsm-prod-codedeploy
+pulumi import aws:codedeploy/deploymentGroup:DeploymentGroup api-prod-hellogsm-kr 'hellogsm-prod-codedeploy:api-prod-hellogsm-kr'
 pulumi import aws:sns/topic:Topic hello-prod-alerts <topic-arn>
-pulumi import aws:lb/loadBalancer:LoadBalancer hello-prod-alb <alb-arn>
+pulumi import aws:ec2/securityGroup:SecurityGroup hello-prod-rds-sg <sg-id>   # RDS가 이번 범위 제외라 기존 SG 유지 시에만 필요
+pulumi import aws:lb/loadBalancer:LoadBalancer hello-prod-alb <alb-arn>   # ephemeral이지만 이름 고정이라 동일 이름 잔재가 있으면 필요
 pulumi import aws:lb/targetGroup:TargetGroup hello-prod-tg <target-group-arn>
 ```
 
 각 import 후 `pulumi preview`로 diff를 확인하고, **`replace`/`delete-create`가 뜨면 절대 `pulumi up`하지 말고**
 코드의 해당 속성(특히 `description`처럼 변경 시 교체가 발생하는 불변 필드)을 실제 값에 맞게 고친다.
-(`hellogsm-nat-sg`의 `description`이 이 문제로 한 번 걸렸던 전례가 있다 — 반드시 실제 값과 동일하게 맞출 것.)
 
 `infra/userdata/bastion-nat.sh`는 어떤 코드에서도 참조되지 않는다 - `compute/bastionNat.ts`는
-기존 NAT 인스턴스를 import만 할 뿐 userData를 지정하지 않는다(지정하면 stop/start가 발생해
-오히려 위험하므로 의도적). DR 절차로 NAT 인스턴스를 **새로** 만드는 경우에만 이 스크립트를
+기존 NAT 인스턴스를 데이터 소스로 조회만 할 뿐 userData를 지정하지 않는다(지정하면 stop/start가
+발생해 오히려 위험하므로 의도적). DR 절차로 NAT 인스턴스를 **새로** 만드는 경우에만 이 스크립트를
 수동으로 적용해야 한다 - 안 하면 iptables MASQUERADE가 설정되지 않아 프라이빗 서브넷에
 라우트는 있어도 실제 인터넷 접근이 안 된다.
 
