@@ -3,6 +3,8 @@ package team.themoment.hellogsmv3.global.thirdParty.feign.config;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -12,10 +14,13 @@ import feign.FeignException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import lombok.extern.slf4j.Slf4j;
+import team.themoment.hellogsmv3.global.security.data.HeaderConstant;
 import team.themoment.sdk.exception.ExpectedException;
 
 @Slf4j
 public class FeignErrorDecoder implements ErrorDecoder {
+
+    private static final String MASKED_VALUE = "***MASKED***";
 
     @Override
     public Exception decode(String methodKey, Response response) {
@@ -32,7 +37,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
                     url,
                     status,
                     response.reason());
-            log.error("응답 헤더: {}", headers);
+            log.error("응답 헤더: {}", maskSensitiveHeaders(headers));
             log.error("응답 본문: {}", errorBody);
             logRequestDetails(response, methodKey);
             String userMessage;
@@ -97,7 +102,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
             String method = response.request().httpMethod().name();
             Map<String, Collection<String>> requestHeaders = response.request().headers();
             log.error("요청 정보 - 메서드: {}, HTTP 메서드: {}, URL: {}", methodKey, method, url);
-            log.error("요청 헤더: {}", requestHeaders);
+            log.error("요청 헤더: {}", maskSensitiveHeaders(requestHeaders));
             if (response.request().body() != null) {
                 String requestBody = new String(response.request().body(), StandardCharsets.UTF_8);
                 log.error("요청 본문: {}", requestBody);
@@ -105,5 +110,14 @@ public class FeignErrorDecoder implements ErrorDecoder {
         } catch (Exception e) {
             log.warn("요청 상세 로깅에 실패했습니다", e);
         }
+    }
+
+    // x-hg-api-key 등 인증 헤더는 값이 그대로 CloudWatch에 평문으로 남아 유출로 이어진다
+    // (2026-11 entrance-lambda 호출 실패 로그에서 실제로 노출된 적 있음) - 로깅 전 마스킹한다.
+    private Map<String, Collection<String>> maskSensitiveHeaders(Map<String, Collection<String>> headers) {
+        Map<String, Collection<String>> masked = new LinkedHashMap<>(headers);
+        masked.replaceAll(
+                (name, value) -> name.equalsIgnoreCase(HeaderConstant.X_HG_API_KEY) ? List.of(MASKED_VALUE) : value);
+        return masked;
     }
 }
