@@ -32,6 +32,14 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
   태그 조회 대신 이 인스턴스 조회 결과의 `publicIp`를 그대로 사용한다(태그 의존 없이 정확하고
   조회도 한 번 줄어든다). 이 인스턴스는 DB/배치 작업용 SSH 터널 등 운영 전반에 상시 쓰이는
   Bastion이라 시즌과 무관하게 항상 떠 있어야 한다.
+  **이 인스턴스가 실제로 쓰는 IAM role `hello-prod-nat-ec2-role` + instance-profile도 같이
+  데이터 소스로 조회한다** — 리팩토링 당시 어느 코드에도 선언되지 않은 채 state에만 남아있던
+  버그였다(선언이 없으면 `pulumi up`/`preview`가 이걸 "삭제 대상"으로 인식해, destroy 시
+  가동 중인 NAT 인스턴스가 SSM 접속/AWS API 호출 권한을 잃을 뻔했다). instance-profile 이름은
+  `instance.iamInstanceProfile`에서 그대로 가져와 조회한다. SSM 접속에 필요한
+  `AmazonSSMManagedInstanceCore` attach(`hello-prod-nat-ssm-attach`)는 AWS에 attachment
+  전용 데이터 소스가 없어 `getRolePolicyAttachments`로 간접 검증(attach 누락 시 `preview`/`up`
+  실패)한다.
 - `securityGroups.ts`의 `bastionSg`(`hellogsm-nat-sg`) — 데이터 소스 조회. 관리자 SSH ingress
   CIDR은 이 스택 밖에서 수동 관리되며 drift를 감지하지 않는다 (Config 섹션 참고).
 - `s3.ts`: 배포 아티팩트 버킷 / 앱 자산 버킷 — 데이터 소스 조회 (스토리지 비용만 발생).
@@ -95,13 +103,18 @@ pulumi state rm 'urn:pulumi:prod::hellogsm-infra::...:aws:ec2/vpc:Vpc::hello-vpc
 #  아래는 리소스 이름만 나열한 목록이다)
 # hello-vpc, hellogsm-igw,
 # hello-prod-public-2a, hello-public-subnet-2b, hello-prod-private-2a, hello-private-subnet-2b,
-# hello-prod-pub-rtb-a(+ igw-route), hello-pub-rtb(+ igw-route),
-# hello-prod-priv-rtb-a(+ nat-route), hello-prod-priv-rtb-b(+ nat-route),
+# hello-prod-pub-rtb-a(+ hello-prod-pub-rtb-a-igw-route), hello-pub-rtb(+ hello-pub-rtb-igw-route),
+# hello-prod-priv-rtb-a(+ hello-prod-priv-rtb-a-nat-route),
+# hello-prod-priv-rtb-b(+ hello-prod-priv-rtb-b-nat-route),
 # hello-prod-public-2a-assoc, hello-public-subnet-2b-assoc,
 # hello-prod-private-2a-assoc, hello-private-subnet-2b-assoc
 
 # compute/bastionNat.ts + securityGroups.ts
-# hello-prod-nat, hello-prod-eip, hellogsm-nat-sg
+# hello-prod-nat, hello-prod-eip, hellogsm-nat-sg,
+# hello-prod-nat-ec2-role, hello-prod-nat-instance-profile, hello-prod-nat-ssm-attach
+# (2026-11 정리 때 발견 - 코드에 선언이 전혀 없는 채 state에만 남아있던 리소스. 실제로
+#  가동 중인 NAT 인스턴스가 이 role/profile을 쓰고 있어, state rm 없이 preview/up을 돌리면
+#  삭제 대상으로 잡혔을 것)
 
 # s3.ts
 # deploymentBucket, appAssetsBucket

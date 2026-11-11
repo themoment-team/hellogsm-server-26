@@ -19,7 +19,32 @@ export function createBastionNat() {
     // 조회도 한 번 줄어든다.
     const eip = { publicIp: instance.publicIp };
 
-    return { instance, eip };
+    // NAT 인스턴스가 실제로 쓰는 IAM role/instance-profile(hello-prod-nat-ec2-role,
+    // hello-prod-nat-instance-profile)도 상시 보존 대상이다 - 리팩토링 당시 이 스택
+    // 코드 어디에도 선언되지 않은 채 남아있어, state rm 없이 pulumi up/preview를 돌리면
+    // "코드에서 사라진 관리 리소스"로 인식되어 삭제 대상으로 잡히는 버그가 있었다
+    // (삭제되면 가동 중인 NAT 인스턴스가 SSM 접속/AWS API 호출 권한을 잃는다).
+    // instance.iamInstanceProfile로 프로필 이름을 그대로 가져와 태그 의존 없이 조회한다.
+    const role = aws.iam.getRoleOutput({ name: "hello-prod-nat-ec2-role" });
+    const instanceProfile = aws.iam.getInstanceProfileOutput({ name: instance.iamInstanceProfile });
+
+    // SSM 접속에 필요한 AmazonSSMManagedInstanceCore attach(hello-prod-nat-ssm-attach)는
+    // AWS IAM에 "attachment" 전용 데이터 소스가 없어(RolePolicyAttachment는 관계일 뿐
+    // 독립된 조회 대상이 아님) role에 attach된 managed policy 목록으로 간접 검증한다.
+    aws.iam.getRolePolicyAttachmentsOutput({ roleName: role.name }).attachedPolicies.apply((policies) => {
+        const hasSsmPolicy = policies.some(
+            (p) => p.policyArn === "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        );
+        if (!hasSsmPolicy) {
+            throw new Error(
+                "NAT 인스턴스 role(hello-prod-nat-ec2-role)에 AmazonSSMManagedInstanceCore가 " +
+                    "attach되어 있지 않습니다 - SSM 접속이 끊겼을 수 있습니다. 콘솔에서 확인 후 " +
+                    "다시 attach하세요.",
+            );
+        }
+    });
+
+    return { instance, eip, role, instanceProfile };
 }
 
 export type BastionNatResult = ReturnType<typeof createBastionNat>;
