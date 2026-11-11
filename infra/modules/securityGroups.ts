@@ -15,6 +15,8 @@ export function createSecurityGroups(vpcId: aws.ec2.Vpc["id"]) {
     // NAT 인스턴스(hello-prod-nat)에 붙어있는 보안그룹 - NAT 인스턴스 자체가 이제
     // compute/bastionNat.ts에서 데이터 소스로만 참조되는 상시 보존 대상이라, 이 SG도
     // 더 이상 Pulumi가 생성/수정/삭제를 관리하지 않고 데이터 소스로만 읽는다.
+    // 관리자 SSH ingress(CIDR) 룰은 이 스택 밖에서 수동으로 관리된다 - preview는
+    // 이 룰의 변경을 감지하지 못하므로 바뀌어도 drift로 드러나지 않는다 (README 참고).
     const bastionSg = aws.ec2.getSecurityGroupOutput({
         filters: [{ name: "tag:Name", values: ["hellogsm-nat-sg"] }],
     });

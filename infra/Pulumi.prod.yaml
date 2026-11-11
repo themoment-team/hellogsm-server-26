@@ -1,6 +1,5 @@
 config:
   aws:region: ap-northeast-2
-  hellogsm-infra:adminSshCidr: 210.218.52.13/32 # 관리자 접속 IP - 필요 시 교체
   hellogsm-infra:keyPairName: hello-prod-ec2-key
   hellogsm-infra:dbUsername: hellogsm
   # dbPassword는 pulumi config set --secret으로 암호화 저장됨 (아래 secure 값)

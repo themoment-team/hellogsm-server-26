@@ -120,24 +120,36 @@ export function createIam(
     });
 
     // ---- CodeDeploy service role ----
-    const codeDeployServiceRole = new aws.iam.Role("hello-prod-codedeploy-service-role", {
-        name: "hello-prod-codedeploy-service-role",
-        assumeRolePolicy: JSON.stringify({
-            Version: "2012-10-17",
-            Statement: [
-                {
-                    Effect: "Allow",
-                    Principal: { Service: "codedeploy.amazonaws.com" },
-                    Action: "sts:AssumeRole",
-                },
-            ],
-        }),
-    });
+    // codeDeploy.ts의 deploymentGroup(protect:true로 상시 보존)이 이 역할의 arn을 그대로
+    // 저장하고 있다. 이 역할을 ephemeral로 두면 매 시즌 종료 직후~다음 up 전까지 보존된
+    // 배포그룹이 존재하지 않는 서비스 역할을 가리키는 상태가 되므로, githubActionsDeployRole과
+    // 동일한 이유로 protect:true로 전환한다.
+    const codeDeployServiceRole = new aws.iam.Role(
+        "hello-prod-codedeploy-service-role",
+        {
+            name: "hello-prod-codedeploy-service-role",
+            assumeRolePolicy: JSON.stringify({
+                Version: "2012-10-17",
+                Statement: [
+                    {
+                        Effect: "Allow",
+                        Principal: { Service: "codedeploy.amazonaws.com" },
+                        Action: "sts:AssumeRole",
+                    },
+                ],
+            }),
+        },
+        { protect: true },
+    );
 
-    new aws.iam.RolePolicyAttachment("hello-prod-codedeploy-service-role-attach", {
-        role: codeDeployServiceRole.name,
-        policyArn: "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole",
-    });
+    new aws.iam.RolePolicyAttachment(
+        "hello-prod-codedeploy-service-role-attach",
+        {
+            role: codeDeployServiceRole.name,
+            policyArn: "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole",
+        },
+        { protect: true },
+    );
 
     // ---- GitHub OIDC provider + deploy role ----
     // OIDC provider는 AWS 계정당 동일 URL로 1개만 허용된다 - 다른 리포(stage 등)가 향후
@@ -156,86 +168,99 @@ export function createIam(
         { protect: true },
     );
 
-    const githubActionsDeployRole = new aws.iam.Role("hello-prod-github-actions-deploy-role", {
-        name: "hello-prod-github-actions-deploy-role",
-        assumeRolePolicy: pulumi.jsonStringify({
-            Version: "2012-10-17",
-            Statement: [
-                {
-                    Effect: "Allow",
-                    Principal: { Federated: githubOidcProvider.arn },
-                    Action: "sts:AssumeRoleWithWebIdentity",
-                    Condition: {
-                        StringEquals: {
-                            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-                        },
-                        StringLike: {
-                            "token.actions.githubusercontent.com:sub": `repo:${config.githubOrg}/${config.githubRepo}:ref:refs/heads/main`,
+    // hellogsm-prod-cd.yml은 main 브랜치 push마다(전형 시즌과 무관하게 상시) 이 역할로
+    // ECR에 이미지를 push한다. ECR 저장소 자체는 protect:true로 보존했는데 이 역할을
+    // ephemeral로 두면, 비시즌에 main이 머지될 때 "Configure AWS Credentials" 단계에서
+    // assume할 역할이 없어 CI/CD가 실패한다 - ECR을 보존한 이유 자체가 무너진다.
+    // 그래서 OIDC provider와 동일하게 protect:true로 전환한다.
+    const githubActionsDeployRole = new aws.iam.Role(
+        "hello-prod-github-actions-deploy-role",
+        {
+            name: "hello-prod-github-actions-deploy-role",
+            assumeRolePolicy: pulumi.jsonStringify({
+                Version: "2012-10-17",
+                Statement: [
+                    {
+                        Effect: "Allow",
+                        Principal: { Federated: githubOidcProvider.arn },
+                        Action: "sts:AssumeRoleWithWebIdentity",
+                        Condition: {
+                            StringEquals: {
+                                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                            },
+                            StringLike: {
+                                "token.actions.githubusercontent.com:sub": `repo:${config.githubOrg}/${config.githubRepo}:ref:refs/heads/main`,
+                            },
                         },
                     },
-                },
-            ],
-        }),
-    });
+                ],
+            }),
+        },
+        { protect: true },
+    );
 
-    new aws.iam.RolePolicy("hello-prod-github-actions-deploy-policy", {
-        role: githubActionsDeployRole.id,
-        policy: pulumi.jsonStringify({
-            Version: "2012-10-17",
-            Statement: [
-                {
-                    Sid: "UploadDeploymentArtifact",
-                    Effect: "Allow",
-                    Action: ["s3:PutObject"],
-                    Resource: pulumi.interpolate`${deploymentBucketArn}/prod/*`,
-                },
-                {
-                    // create-deployment은 같은 S3 revision(동일 bucket/key)으로 재배포할 때
-                    // 이미 등록된 revision 정보를 조회하기 위해 내부적으로
-                    // GetApplicationRevision을 호출한다. 신규 revision에서는 필요 없어
-                    // 최초 배포에서는 누락이 드러나지 않다가, 같은 커밋으로 재배포(재실행)할 때
-                    // AccessDeniedException으로 실패한다.
-                    Sid: "TriggerCodeDeploy",
-                    Effect: "Allow",
-                    Action: [
-                        "codedeploy:CreateDeployment",
-                        "codedeploy:GetDeployment",
-                        "codedeploy:GetApplication",
-                        "codedeploy:GetApplicationRevision",
-                        "codedeploy:RegisterApplicationRevision",
-                    ],
-                    Resource: [codeDeployApplicationArn, codeDeployDeploymentGroupArn],
-                },
-                {
-                    Sid: "ReadDeploymentConfig",
-                    Effect: "Allow",
-                    Action: ["codedeploy:GetDeploymentConfig"],
-                    Resource: "*",
-                },
-                {
-                    // GetAuthorizationToken은 ECR 특성상 리소스 레벨 제한이 불가능한 액션(AWS 제약)
-                    Sid: "EcrAuth",
-                    Effect: "Allow",
-                    Action: ["ecr:GetAuthorizationToken"],
-                    Resource: "*",
-                },
-                {
-                    Sid: "EcrPush",
-                    Effect: "Allow",
-                    Action: [
-                        "ecr:BatchCheckLayerAvailability",
-                        "ecr:GetDownloadUrlForLayer",
-                        "ecr:BatchGetImage",
-                        "ecr:PutImage",
-                        "ecr:InitiateLayerUpload",
-                        "ecr:UploadLayerPart",
-                        "ecr:CompleteLayerUpload",
-                    ],
-                    Resource: ecrRepositoryArn,
-                },
-            ],
-        }),
-    });
+    new aws.iam.RolePolicy(
+        "hello-prod-github-actions-deploy-policy",
+        {
+            role: githubActionsDeployRole.id,
+            policy: pulumi.jsonStringify({
+                Version: "2012-10-17",
+                Statement: [
+                    {
+                        Sid: "UploadDeploymentArtifact",
+                        Effect: "Allow",
+                        Action: ["s3:PutObject"],
+                        Resource: pulumi.interpolate`${deploymentBucketArn}/prod/*`,
+                    },
+                    {
+                        // create-deployment은 같은 S3 revision(동일 bucket/key)으로 재배포할 때
+                        // 이미 등록된 revision 정보를 조회하기 위해 내부적으로
+                        // GetApplicationRevision을 호출한다. 신규 revision에서는 필요 없어
+                        // 최초 배포에서는 누락이 드러나지 않다가, 같은 커밋으로 재배포(재실행)할 때
+                        // AccessDeniedException으로 실패한다.
+                        Sid: "TriggerCodeDeploy",
+                        Effect: "Allow",
+                        Action: [
+                            "codedeploy:CreateDeployment",
+                            "codedeploy:GetDeployment",
+                            "codedeploy:GetApplication",
+                            "codedeploy:GetApplicationRevision",
+                            "codedeploy:RegisterApplicationRevision",
+                        ],
+                        Resource: [codeDeployApplicationArn, codeDeployDeploymentGroupArn],
+                    },
+                    {
+                        Sid: "ReadDeploymentConfig",
+                        Effect: "Allow",
+                        Action: ["codedeploy:GetDeploymentConfig"],
+                        Resource: "*",
+                    },
+                    {
+                        // GetAuthorizationToken은 ECR 특성상 리소스 레벨 제한이 불가능한 액션(AWS 제약)
+                        Sid: "EcrAuth",
+                        Effect: "Allow",
+                        Action: ["ecr:GetAuthorizationToken"],
+                        Resource: "*",
+                    },
+                    {
+                        Sid: "EcrPush",
+                        Effect: "Allow",
+                        Action: [
+                            "ecr:BatchCheckLayerAvailability",
+                            "ecr:GetDownloadUrlForLayer",
+                            "ecr:BatchGetImage",
+                            "ecr:PutImage",
+                            "ecr:InitiateLayerUpload",
+                            "ecr:UploadLayerPart",
+                            "ecr:CompleteLayerUpload",
+                        ],
+                        Resource: ecrRepositoryArn,
+                    },
+                ],
+            }),
+        },
+        { protect: true },
+    );
 
     return { springbootInstanceProfile, codeDeployServiceRole, githubActionsDeployRole };
 }

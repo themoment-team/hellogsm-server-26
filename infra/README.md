@@ -20,16 +20,20 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
 이제는 Pulumi state에서 완전히 빼고 읽기 전용 데이터 소스(`aws.*.get*Output`)로만 참조한다** —
 매 시즌 `pulumi destroy --exclude-protected`를 돌려도 아예 그래프에 없으므로 건드릴 일이 없다.
 
-- `network.ts`: VPC `hello-vpc`, 서브넷 4개, IGW `hellogsm-igw`, 라우트테이블 4개 — 전부 `tag:Name`
-  필터 기반 데이터 소스 조회. `hello-pub-rtb`(2b 퍼블릭 라우트테이블)는 stage 환경과 공유되므로
-  애초에 이 스택이 손댈 일이 없어야 한다는 점에서도 더 안전해졌다.
-- `compute/bastionNat.ts`: Bastion+NAT 인스턴스 `hello-prod-nat` + EIP `hello-prod-eip` — 데이터
-  소스 조회. 이 인스턴스는 DB/배치 작업용 SSH 터널 등 운영 전반에 상시 쓰이는 Bastion이라 시즌과
-  무관하게 항상 떠 있어야 한다.
-- `securityGroups.ts`의 `bastionSg`(`hellogsm-nat-sg`) — 데이터 소스 조회.
+- `network.ts`: VPC `hello-vpc`, 서브넷 4개 — `tag:Name` 필터 기반 데이터 소스 조회. IGW와
+  라우트테이블 4개는 NAT 라우트 리소스가 사라지면서 이 스택 어디에서도 참조하지 않아 조회 자체를
+  제거했다(소비자 없는 데이터 소스는 매 `preview`/`up`/`destroy`마다 불필요한 AWS API 호출과
+  태그 변경 시 "no match found" 실패 위험만 남긴다).
+- `compute/bastionNat.ts`: Bastion+NAT 인스턴스 `hello-prod-nat` — 데이터 소스 조회. EIP는 별도
+  태그 조회 대신 이 인스턴스 조회 결과의 `publicIp`를 그대로 사용한다(태그 의존 없이 정확하고
+  조회도 한 번 줄어든다). 이 인스턴스는 DB/배치 작업용 SSH 터널 등 운영 전반에 상시 쓰이는
+  Bastion이라 시즌과 무관하게 항상 떠 있어야 한다.
+- `securityGroups.ts`의 `bastionSg`(`hellogsm-nat-sg`) — 데이터 소스 조회. 관리자 SSH ingress
+  CIDR은 이 스택 밖에서 수동 관리되며 drift를 감지하지 않는다 (Config 섹션 참고).
 - `s3.ts`: 배포 아티팩트 버킷 / 앱 자산 버킷 — 데이터 소스 조회 (스토리지 비용만 발생).
-- `monitoring.ts`의 CloudWatch 로그 그룹 `hellogsm-prod-log` — 이름만 상수로 참조 (실제 가치가
-  로그 데이터 자체에 있어 삭제 시 전부 유실되므로 애초에 손댈 이유가 없다).
+- `monitoring.ts`의 CloudWatch 로그 그룹 `hellogsm-prod-log` — 이름만 상수로 참조하되,
+  `retentionInDays`는 데이터 소스로 조회해 `config.logRetentionDays`와 불일치 시 `preview`/`up`을
+  실패시켜 drift를 감지한다(실제 로그 데이터는 삭제 시 전부 유실되므로 애초에 손댈 이유가 없다).
 
 ### protect:true로 보존하지만 데이터 소스 전환이 불가능/불필요한 것들
 
@@ -42,7 +46,15 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
   AWS의 `InvalidParameterValue`(사용 중인 DB subnet group은 삭제 불가)로 매 시즌 종료마다
   중간에 실패한다. 그래서 새로 `protect:true`를 추가했다.
 - `iam.ts`의 GitHub OIDC provider — AWS 계정당 동일 URL로 1개만 허용되고 비용이 전혀 없어
-  `protect:true`로 전환. (Role/Policy 자체는 ephemeral로 유지 - 이름이 고정이라 재생성해도 ARN 동일)
+  `protect:true`로 전환.
+- `iam.ts`의 `hello-prod-github-actions-deploy-role`(+정책) — `hellogsm-prod-cd.yml`은 main
+  브랜치 push마다(전형 시즌과 무관하게 상시) 이 역할로 ECR에 이미지를 push한다. ECR은 보존했는데
+  이 역할을 ephemeral로 두면 비시즌에 main이 머지될 때 assume할 역할이 없어 CI/CD가 실패하므로,
+  ECR과 짝을 맞춰 `protect:true`로 전환했다.
+- `iam.ts`의 `hello-prod-codedeploy-service-role`(+정책 어태치먼트) — `codeDeploy.ts`의
+  deploymentGroup(protect:true로 상시 보존)이 이 역할의 arn을 그대로 저장한다. 역할을 ephemeral로
+  두면 매 시즌 종료~다음 up 전까지 보존된 배포그룹이 존재하지 않는 서비스 역할을 가리키게 되므로,
+  동일한 이유로 `protect:true`로 전환했다.
 - `monitoring.ts`의 SNS 알람 토픽/이메일 구독 — 비용이 거의 없고, 매 시즌 재생성하면 이메일 구독자가
   컨펌을 다시 눌러야 하는 불편이 생겨 `protect:true`로 전환. (MetricAlarm 자체는 매 시즌 새
   인스턴스/ALB를 가리켜야 해서 ephemeral로 유지)
@@ -52,8 +64,8 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
 ### 운영 사이클마다 뜨고 내려가는 인프라 (ephemeral, `pulumi up`/`pulumi destroy --exclude-protected` 대상)
 
 ALB(+리스너 2개+타겟그룹+어태치먼트), Route53 A레코드, ACM 인증서(+DNS 검증), Spring Boot EC2 2대,
-Redis EC2, 이들의 보안그룹(albSg/springbootSg/redisSg), IAM 롤(Spring Boot 인스턴스 프로파일 /
-CodeDeploy 서비스 롤 / GitHub Actions 배포 롤), CloudWatch MetricAlarm들.
+Redis EC2, 이들의 보안그룹(albSg/springbootSg/redisSg), Spring Boot 인스턴스 프로파일(및 EC2 롤),
+CloudWatch MetricAlarm들. (CodeDeploy 서비스 롤과 GitHub Actions 배포 롤은 위 보존 목록으로 옮겼다.)
 
 ### 이번 정리 작업 전에 반드시 먼저 해야 하는 것 — 기존 state 정리
 
@@ -126,8 +138,17 @@ pulumi preview   # diff가 없어야 정상 (0 create / 0 replace)
 값을 바꿔야 할 때만 아래처럼 갱신한다.
 
 ```bash
-pulumi config set adminSshCidr <IP>/32
 pulumi config set --secret dbPassword '<new-password>'
+```
+
+**관리자 SSH 접근(Bastion `hellogsm-nat-sg`의 22번 포트 CIDR)은 이 스택이 관리하지 않는다** —
+bastionSg가 데이터 소스로 전환되면서 `adminSshCidr` config는 소비자가 없어져 제거했다. 접근 가능
+CIDR을 바꿔야 하면 AWS 콘솔/CLI에서 `hellogsm-nat-sg`를 직접 수정하고, `pulumi preview`는 이
+변경을 감지하지 않으므로(diff가 0으로 나와도 정상) 수동으로 확인한다.
+
+```bash
+aws ec2 describe-security-groups --group-names hellogsm-nat-sg \
+  --query 'SecurityGroups[0].IpPermissions[?ToPort==`22`]'
 ```
 
 ## 재해복구 — 스택을 처음부터 다시 만들어야 하는 경우
@@ -136,10 +157,10 @@ pulumi config set --secret dbPassword '<new-password>'
 종류에 따라 절차가 다르다.
 
 **상시 보존 인프라(데이터 소스로만 참조하는 것들)는 import가 필요 없다** — network.ts /
-compute/bastionNat.ts / securityGroups.ts의 bastionSg / s3.ts가 참조하는 VPC·서브넷·IGW·
-라우트테이블·NAT 인스턴스·EIP·`hellogsm-nat-sg`·S3 버킷 2개는 AWS 계정에 해당 `tag:Name`(또는
-버킷명)으로 **이미 존재하기만 하면** 데이터 소스 조회가 바로 성공한다. 존재하지 않는다면 그건
-이 스택의 책무가 아니라 해당 리소스를 실제로 복구해야 하는 더 큰 문제다.
+compute/bastionNat.ts / securityGroups.ts의 bastionSg / s3.ts가 참조하는 VPC·서브넷·
+NAT 인스턴스(EIP는 이 인스턴스 조회 결과에서 파생)·`hellogsm-nat-sg`·S3 버킷 2개는 AWS 계정에
+해당 `tag:Name`(또는 버킷명)으로 **이미 존재하기만 하면** 데이터 소스 조회가 바로 성공한다.
+존재하지 않는다면 그건 이 스택의 책무가 아니라 해당 리소스를 실제로 복구해야 하는 더 큰 문제다.
 
 여전히 Pulumi가 **생성/관리**하는 아래 리소스들만 기존 동일 이름이 AWS에 남아있는 경우
 `pulumi up` 대신 먼저 import해야 충돌하지 않는다. 특히 OIDC provider는 계정당 URL별 1개만

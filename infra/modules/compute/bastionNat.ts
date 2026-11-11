@@ -10,12 +10,14 @@ export function createBastionNat() {
         filters: [{ name: "tag:Name", values: ["hello-prod-nat"] }],
     });
 
-    // 이 프로바이더 버전은 단일 EIP 데이터 소스(getEip)가 없어 getEips(복수형)로 조회한다.
-    // hello-prod-eip는 NAT 인스턴스에 고정 연결된 단일 EIP라 결과가 항상 정확히 1개다.
-    const eips = aws.ec2.getEipsOutput({
-        tags: { Name: "hello-prod-eip" },
-    });
-    const eip = { publicIp: eips.publicIps[0] };
+    // NAT 인스턴스에 연결된 EIP는 이미 조회한 인스턴스 결과의 publicIp를 그대로 쓴다.
+    // hello-prod-eip는 과거 pulumi import로 흡수된 리소스라 AWS 측에 Name 태그가
+    // 실제로 있는지 보장할 수 없고, tag:Name 필터로 따로 조회하면 태그가 없을 때
+    // getEips가 에러 없이 빈 배열을 반환해 publicIps[0]이 undefined가 되어
+    // bastionPublicIp 스택 출력이 조용히 사라진다. instance.publicIp를 쓰면 태그
+    // 의존 없이 정확하고(EIP가 고정 연결돼 있으므로 인스턴스의 공개 IP와 항상 같다)
+    // 조회도 한 번 줄어든다.
+    const eip = { publicIp: instance.publicIp };
 
     return { instance, eip };
 }

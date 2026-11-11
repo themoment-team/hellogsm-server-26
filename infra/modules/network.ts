@@ -14,29 +14,23 @@ function byName(name: string) {
 // 이 스택이 손댈 일이 없어야 한다는 점에서도 데이터 소스화가 더 안전하다.
 export function createNetwork() {
     const vpc = aws.ec2.getVpcOutput(byName("hello-vpc"));
-    const igw = aws.ec2.getInternetGatewayOutput(byName("hellogsm-igw"));
 
     const prodPublicSubnet2a = aws.ec2.getSubnetOutput(byName("hello-prod-public-2a"));
     const publicSubnet2b = aws.ec2.getSubnetOutput(byName("hello-public-subnet-2b"));
     const prodPrivateSubnet2a = aws.ec2.getSubnetOutput(byName("hello-prod-private-2a"));
     const privateSubnet2b = aws.ec2.getSubnetOutput(byName("hello-private-subnet-2b"));
 
-    const prodPublicRouteTable2a = aws.ec2.getRouteTableOutput(byName("hello-prod-pub-rtb-a"));
-    const publicRouteTable2b = aws.ec2.getRouteTableOutput(byName("hello-pub-rtb"));
-    const prodPrivateRouteTable2a = aws.ec2.getRouteTableOutput(byName("hello-prod-priv-rtb-a"));
-    const prodPrivateRouteTable2b = aws.ec2.getRouteTableOutput(byName("hello-prod-priv-rtb-b"));
-
+    // igw/라우트테이블(hello-prod-pub-rtb-a, hello-pub-rtb, hello-prod-priv-rtb-a/b)은
+    // NAT 라우트 리소스가 사라지면서 이 스택 어디에서도 id를 참조하지 않는다. 소비자 없는
+    // 데이터 소스를 남겨두면 preview/up/destroy마다 불필요한 AWS API 호출이 추가되고,
+    // 태그가 바뀌거나 리소스가 안 보이면 아무도 쓰지 않는 값 때문에 스택 전체가
+    // "no match found"로 실패한다 - 그래서 조회 자체를 제거했다.
     return {
         vpc,
-        igw,
         prodPublicSubnet2a,
         publicSubnet2b,
         prodPrivateSubnet2a,
         privateSubnet2b,
-        prodPublicRouteTable2a,
-        publicRouteTable2b,
-        prodPrivateRouteTable2a,
-        prodPrivateRouteTable2b,
     };
 }
 

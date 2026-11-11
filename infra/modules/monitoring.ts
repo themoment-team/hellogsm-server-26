@@ -17,9 +17,21 @@ export function createMonitoring(
 ): MonitoringResult {
     // 2024년부터 실제 운영 로그(약 1GB 이상)가 쌓여있는 기존 로그 그룹이다. 삭제 시
     // 로그가 전부 유실되고, 운영 사이클과 무관하게 상시 보존해야 하는 자원이라 더 이상
-    // Pulumi가 관리하지 않고 데이터 소스로만 참조한다 (실제 값 조회는 불필요한 경우가
-    // 많아 이름만 상수로 export - 필요해지면 getLogGroupOutput으로 조회해 바꾼다).
+    // Pulumi가 관리하지 않고 데이터 소스로만 참조한다.
     const logGroupName = LOG_GROUP_NAME;
+
+    // retentionInDays는 관리 대상에서 빠진 뒤로 콘솔에서 바뀌어도 drift를 발견할 방법이
+    // 없었다. config.logRetentionDays(logback-spring.xml의 retentionTimeDays=0과 정합을
+    // 맞추는 값, "0" = 만료 없음)와 실제 값을 비교해 preview/up 시점에 불일치를 드러낸다.
+    aws.cloudwatch.getLogGroupOutput({ name: LOG_GROUP_NAME }).retentionInDays.apply((actual) => {
+        if (actual !== config.logRetentionDays) {
+            throw new Error(
+                `CloudWatch 로그그룹 ${LOG_GROUP_NAME}의 retentionInDays가 기대값과 다릅니다 ` +
+                    `(기대: ${config.logRetentionDays}, 실제: ${actual}). 콘솔에서 변경되었을 수 ` +
+                    `있습니다 - logback-spring.xml의 retentionTimeDays와 정합을 다시 확인하세요.`,
+            );
+        }
+    });
 
     // SNS 알람 토픽은 비용이 거의 없고, destroy/up으로 재생성하면 이메일 구독자가 매 시즌
     // 재확인(컨펌 클릭)을 다시 해야 하는 불편이 생긴다. protect:true로 상시 보존한다 -
