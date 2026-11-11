@@ -15,10 +15,13 @@ function byName(name: string) {
 export function createNetwork() {
     const vpc = aws.ec2.getVpcOutput(byName("hello-vpc"));
 
-    const prodPublicSubnet2a = aws.ec2.getSubnetOutput(byName("hello-prod-public-2a"));
-    const publicSubnet2b = aws.ec2.getSubnetOutput(byName("hello-public-subnet-2b"));
-    const prodPrivateSubnet2a = aws.ec2.getSubnetOutput(byName("hello-prod-private-2a"));
-    const privateSubnet2b = aws.ec2.getSubnetOutput(byName("hello-private-subnet-2b"));
+    // tag:Name만으로 조회하면, stage 등 다른 VPC에 같은 이름 태그가 우연히 생겨도 그걸
+    // 그대로 진짜로 취급한다. vpcId로 조회 범위를 hello-vpc로 좁혀 다른 VPC의 리소스가
+    // 섞여 들어올 가능성을 없앤다.
+    const prodPublicSubnet2a = aws.ec2.getSubnetOutput({ ...byName("hello-prod-public-2a"), vpcId: vpc.id });
+    const publicSubnet2b = aws.ec2.getSubnetOutput({ ...byName("hello-public-subnet-2b"), vpcId: vpc.id });
+    const prodPrivateSubnet2a = aws.ec2.getSubnetOutput({ ...byName("hello-prod-private-2a"), vpcId: vpc.id });
+    const privateSubnet2b = aws.ec2.getSubnetOutput({ ...byName("hello-private-subnet-2b"), vpcId: vpc.id });
 
     // igw/라우트테이블(hello-prod-pub-rtb-a, hello-pub-rtb, hello-prod-priv-rtb-a/b)은
     // NAT 라우트 리소스가 사라지면서 이 스택 어디에서도 id를 참조하지 않는다. 소비자 없는

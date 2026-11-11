@@ -26,9 +26,11 @@ const database = createDatabase(
     sg.rdsSg.id,
 );
 
-// Bastion+NAT 인스턴스와 프라이빗 서브넷의 NAT 라우트는 모두 상시 보존 대상(데이터 소스)으로
-// 바뀌어 Pulumi가 더 이상 생성/수정하지 않는다 - 매 시즌 springboot/redis를 올리기 전에도
-// 항상 이미 존재하므로, 과거처럼 라우트 생성 순서를 맞추기 위한 dependsOn도 더 이상 필요 없다.
+// Bastion+NAT 인스턴스는 상시 보존 대상(데이터 소스)으로 바뀌어 Pulumi가 더 이상
+// 생성/수정하지 않는다. 프라이빗 서브넷의 NAT 라우트(hello-prod-priv-rtb-a/b의
+// 0.0.0.0/0 -> hello-prod-nat)는 데이터 소스조차 아니다 - 이 스택이 더 이상 관리하지도,
+// 존재를 검증하지도 않는다(README의 "운영 사이클 명령" 절 참고). 과거처럼 라우트 생성
+// 순서를 맞추기 위한 dependsOn도 더 이상 필요 없다.
 const bastionNat = createBastionNat();
 
 // CodeDeploy HalfAtATime 롤링 배포를 위해 서로 다른 AZ(2a/2b)에 2대를 띄운다.

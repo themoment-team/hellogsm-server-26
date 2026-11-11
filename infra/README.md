@@ -20,10 +20,14 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
 이제는 Pulumi state에서 완전히 빼고 읽기 전용 데이터 소스(`aws.*.get*Output`)로만 참조한다** —
 매 시즌 `pulumi destroy --exclude-protected`를 돌려도 아예 그래프에 없으므로 건드릴 일이 없다.
 
-- `network.ts`: VPC `hello-vpc`, 서브넷 4개 — `tag:Name` 필터 기반 데이터 소스 조회. IGW와
-  라우트테이블 4개는 NAT 라우트 리소스가 사라지면서 이 스택 어디에서도 참조하지 않아 조회 자체를
-  제거했다(소비자 없는 데이터 소스는 매 `preview`/`up`/`destroy`마다 불필요한 AWS API 호출과
-  태그 변경 시 "no match found" 실패 위험만 남긴다).
+- `network.ts`: VPC `hello-vpc`, 서브넷 4개 — `tag:Name` 필터 기반 데이터 소스 조회. 서브넷 4개는
+  추가로 `vpcId: vpc.id`로 조회 범위를 `hello-vpc`로 좁혀, stage 등 다른 VPC에 같은 이름 태그가
+  우연히 생겨도 그 리소스가 섞여 들어오지 않도록 한다(`hello-public-subnet-2b`/
+  `hello-private-subnet-2b`는 stage와 의도적으로 공유되는 서브넷이라 이 필터로도 모호성이
+  없어지진 않지만, 다른 두 서브넷에는 실질적인 방어가 된다). IGW와 라우트테이블 4개는 NAT 라우트
+  리소스가 사라지면서 이 스택 어디에서도 참조하지 않아 조회 자체를 제거했다(소비자 없는 데이터
+  소스는 매 `preview`/`up`/`destroy`마다 불필요한 AWS API 호출과 태그 변경 시 "no match found"
+  실패 위험만 남긴다).
 - `compute/bastionNat.ts`: Bastion+NAT 인스턴스 `hello-prod-nat` — 데이터 소스 조회. EIP는 별도
   태그 조회 대신 이 인스턴스 조회 결과의 `publicIp`를 그대로 사용한다(태그 의존 없이 정확하고
   조회도 한 번 줄어든다). 이 인스턴스는 DB/배치 작업용 SSH 터널 등 운영 전반에 상시 쓰이는
@@ -58,6 +62,11 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
 - `monitoring.ts`의 SNS 알람 토픽/이메일 구독 — 비용이 거의 없고, 매 시즌 재생성하면 이메일 구독자가
   컨펌을 다시 눌러야 하는 불편이 생겨 `protect:true`로 전환. (MetricAlarm 자체는 매 시즌 새
   인스턴스/ALB를 가리켜야 해서 ephemeral로 유지)
+  **주의:** `TopicSubscription`의 `endpoint`는 ForceNew 필드라, 나중에 `snsAlarmEmail` 값을
+  바꾸면 Pulumi가 삭제 후 재생성을 시도하다가 `protect:true`에 막혀 `pulumi up`이 "resource
+  protected" 에러로 실패한다. 이메일을 교체할 때는 먼저
+  `pulumi state unprotect 'urn:...:aws:sns/topicSubscription:TopicSubscription::hello-prod-alerts-email'`
+  로 보호를 해제한 뒤 `pulumi up`을 돌린다.
 - `ecr.ts`의 ECR 저장소 `hello-prod-server` — CI/CD가 시즌과 무관하게 계속 이미지를 push하는
   상시 자원이라 `protect:true`로 전환. (이미지 보관 비용은 lifecycle policy로 최근 20개만 유지)
 
@@ -108,7 +117,15 @@ update인지 반드시 확인한다. 예상 밖의 `delete`나 `replace`가 보�
 
 ### 운영 사이클 명령
 
+**`pulumi up` 실행 전, 프라이빗 서브넷의 NAT 라우트가 살아있는지 먼저 수동으로 확인한다** —
+이 라우트(`hello-prod-priv-rtb-a`/`hello-prod-priv-rtb-b`의 `0.0.0.0/0 -> hello-prod-nat`)는
+Pulumi가 관리도, 존재 검증도 하지 않는다. 라우트가 없으면 springboot/redis userdata의
+`dnf install`/`wget`이 인터넷에 못 나가 인스턴스 생성 자체가 실패한다(`set -euxo pipefail`).
+
 ```bash
+aws ec2 describe-route-tables --route-table-ids <hello-prod-priv-rtb-a-id> <hello-prod-priv-rtb-b-id> \
+  --query 'RouteTables[].Routes[?DestinationCidrBlock==`0.0.0.0/0`]'
+
 # 전형 시즌 시작 - 과금 컴퓨트(ALB/EC2 등) 신규 생성
 pulumi up
 
