@@ -11,11 +11,19 @@ export function createDatabase(
     privateSubnet2bId: aws.ec2.Subnet["id"],
     rdsSgId: aws.ec2.SecurityGroup["id"],
 ): DatabaseResult {
-    const subnetGroup = new aws.rds.SubnetGroup("hello-prod-rds-subnet-group", {
-        name: "hello-prod-rds-subnet-group",
-        subnetIds: [prodPrivateSubnet2aId, privateSubnet2bId],
-        tags: { Name: "hello-prod-rds-subnet-group" },
-    });
+    // RDS(hello-prod-mysql)가 상시 사용 중인 subnet group - rdsSg와 동일한 이유로
+    // protect:true가 필요하다. 보호하지 않으면 pulumi destroy --exclude-protected 때
+    // ephemeral 리소스로 삭제를 시도하다가 AWS가 "DB instance가 사용 중"이라며
+    // 거부해(InvalidParameterValue) 매 시즌 종료 destroy가 중간에 실패한다.
+    const subnetGroup = new aws.rds.SubnetGroup(
+        "hello-prod-rds-subnet-group",
+        {
+            name: "hello-prod-rds-subnet-group",
+            subnetIds: [prodPrivateSubnet2aId, privateSubnet2bId],
+            tags: { Name: "hello-prod-rds-subnet-group" },
+        },
+        { protect: true },
+    );
 
     const instance = new aws.rds.Instance(
         "hello-prod-mysql",

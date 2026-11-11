@@ -37,6 +37,10 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
   (`getApplication`/`getDeploymentGroup` 미지원) 기존처럼 `protect:true` 관리 리소스로 유지.
 - `securityGroups.ts`의 `rdsSg` — RDS가 이번 범위에서 제외되어 계속 운영 중이므로, 함께 destroy되면
   RDS가 보안그룹을 잃는 장애로 이어진다. 그래서 새로 `protect:true`를 추가했다.
+- `database.ts`의 `hello-prod-rds-subnet-group` — `rdsSg`와 동일한 이유로 보호 대상이다. RDS
+  인스턴스가 사용 중인 subnet group을 ephemeral로 두면 `pulumi destroy --exclude-protected`가
+  AWS의 `InvalidParameterValue`(사용 중인 DB subnet group은 삭제 불가)로 매 시즌 종료마다
+  중간에 실패한다. 그래서 새로 `protect:true`를 추가했다.
 - `iam.ts`의 GitHub OIDC provider — AWS 계정당 동일 URL로 1개만 허용되고 비용이 전혀 없어
   `protect:true`로 전환. (Role/Policy 자체는 ephemeral로 유지 - 이름이 고정이라 재생성해도 ARN 동일)
 - `monitoring.ts`의 SNS 알람 토픽/이메일 구독 — 비용이 거의 없고, 매 시즌 재생성하면 이메일 구독자가
