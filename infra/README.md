@@ -13,6 +13,20 @@ State는 Pulumi Cloud(`gsmthemoment-gmail-com/hellogsm-infra/prod`)에 저장한
 컴퓨트(EC2, ALB)다. **RDS(`hello-prod-mysql`)는 이번 정리 범위에서 완전히 제외** — 데이터/스냅샷
 처리는 별도 일정으로 진행하며 지금은 그대로 `protect:true` + `deletionProtection:true`로 운영 유지.
 
+### 이번 Pulumi 스택 정리 범위 밖의 레거시 리소스 (별도로 정리 필요)
+
+AWS 콘솔에서 직접 만들어져 이 스택이 처음부터 관리하지 않는 리소스들 - 비용 감사 때 "out of scope"로
+분류했던 항목들이다. 전부 아직 삭제되지 않았고, 추후 정리 시 아래 DNS 레코드도 함께 지워야 한다.
+
+- 레거시 공용 ALB `hello-alb` - 과거 stage와 `hello-prod-internal-api`를 함께 서빙하던 ALB. 지금의
+  prod 트래픽은 전부 이 스택이 관리하는 `hello-prod-alb`로 흐르고 있어 실사용은 끝난 것으로 보이나,
+  stage가 여전히 이 ALB를 쓰고 있어 stage 쪽 확인 없이 삭제하면 안 된다.
+- Route53 A레코드 `api.prod.hellogsm.kr` - 위 레거시 `hello-alb`를 가리키는 레코드(실제 prod 도메인은
+  이제 `api-prod.hellogsm.kr` → `hello-prod-alb`). 레거시 ALB를 삭제할 때 이 레코드도 같이 삭제할 것 -
+  안 그러면 더 이상 쓰지 않는 ALB를 가리키는 dangling 레코드로 남는다.
+- 중복 정지 상태 Redis EC2 + 연결된 EBS 볼륨, 미사용 EIP(`readygsm-prod-eip`, 다른 프로젝트 소유),
+  RDS 수동 스냅샷 13개(~260GB)도 동일하게 별도 정리 대상.
+
 ### 상시 보존 인프라 — 더 이상 Pulumi가 생성/수정/삭제하지 않고 데이터 소스로만 참조
 
 이 리소스들은 전부 2024년부터 그대로 운영되어온 것들이거나, CI/CD·모니터링처럼 시즌과 무관하게
