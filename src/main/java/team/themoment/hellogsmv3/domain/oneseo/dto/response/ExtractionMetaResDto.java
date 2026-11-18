@@ -16,5 +16,5 @@ public record ExtractionMetaResDto(@Schema(description = "전체 신뢰도 0.00 
         @Schema(description = "표준 과목 목록에 매칭하지 못한 원문 과목명") List<String> unrecognizedSubjects,
         @Schema(description = "성적을 찾지 못한 학기 목록", example = "[\"3-2\"]") List<String> missingSemesters,
         @Schema(description = "사용자 검수가 필요한 항목 목록") List<ExtractionWarningResDto> warnings,
-        @Schema(description = "추출 원문. 데모 진단용이며 oneseo.extraction.expose-raw-text=true 일 때만 채워집니다.", nullable = true) String rawText) {
+        @Schema(description = "추출 원문. 데모 진단용이며 oneseo.extraction.expose-raw-text=true 일 때만 채워지고, 기본 설정에서는 null입니다.", nullable = true) String rawText) {
 }
