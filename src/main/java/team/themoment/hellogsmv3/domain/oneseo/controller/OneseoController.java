@@ -98,7 +98,7 @@ public class OneseoController {
     @Operation(summary = "원서 검색", description = "조건을 파라미터로 받아 원서를 검색합니다. sortBy, sortDirection으로 정렬 기준을 지정할 수 있습니다.")
     @GetMapping("/oneseo/search")
     public SearchOneseosResDto search(@RequestParam @Min(0) Integer page,
-            @RequestParam @Min(0) Integer size,
+            @RequestParam @Min(1) Integer size,
             @RequestParam TestResultTag testResultTag,
             @RequestParam(required = false) ScreeningCategory screeningTag,
             @Schema(description = "서류 제출 여부") @RequestParam(required = false) YesNo isSubmitted,

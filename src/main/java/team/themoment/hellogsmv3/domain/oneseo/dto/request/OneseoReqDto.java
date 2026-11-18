@@ -29,7 +29,7 @@ public record OneseoReqDto(@Schema(description = "보호자 이름", defaultValu
                 "IOT"}) @NotNull Major secondDesiredMajor,
         @Schema(description = "3지망 학과", defaultValue = "IOT", allowableValues = {"SW", "AI",
                 "IOT"}) @NotNull Major thirdDesiredMajor,
-        @Valid MiddleSchoolAchievementReqDto middleSchoolAchievement,
+        @NotNull(message = "중학교 성적 정보는 필수입니다.") @Valid MiddleSchoolAchievementReqDto middleSchoolAchievement,
         @Schema(description = "중학교 이름", nullable = true, defaultValue = "금호중앙중학교") String schoolName,
         @Schema(description = "중학교 주소", nullable = true, defaultValue = "광주광역시 북구 운암2동 금호로 100") String schoolAddress,
         @Schema(description = "자원자 전형", defaultValue = "GENERAL", allowableValues = {"GENERAL", "SPECIAL",
