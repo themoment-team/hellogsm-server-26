@@ -3,7 +3,6 @@ package team.themoment.hellogsmv3.global.thirdParty.aws.s3.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -35,7 +34,7 @@ public class UploadImageService {
         }
         String originalFileName = multipartFile.getOriginalFilename();
         String fileExtension = StringUtils.getFilenameExtension(originalFileName);
-        validateFileContentType(Objects.requireNonNull(fileExtension));
+        validateFileContentType(fileExtension);
         String fileName = generateFileName(fileExtension);
 
         try {
@@ -62,7 +61,7 @@ public class UploadImageService {
 
     private void validateFileContentType(String fileExtension) {
         List<String> allowExtension = List.of("jpg", "jpeg", "png");
-        if (!allowExtension.contains(fileExtension.toLowerCase())) {
+        if (fileExtension == null || !allowExtension.contains(fileExtension.toLowerCase())) {
             throw new ExpectedException("지원하지 않는 파일 확장자 입니다.", HttpStatus.BAD_REQUEST);
         }
     }

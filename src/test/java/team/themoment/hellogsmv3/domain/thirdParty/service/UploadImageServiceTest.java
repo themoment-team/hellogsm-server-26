@@ -84,6 +84,20 @@ class UploadImageServiceTest {
         }
 
         @Nested
+        @DisplayName("확장자가 없는 파일명이 주어지면")
+        class Context_without_extension {
+            @Test
+            @DisplayName("S3를 호출하지 않고 400 예외를 던진다")
+            void it_rejects_missing_extension() {
+                MultipartFile file = new MockMultipartFile("file", "photo", "image/jpeg", "data".getBytes());
+                ExpectedException exception = assertThrows(ExpectedException.class,
+                        () -> uploadImageService.execute(file));
+                assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+                verifyNoInteractions(s3Template, s3Environment);
+            }
+        }
+
+        @Nested
         @DisplayName("유효한 파일이 주어지면")
         class Context_with_valid_file {
             MultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes());
