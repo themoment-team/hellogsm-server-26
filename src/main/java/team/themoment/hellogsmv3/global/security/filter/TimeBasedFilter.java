@@ -8,21 +8,24 @@ import java.util.Map;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import team.themoment.sdk.response.CommonApiResponse;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
+@RequiredArgsConstructor
 public class TimeBasedFilter extends OncePerRequestFilter {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final Map<String, RequestPeriod> urlRequestPeriods = new HashMap<>();
 
     private record RequestPeriod(LocalDateTime startTime, LocalDateTime endTime) {
@@ -55,8 +58,10 @@ public class TimeBasedFilter extends OncePerRequestFilter {
         LocalDateTime currentTime = LocalDateTime.now();
         String requestPeriodKey = requestUri + ":" + requestMethod;
 
-        if (urlRequestPeriods.containsKey(requestPeriodKey)) {
-            RequestPeriod requestPeriod = urlRequestPeriods.get(requestPeriodKey);
+        RequestPeriod requestPeriod = urlRequestPeriods.entrySet().stream()
+                .filter(entry -> pathMatcher.match(entry.getKey(), requestPeriodKey)).map(Map.Entry::getValue)
+                .findFirst().orElse(null);
+        if (requestPeriod != null) {
 
             if (requestPeriod.isWithinRange(currentTime)) {
                 filterChain.doFilter(request, response);
