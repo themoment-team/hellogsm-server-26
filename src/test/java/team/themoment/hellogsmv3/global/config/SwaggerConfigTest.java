@@ -21,8 +21,8 @@ class SwaggerConfigTest {
     private final SwaggerConfig config = new SwaggerConfig();
 
     @Nested
-    @DisplayName("operationCustomizer 메서드는")
-    class Describe_operationCustomizer {
+    @DisplayName("operationCustomizer와 responseWrapperCustomizer는")
+    class Describe_responseWrapper {
         @Nested
         @DisplayName("201 응답에 여러 미디어 타입이 같은 객체를 공유하는 경우")
         class Context_created {
@@ -34,13 +34,14 @@ class SwaggerConfigTest {
                 Operation operation = new Operation().responses(new ApiResponses().addApiResponse("201",
                         new ApiResponse().content(
                                 new Content().addMediaType("application/json", shared).addMediaType("*/*", shared))));
-                config.operationCustomizer().customize(operation, handler("read"));
+                customize(operation, handler("read"));
                 Schema<?> wrapper = shared.getSchema();
                 assertThat(wrapper.getProperties().get("data")).isSameAs(dto);
                 assertThat(wrapper.getProperties().get("status").getExample()).isEqualTo("201 CREATED");
                 assertThat(wrapper.getProperties().get("code").getExample()).isEqualTo(201);
                 assertThat(wrapper.getTypes()).contains("object");
                 assertThat(wrapper.getRequired()).contains("status", "code", "message", "data");
+                assertThat(operation.getExtensions()).isNull();
             }
         }
         @Nested
@@ -52,13 +53,12 @@ class SwaggerConfigTest {
                 Operation operation = new Operation()
                         .responses(new ApiResponses().addApiResponse("204", new ApiResponse()).addApiResponse("400",
                                 new ApiResponse().content(new Content())));
-                assertThatCode(() -> config.operationCustomizer().customize(operation, handler("read")))
-                        .doesNotThrowAnyException();
+                assertThatCode(() -> customize(operation, handler("read"))).doesNotThrowAnyException();
                 assertThat(operation.getResponses().get("204").getContent()).isNull();
                 assertThat(operation.getResponses().get("400").getContent()).isEmpty();
                 Schema<?> binary = new Schema<>().type("string").format("binary");
                 Operation download = operation("200", binary);
-                config.operationCustomizer().customize(download, handler("download"));
+                customize(download, handler("download"));
                 assertThat(download.getResponses().get("200").getContent().get("application/json").getSchema())
                         .isSameAs(binary);
             }
@@ -70,7 +70,7 @@ class SwaggerConfigTest {
             @DisplayName("data 필드를 만들지 않는다")
             void it_hides_data() throws Exception {
                 Operation operation = operation("200", new Schema<>().$ref("#/components/schemas/CommonApiResponse"));
-                config.operationCustomizer().customize(operation, handler("write"));
+                customize(operation, handler("write"));
                 assertThat(operation.getResponses().get("200").getContent().get("application/json").getSchema()
                         .getProperties()).containsOnlyKeys("status", "code", "message");
             }
@@ -102,7 +102,7 @@ class SwaggerConfigTest {
                                     new MediaType().schema(new Schema<>().type("object"))))));
             paths.addPathItem("/excluded", new io.swagger.v3.oas.models.PathItem().get(textOperation));
             paths.addPathItem("/ordinary", new io.swagger.v3.oas.models.PathItem().get(jsonOperation));
-            config.unwrappedResponseCustomizer(
+            config.responseWrapperCustomizer(
                     new team.themoment.sdk.config.ResponseProperties(true, java.util.List.of("/excluded")))
                     .customise(new io.swagger.v3.oas.models.OpenAPI().paths(paths));
 
@@ -120,7 +120,7 @@ class SwaggerConfigTest {
         }
 
         @Test
-        @DisplayName("루트와 하위 경로의 원래 스키마를 복원하고 일반 응답은 유지한다")
+        @DisplayName("제외 경로는 감싸지 않고 일반 응답은 여러 번 적용해도 한 번만 감싼다")
         void it_preserves_original_schemas() throws Exception {
             var paths = new io.swagger.v3.oas.models.Paths();
             var originals = new java.util.LinkedHashMap<String, Schema<?>>();
@@ -134,11 +134,12 @@ class SwaggerConfigTest {
                 paths.addPathItem(path, new io.swagger.v3.oas.models.PathItem().get(operation));
             }
             var document = new io.swagger.v3.oas.models.OpenAPI().paths(paths);
-            var customizer = config.unwrappedResponseCustomizer(new team.themoment.sdk.config.ResponseProperties(true,
+            var customizer = config.responseWrapperCustomizer(new team.themoment.sdk.config.ResponseProperties(true,
                     java.util.List.of("/hello-management/prometheus/**", "/exact")));
             customizer.customise(document);
             customizer.customise(document);
             originals.forEach((path, original) -> {
+                assertThat(paths.get(path).getGet().getExtensions()).isNull();
                 Schema<?> actual = paths.get(path).getGet().getResponses().get("200").getContent()
                         .get("application/json").getSchema();
                 if (path.equals("/ordinary")) {
@@ -161,6 +162,14 @@ class SwaggerConfigTest {
                         Handlers.class.getDeclaredMethod("authorized", Long.class, Long.class)));
         assertThat(operation.getParameters()).extracting(io.swagger.v3.oas.models.parameters.Parameter::getName)
                 .containsExactly("memberId");
+    }
+
+    private void customize(Operation operation, HandlerMethod handler) {
+        config.operationCustomizer().customize(operation, handler);
+        var paths = new io.swagger.v3.oas.models.Paths();
+        paths.addPathItem("/ordinary", new io.swagger.v3.oas.models.PathItem().get(operation));
+        config.responseWrapperCustomizer(new team.themoment.sdk.config.ResponseProperties(true, java.util.List.of()))
+                .customise(new io.swagger.v3.oas.models.OpenAPI().paths(paths));
     }
 
     private static Operation operation(String status, Schema<?> schema) {
