@@ -103,6 +103,7 @@ schedule:
   finalResultsAnnouncement: ${FINAL_RESULTS_ANNOUNCEMENT}
 
 springdoc:
+  override-with-generic-response: false
   api-docs:
     path: /api-docs
     groups:
@@ -153,6 +154,8 @@ sdk:
     enabled: true
     not-wrapping-urls:
       - "/api-docs/**"
+      - "/api-docs.yaml"
+      - "/api-docs.yaml/**"
       - "/hello-management/prometheus/**"
   exception:
     enabled: false

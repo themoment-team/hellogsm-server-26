@@ -10,11 +10,20 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import team.themoment.hellogsmv3.global.config.SessionSecurityOpenApiConfig;
 import team.themoment.hellogsmv3.global.security.auth.dto.request.OAuthCodeReqDto;
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticationService;
 import team.themoment.sdk.exception.ExpectedException;
@@ -30,9 +39,16 @@ public class AuthController {
     private final OAuthAuthenticationService oAuthAuthenticationService;
     private final ObjectMapper objectMapper;
 
-    @Operation(summary = "OAuth 인증", description = "프론트엔드에서 받은 Authorization Code로 인증을 처리합니다.")
+    @Operation(summary = "OAuth 인증", description = "Authorization Code를 토큰으로 교환하고 OAuth 회원을 조회합니다. 최초 로그인은 UNAUTHENTICATED 회원을 자동 생성합니다. SecurityContext를 서버 세션에 저장하며 302 리다이렉트 없이 200 JSON(data 없음)과 SESSION 쿠키를 반환합니다. 기존 유효 세션은 재사용합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 성공(JSON 및 세션 쿠키)", headers = @Header(name = "Set-Cookie", description = "서버 세션 쿠키 SESSION 발급(기존 세션 재사용 시 생략 가능)", schema = @Schema(type = "string", example = "SESSION=세션값; Path=/; HttpOnly"))),
+            @ApiResponse(responseCode = "400", description = "필수 필드 검증 실패 또는 지원하지 않는 provider", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "토큰 교환, 사용자 정보 조회 또는 사용자 식별 정보 확인 실패", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "OAuth 클라이언트 등록 누락 등 서버 오류", content = @Content())})
     @PostMapping("/auth/{provider}")
-    public CommonApiResponse authenticateWithOAuth(@PathVariable String provider,
+    public CommonApiResponse authenticateWithOAuth(
+            @Parameter(description = "OAuth 제공자(대소문자 무시)", schema = @Schema(allowableValues = {"google",
+                    "kakao"})) @PathVariable String provider,
             @RequestBody @Valid OAuthCodeReqDto reqDto,
             HttpServletRequest request) {
         oAuthAuthenticationService.execute(provider, reqDto.code(), reqDto.redirectUri(), request);
@@ -55,7 +71,11 @@ public class AuthController {
      *      PR</a>
      * @author snowykte0426
      */
-    @Operation(summary = "로그아웃", description = "로그아웃을 진행합니다.")
+    @Operation(summary = "로그아웃", description = "OAuth2 인증 세션이 필요합니다. 컨트롤러가 200 JSON을 직접 작성한 뒤 서버 세션을 무효화하고 SecurityContext를 정리합니다. 클라이언트 쿠키 자체를 명시적으로 삭제하지는 않습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그아웃 성공(직접 작성한 JSON, data 없음)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CommonApiResponse.class), examples = @ExampleObject(value = "{\"status\":\"200 OK\",\"code\":200,\"message\":\"로그아웃 되었습니다.\"}"))),
+            @ApiResponse(responseCode = "401", description = "세션이 없거나 OAuth2 인증이 아님", content = @Content())})
+    @SecurityRequirement(name = SessionSecurityOpenApiConfig.SESSION_COOKIE_SCHEME)
     @GetMapping("/logout")
     public void logout(HttpServletRequest req, HttpServletResponse res) throws IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
