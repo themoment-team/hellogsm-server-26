@@ -15,7 +15,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
-import team.themoment.hellogsmv3.global.security.SecurityConfig;
 import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -55,29 +54,30 @@ class TimeBasedFilterTest {
                 LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
                 LocalDateTime end = LocalDateTime.of(2000, 2, 1, 0, 0);
                 ScheduleEnvironment schedule = new ScheduleEnvironment(start, end, end, start, start, end);
-                return new SecurityConfig(schedule, null, null, null, null, JsonMapper.builder().build())
-                        .timeBasedFilter();
+                return TimeBasedFilter.from(schedule, JsonMapper.builder().build());
             }
 
             @Test
-            @DisplayName("지원자 본인 원서 수정은 기간 밖에도 다음 필터로 전달한다")
-            void it_passes_applicant_update_outside_period() throws Exception {
-                Filter filter = configuredFilter();
-                var request = new MockHttpServletRequest("PUT", "/oneseo/v3/oneseo/me");
-                var response = new MockHttpServletResponse();
-                FilterChain chain = mock(FilterChain.class);
+            @DisplayName("지원자 본인과 관리자의 원서 수정은 기간 밖에도 다음 필터로 전달한다")
+            void it_passes_oneseo_updates_outside_period() throws Exception {
+                for (String path : new String[]{"/oneseo/v3/oneseo/me", "/oneseo/v3/oneseo/123"}) {
+                    Filter filter = configuredFilter();
+                    var request = new MockHttpServletRequest("PUT", path);
+                    var response = new MockHttpServletResponse();
+                    FilterChain chain = mock(FilterChain.class);
 
-                filter.doFilter(request, response, chain);
+                    filter.doFilter(request, response, chain);
 
-                then(chain).should().doFilter(request, response);
-                assertThat(response.getStatus()).isEqualTo(200);
-                assertThat(response.getContentAsString()).isEmpty();
+                    then(chain).should().doFilter(request, response);
+                    assertThat(response.getStatus()).as(path).isEqualTo(200);
+                    assertThat(response.getContentAsString()).isEmpty();
+                }
             }
 
             @Test
-            @DisplayName("숫자 회원 ID 수정과 나머지 기간 제한 요청은 계속 차단한다")
+            @DisplayName("원서 접수와 엑셀 업로드 기간 제한 요청은 차단한다")
             void it_rejects_all_configured_restricted_routes() throws Exception {
-                for (String[] route : new String[][]{{"PUT", "/oneseo/v3/oneseo/123"}, {"POST", "/oneseo/v3/oneseo/me"},
+                for (String[] route : new String[][]{{"POST", "/oneseo/v3/oneseo/me"},
                         {"POST", "/oneseo/v3/temp-storage"}, {"POST", "/oneseo/v3/image"},
                         {"POST", "/oneseo/v3/excel"}}) {
                     Filter filter = configuredFilter();
@@ -111,6 +111,29 @@ class TimeBasedFilterTest {
                     filter.doFilter(request, response, chain);
                     then(chain).should().doFilter(request, response);
                 }
+            }
+        }
+
+        @Nested
+        @DisplayName("여러 규칙이 같은 요청과 일치하는 경우")
+        class Context_overlapping_rules {
+            @Test
+            @DisplayName("먼저 등록한 규칙의 기간을 적용한다")
+            void it_applies_first_registered_rule() throws Exception {
+                TimeBasedFilter filter = new TimeBasedFilter(JsonMapper.builder().build()).addFilter(HttpMethod.POST,
+                        "/oneseo/v3/oneseo/me",
+                        LocalDateTime.of(2000, 1, 1, 0, 0),
+                        LocalDateTime.of(2100, 1, 1, 0, 0)).addFilter(HttpMethod.POST,
+                                "/oneseo/v3/oneseo/**",
+                                LocalDateTime.of(2000, 1, 1, 0, 0),
+                                LocalDateTime.of(2000, 2, 1, 0, 0));
+                var request = new MockHttpServletRequest("POST", "/oneseo/v3/oneseo/me");
+                var response = new MockHttpServletResponse();
+                FilterChain chain = mock(FilterChain.class);
+
+                filter.doFilter(request, response, chain);
+
+                then(chain).should().doFilter(request, response);
             }
         }
     }

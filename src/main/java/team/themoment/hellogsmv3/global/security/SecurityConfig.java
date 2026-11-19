@@ -1,6 +1,5 @@
 package team.themoment.hellogsmv3.global.security;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,19 +40,7 @@ public class SecurityConfig {
 
     @Bean
     public Filter timeBasedFilter() {
-        LocalDateTime oneseoSubmissionStart = scheduleEnv.oneseoSubmissionStart();
-        LocalDateTime oneseoSubmissionEnd = scheduleEnv.oneseoSubmissionEnd();
-        LocalDateTime interview = scheduleEnv.interview();
-        LocalDateTime finalResultsAnnouncement = scheduleEnv.finalResultsAnnouncement();
-        return new TimeBasedFilter(objectMapper)
-                .addFilter(HttpMethod.POST, "/oneseo/v3/temp-storage", oneseoSubmissionStart, oneseoSubmissionEnd)
-                .addFilter(HttpMethod.POST, "/oneseo/v3/oneseo/me", oneseoSubmissionStart, oneseoSubmissionEnd)
-                .addFilter(HttpMethod.PUT,
-                        "/oneseo/v3/oneseo/{memberId:\\d+}",
-                        oneseoSubmissionStart,
-                        oneseoSubmissionEnd)
-                .addFilter(HttpMethod.POST, "/oneseo/v3/image", oneseoSubmissionStart, oneseoSubmissionEnd)
-                .addFilter(HttpMethod.POST, "/oneseo/v3/excel", interview, finalResultsAnnouncement);
+        return TimeBasedFilter.from(scheduleEnv, objectMapper);
     }
 
     @Configuration

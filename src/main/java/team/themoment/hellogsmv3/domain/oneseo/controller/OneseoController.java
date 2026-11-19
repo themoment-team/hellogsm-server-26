@@ -76,11 +76,11 @@ public class OneseoController {
         return CommonApiResponse.created("원서가 생성되었습니다.");
     }
 
-    @Operation(summary = "원서 수정", description = "회원 ID로 원서를 수정합니다. 1차 결과 산출 이후에는 불가합니다. 전형 변경 시 접수번호를 재발급하고 이력을 저장하며, 수정 권한을 NONE으로 회수합니다.\n요청 가능 기간: 원서 접수 기간(시작·종료 시각 제외)\n권한: ADMIN, ROOT")
+    @Operation(summary = "원서 수정", description = "회원 ID로 원서를 수정합니다. 1차 결과 산출 이후에는 불가합니다. 전형 변경 시 접수번호를 재발급하고 이력을 저장하며, 수정 권한을 NONE으로 회수합니다.\n권한: ADMIN, ROOT")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "처리 성공"),
             @ApiResponse(responseCode = "400", description = "요청 값·형식 또는 업무 검증 실패", content = @Content()),
             @ApiResponse(responseCode = "401", description = "로그인하지 않았거나 세션이 만료된 경우", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "권한 부족 또는 요청 가능 기간이 아님 / 1차 결과 산출 이후", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "권한이 부족하거나 1차 결과 산출 이후인 경우", content = @Content()),
             @ApiResponse(responseCode = "404", description = "회원 또는 원서가 존재하지 않는 경우", content = @Content()),
             @ApiResponse(responseCode = "429", description = "외부 성적 계산 서비스 요청 한도 초과", content = @Content()),
             @ApiResponse(responseCode = "500", description = "내부 처리 또는 외부 서비스 실패", content = @Content()),

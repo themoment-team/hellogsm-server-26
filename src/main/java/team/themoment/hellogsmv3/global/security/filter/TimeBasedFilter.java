@@ -2,14 +2,16 @@ package team.themoment.hellogsmv3.global.security.filter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.util.AntPathMatcher;
+import org.springframework.http.server.PathContainer;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import team.themoment.hellogsmv3.global.security.data.ScheduleEnvironment;
 import team.themoment.sdk.response.CommonApiResponse;
 import tools.jackson.databind.ObjectMapper;
 
@@ -25,20 +28,46 @@ import tools.jackson.databind.ObjectMapper;
 public class TimeBasedFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final Map<String, RequestPeriod> urlRequestPeriods = new HashMap<>();
+    private final List<RequestPeriod> requestPeriods = new ArrayList<>();
 
-    private record RequestPeriod(LocalDateTime startTime, LocalDateTime endTime) {
-        public boolean isWithinRange(LocalDateTime currentTime) {
+    private record RequestPeriod(HttpMethod method, PathPattern pattern, LocalDateTime startTime,
+            LocalDateTime endTime) {
+        boolean matches(HttpMethod requestMethod, String requestUri) {
+            return method.equals(requestMethod) && pattern.matches(PathContainer.parsePath(requestUri));
+        }
+
+        boolean isWithinRange(LocalDateTime currentTime) {
             return currentTime.isAfter(startTime) && currentTime.isBefore(endTime);
         }
     }
 
+    public static TimeBasedFilter from(ScheduleEnvironment schedule, ObjectMapper objectMapper) {
+        return new TimeBasedFilter(objectMapper)
+                .addFilter(HttpMethod.POST,
+                        "/oneseo/v3/temp-storage",
+                        schedule.oneseoSubmissionStart(),
+                        schedule.oneseoSubmissionEnd())
+                .addFilter(HttpMethod.POST,
+                        "/oneseo/v3/oneseo/me",
+                        schedule.oneseoSubmissionStart(),
+                        schedule.oneseoSubmissionEnd())
+                .addFilter(HttpMethod.POST,
+                        "/oneseo/v3/image",
+                        schedule.oneseoSubmissionStart(),
+                        schedule.oneseoSubmissionEnd())
+                .addFilter(HttpMethod.POST,
+                        "/oneseo/v3/excel",
+                        schedule.interview(),
+                        schedule.finalResultsAnnouncement());
+    }
+
+    /** 등록 순서대로 검사하며 처음 일치한 규칙의 기간을 적용합니다. */
     public TimeBasedFilter addFilter(HttpMethod httpMethod,
             String uri,
             LocalDateTime startTime,
             LocalDateTime endTime) {
-        urlRequestPeriods.put(uri + ":" + httpMethod, new RequestPeriod(startTime, endTime));
+        requestPeriods
+                .add(new RequestPeriod(httpMethod, PathPatternParser.defaultInstance.parse(uri), startTime, endTime));
         return this;
     }
 
@@ -58,9 +87,8 @@ public class TimeBasedFilter extends OncePerRequestFilter {
         LocalDateTime currentTime = LocalDateTime.now();
         String requestPeriodKey = requestUri + ":" + requestMethod;
 
-        RequestPeriod requestPeriod = urlRequestPeriods.entrySet().stream()
-                .filter(entry -> pathMatcher.match(entry.getKey(), requestPeriodKey)).map(Map.Entry::getValue)
-                .findFirst().orElse(null);
+        RequestPeriod requestPeriod = requestPeriods.stream()
+                .filter(period -> period.matches(requestMethod, requestUri)).findFirst().orElse(null);
         if (requestPeriod != null) {
 
             if (requestPeriod.isWithinRange(currentTime)) {
