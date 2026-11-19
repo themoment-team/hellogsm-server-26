@@ -17,11 +17,13 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import team.themoment.hellogsmv3.global.config.SessionSecurityOpenApiConfig;
 import team.themoment.hellogsmv3.global.security.auth.dto.request.OAuthCodeReqDto;
 import team.themoment.hellogsmv3.global.security.auth.service.OAuthAuthenticationService;
 import team.themoment.sdk.exception.ExpectedException;
@@ -73,6 +75,7 @@ public class AuthController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그아웃 성공(직접 작성한 JSON, data 없음)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CommonApiResponse.class), examples = @ExampleObject(value = "{\"status\":\"200 OK\",\"code\":200,\"message\":\"로그아웃 되었습니다.\"}"))),
             @ApiResponse(responseCode = "401", description = "세션이 없거나 OAuth2 인증이 아님", content = @Content())})
+    @SecurityRequirement(name = SessionSecurityOpenApiConfig.SESSION_COOKIE_SCHEME)
     @GetMapping("/logout")
     public void logout(HttpServletRequest req, HttpServletResponse res) throws IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
