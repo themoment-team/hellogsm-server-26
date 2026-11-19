@@ -96,6 +96,16 @@ class SecurityRoutesTest {
             assertThat(SecurityRoutes.isPublicRequest(HttpMethod.GET, "/auth/v3/logout")).isTrue();
             assertThat(SecurityRoutes.isPublicRequest(HttpMethod.DELETE, "/oneseo/v3/oneseo/123")).isFalse();
         }
+
+        @Test
+        @DisplayName("SecurityConfig와 같은 순서로 처음 일치한 규칙을 적용한다")
+        void it_applies_first_matching_rule() {
+            assertThat(SecurityRoutes.isPublicRequest(HttpMethod.GET, "/date")).isTrue();
+            assertThat(SecurityRoutes.isPublicRequest(HttpMethod.DELETE, "/utility/v3/member/1")).isTrue();
+            assertThat(SecurityRoutes.isPublicRequest(HttpMethod.PATCH, "/utility/v3/oneseo/1")).isTrue();
+            assertThat(SecurityRoutes.isPublicRequest(HttpMethod.POST, "/auth/v3/auth/google")).isTrue();
+            assertThat(SecurityRoutes.isPublicRequest(HttpMethod.GET, "/operation/v3/operation")).isFalse();
+        }
     }
 
     private MockHttpSession session(String role) {
@@ -114,7 +124,7 @@ class SecurityRoutesTest {
         @Bean
         SecurityFilterChain chain(HttpSecurity http) throws Exception {
             http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(registry -> {
-                SecurityRoutes.authorizeProtectedRequests(registry);
+                SecurityRoutes.authorizeRequests(registry);
                 registry.anyRequest().permitAll();
             }).exceptionHandling(
                     handling -> handling.authenticationEntryPoint((request, response, error) -> response.setStatus(401))

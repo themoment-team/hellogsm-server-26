@@ -10,7 +10,9 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 import team.themoment.hellogsmv3.domain.member.entity.type.Role;
 
-/** SecurityFilterChain과 OpenAPI가 공유하는 보호 경로 및 권한 정책입니다. */
+/**
+ * SecurityFilterChain과 OpenAPI가 공유하는 경로별 권한 정책입니다. 등록 순서대로 처음 일치한 규칙을 적용합니다.
+ */
 public final class SecurityRoutes {
     private static final String[] ALL_AUTHENTICATED = {Role.UNAUTHENTICATED.name(), Role.APPLICANT.name(),
             Role.ADMIN.name(), Role.ROOT.name()};
@@ -20,7 +22,11 @@ public final class SecurityRoutes {
     private static final String[] APPLICANT_OR_ADMIN_OR_ROOT = {Role.APPLICANT.name(), Role.ADMIN.name(),
             Role.ROOT.name()};
 
-    private static final List<Rule> PROTECTED_RULES = List.of(
+    private static final List<Rule> RULES = List.of(Rule.permitAll(HttpMethod.OPTIONS, "/**/*"),
+            Rule.permitAll(HttpMethod.GET, "/date"),
+            Rule.permitAll(HttpMethod.DELETE, "/utility/v3/**"),
+            Rule.permitAll(HttpMethod.PATCH, "/utility/v3/**"),
+            Rule.permitAll(null, "/auth/v3/**"),
             new Rule(HttpMethod.GET, "/member/v3/member/me", ALL_AUTHENTICATED),
             new Rule(HttpMethod.GET, "/member/v3/member/{memberId}", ADMIN_ONLY),
             new Rule(HttpMethod.POST, "/member/v3/member/me/send-code", ALL_AUTHENTICATED),
@@ -69,22 +75,33 @@ public final class SecurityRoutes {
             return (method == null || method.equals(requestMethod))
                     && PathPatternParser.defaultInstance.parse(path).matches(PathContainer.parsePath(requestPath));
         }
+
+        static Rule permitAll(HttpMethod method, String path) {
+            return new Rule(method, path, null);
+        }
+
+        boolean isPermitAll() {
+            return authorities == null;
+        }
     }
 
-    public static void authorizeProtectedRequests(
+    public static void authorizeRequests(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
-        for (Rule rule : PROTECTED_RULES) {
-            if (rule.method() == null) {
-                registry.requestMatchers(rule.path()).hasAnyAuthority(rule.authorities());
+        for (Rule rule : RULES) {
+            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizedUrl url = rule.method() == null
+                    ? registry.requestMatchers(rule.path())
+                    : registry.requestMatchers(rule.method(), rule.path());
+            if (rule.isPermitAll()) {
+                url.permitAll();
             } else {
-                registry.requestMatchers(rule.method(), rule.path()).hasAnyAuthority(rule.authorities());
+                url.hasAnyAuthority(rule.authorities());
             }
         }
     }
 
+    /** 일치하는 규칙이 없으면 SecurityConfig의 anyRequest().permitAll()에 따라 공개입니다. */
     public static boolean isPublicRequest(HttpMethod method, String path) {
-        // OPTIONS는 commonRequests에서 보호 경로보다 먼저 permitAll로 처리됩니다.
-        return HttpMethod.OPTIONS.equals(method)
-                || PROTECTED_RULES.stream().noneMatch(rule -> rule.matches(method, path));
+        return RULES.stream().filter(rule -> rule.matches(method, path)).findFirst().map(Rule::isPermitAll)
+                .orElse(true);
     }
 }

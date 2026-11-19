@@ -9,7 +9,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -95,23 +94,9 @@ public class SecurityConfig {
 
     private void authorizeHttpRequests(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(req -> {
-            commonRequests(req);
-            authRequests(req);
-            SecurityRoutes.authorizeProtectedRequests(req);
+            SecurityRoutes.authorizeRequests(req);
             req.anyRequest().permitAll();
         });
-    }
-
-    private void commonRequests(
-            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry req) {
-        req.requestMatchers(HttpMethod.OPTIONS, "/**/*").permitAll().requestMatchers(HttpMethod.GET, "/date")
-                .permitAll().requestMatchers(HttpMethod.DELETE, "/utility/v3/**").permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/utility/v3/**").permitAll();
-    }
-
-    private void authRequests(
-            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry req) {
-        req.requestMatchers("/auth/v3/**").permitAll();
     }
 
     private void addLoggingFilter(HttpSecurity http) {
