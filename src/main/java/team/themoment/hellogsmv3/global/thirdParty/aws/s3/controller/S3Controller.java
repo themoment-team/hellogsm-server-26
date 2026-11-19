@@ -1,5 +1,6 @@
 package team.themoment.hellogsmv3.global.thirdParty.aws.s3.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,7 +34,7 @@ public class S3Controller {
             @ApiResponse(responseCode = "500", description = "S3 또는 입출력 오류", content = @Content())})
     @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "multipart/form-data", schema = @Schema(type = "object", requiredProperties = {
             "file"}), schemaProperties = @io.swagger.v3.oas.annotations.media.SchemaProperty(name = "file", schema = @Schema(type = "string", format = "binary", description = "증명사진 파일"))))
-    @PostMapping(value = "/image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UploadImageResDto uploadImage(
             @Parameter(description = "증명사진 파일(필수)", required = true, schema = @Schema(type = "string", format = "binary")) @RequestParam(value = "file") MultipartFile multipartFile) {
         return uploadImageService.execute(multipartFile);

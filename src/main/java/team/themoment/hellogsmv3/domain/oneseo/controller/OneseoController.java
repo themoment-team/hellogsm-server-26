@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -205,7 +206,7 @@ public class OneseoController {
             @ApiResponse(responseCode = "403", description = "권한 부족 또는 요청 가능 기간이 아님", content = @Content()),
             @ApiResponse(responseCode = "404", description = "회원 또는 원서가 존재하지 않는 경우", content = @Content()),
             @ApiResponse(responseCode = "500", description = "내부 처리 또는 외부 서비스 실패", content = @Content())})
-    @PostMapping(value = "/excel", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public CommonApiResponse uploadExcel(
             @Parameter(description = "필수 엑셀 파일. 최대 5MB. 첫 시트의 0·3·4열을 사용합니다.") @RequestParam("file") MultipartFile file) {
         uploadExcelService.execute(file);
